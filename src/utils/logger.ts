@@ -21,34 +21,34 @@ class LoggerService {
     });
   }
 
-  info(message: string, meta?: Record<string, unknown>) {
-    this.logger.info(meta, message);
-  }
+  info = (message: string, meta?: Record<string, unknown>) => {
+    this.logger.info(meta ?? {}, message);
+  };
 
-  warn(message: string, meta?: Record<string, unknown>) {
-    this.logger.warn(meta, message);
-  }
+  warn = (message: string, meta?: Record<string, unknown>) => {
+    this.logger.warn(meta ?? {}, message);
+  };
 
-  error(message: string, meta?: Record<string, unknown>) {
-    this.logger.error(meta, message);
-  }
+  error = (message: string, meta?: Record<string, unknown>) => {
+    this.logger.error(meta ?? {}, message);
+  };
 
-  debug(message: string, meta?: Record<string, unknown>) {
-    this.logger.debug(meta, message);
-  }
+  debug = (message: string, meta?: Record<string, unknown>) => {
+    this.logger.debug(meta ?? {}, message);
+  };
 
   child(meta: Record<string, unknown>) {
     return this.logger.child(meta);
   }
-  apiLogger(req: Request, res: Response, next: NextFunction) {
-    const startTime = Date.now(); // Track the start time of the request
+
+  apiLogger = (req: Request, res: Response, next: NextFunction) => {
+    const startTime = Date.now();
 
     // Log the incoming request
     this.info(`${req.method} ${req.originalUrl}`);
 
-    // Listen for when the response has been sent
     res.on("finish", () => {
-      const duration = Date.now() - startTime; // Calculate the response time
+      const duration = Date.now() - startTime;
       let logMessage = `${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`;
 
       // Log the details after the response is sent
@@ -60,8 +60,8 @@ class LoggerService {
       });
     });
 
-    next(); // Pass control to the next middleware or route handler
-  }
+    next();
+  };
 }
 
 // Export the singleton instance
