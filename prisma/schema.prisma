@@ -9,15 +9,33 @@ datasource db {
 }
 
 
-enum Role {
-  USER
-  ADMIN
-  SUPERADMIN
-}
+
+
 
 enum SellerType {
   PRIVATE
   BUSINESS
+}
+
+model Seller {
+  id         String     @id @default(uuid())
+  email      String     @unique
+  name       String?
+  phone      String
+  address    String
+  postalCode String
+  city       String?
+  type       SellerType
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
 }
 
 model User {
@@ -27,21 +45,6 @@ model User {
   password    String
   role        Role     @default(USER)
   token       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-model Seller {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String?
-  phone       String
-  address     String
-  postalCode  String
-  city        String?
-  type        SellerType
-  isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
