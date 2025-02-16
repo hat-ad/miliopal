@@ -1,17 +1,21 @@
 import { OK, ERROR, BAD } from "@/utils/response-helper";
 import { Request, Response } from "express";
 import UserService from "@/services/user.service";
-import bcrypt from "bcryptjs";
 import { generateToken } from "@/functions/function";
 
 export default class UserController {
   static async createUser(req: Request, res: Response): Promise<void> {
     try {
+      const { email } = req.body;
+      const user = await UserService.getUserByEmail(email);
+      if (user) return ERROR(res, false, "User already exist");
+
       const newUser = await UserService.createUser(req.body);
 
       const token = generateToken(newUser.id.toString());
 
       const response = await UserService.updateUser(newUser.id, { token });
+
       return OK(res, response, "User created successfully");
     } catch (error) {
       return ERROR(res, false, error);

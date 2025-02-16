@@ -33,6 +33,10 @@ class UserService {
     return UserRepository.getUser(id);
   }
 
+  static async getUserByEmail(email: string): Promise<User | null> {
+    return UserRepository.getUserByEmail(email);
+  }
+
   static async updateUser(
     id: string,
     data: {
