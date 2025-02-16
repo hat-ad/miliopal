@@ -1,4 +1,4 @@
-import { OK, ERROR, BAD } from "@/utils/response-helper";
+import { OK, ERROR } from "@/utils/response-helper";
 import { Request, Response } from "express";
 import SellerService from "@/services/seller.service";
 
