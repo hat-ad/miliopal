@@ -29,6 +29,12 @@ class BuyerRepository {
     });
   }
 
+  async getBuyerByEmail(email: string): Promise<Buyer | null> {
+    return this.db.buyer.findUnique({
+      where: { email },
+    });
+  }
+
   async getBuyersList(
     filters: {
       name?: string;

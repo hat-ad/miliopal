@@ -15,6 +15,10 @@ class BuyerService {
     return BuyerRepository.getBuyer(id);
   }
 
+  static async getBuyerByEmail(email: string): Promise<Buyer | null> {
+    return BuyerRepository.getBuyerByEmail(email);
+  }
+
   static async getBuyersList(
     filters: {
       name?: string;

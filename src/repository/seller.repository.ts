@@ -37,6 +37,12 @@ class SellerRepository {
     });
   }
 
+  async getSellerByEmail(email: string): Promise<Seller | null> {
+    return this.db.seller.findUnique({
+      where: { email },
+    });
+  }
+
   async getSellersList(
     filters: {
       name?: string;

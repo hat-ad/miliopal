@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { Seller, SellerType } from "@prisma/client";
+import { Buyer, Seller, SellerType } from "@prisma/client";
 import SellerRepository from "@/repository/seller.repository";
 
 class SellerService {
@@ -18,6 +18,10 @@ class SellerService {
 
   static async getSeller(id: string): Promise<Seller | null> {
     return SellerRepository.getSeller(id);
+  }
+
+  static async getSellerByEmail(email: string): Promise<Buyer | null> {
+    return SellerRepository.getSellerByEmail(email);
   }
 
   static async getSellersList(

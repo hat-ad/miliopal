@@ -5,6 +5,10 @@ import BuyerService from "@/services/buyer.service";
 export default class BuyerController {
   static async createBuyer(req: Request, res: Response): Promise<void> {
     try {
+      const { email } = req.body;
+      const buyer = await BuyerService.getBuyerByEmail(email);
+      if (buyer) return ERROR(res, false, "Buyer already exist");
+
       const user = await BuyerService.createBuyer(req.body);
       return OK(res, user, "Buyer created successfully");
     } catch (error) {

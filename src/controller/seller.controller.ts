@@ -5,6 +5,10 @@ import SellerService from "@/services/seller.service";
 export default class SellerController {
   static async createSeller(req: Request, res: Response): Promise<void> {
     try {
+      const { email } = req.body;
+      const seller = await SellerService.getSellerByEmail(email);
+      if (seller) return ERROR(res, false, "Seller already exist");
+
       const user = await SellerService.createSeller(req.body);
       return OK(res, user, "Seller created successfully");
     } catch (error) {
