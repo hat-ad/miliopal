@@ -13,10 +13,6 @@ class UserService {
     return UserRepository.createUser({ ...data, password: hashedPassword });
   }
 
-  static async getUser(id: string): Promise<User | null> {
-    return UserRepository.getUser(id);
-  }
-
   static async loginUser(
     email: string,
     password: string
@@ -26,10 +22,28 @@ class UserService {
       throw new Error("User not found");
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       throw new Error("Invalid credentials");
     }
     return user;
+  }
+
+  static async getUser(id: string): Promise<User | null> {
+    return UserRepository.getUser(id);
+  }
+
+  static async updateUser(
+    id: string,
+    data: {
+      email?: string;
+      name?: string;
+      password?: string;
+      role?: Role;
+      token?: string;
+    }
+  ): Promise<User | null> {
+    return UserRepository.updateUser(id, data);
   }
 }
 

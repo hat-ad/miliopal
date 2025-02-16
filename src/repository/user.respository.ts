@@ -37,7 +37,13 @@ class UserRepository {
 
   async updateUser(
     id: string,
-    data: { email?: string; name?: string; password?: string; role?: string }
+    data: {
+      email?: string;
+      name?: string;
+      password?: string;
+      role?: string;
+      token?: string;
+    }
   ): Promise<User> {
     return this.db.user.update({
       where: { id },
