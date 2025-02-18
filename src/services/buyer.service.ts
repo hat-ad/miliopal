@@ -26,9 +26,17 @@ class BuyerService {
       phone?: string;
     },
     sortBy: "name",
-    sortOrder: "asc" | "desc" = "asc"
-  ): Promise<Buyer[]> {
-    return BuyerRepository.getBuyersList(filters, sortBy, sortOrder);
+    sortOrder: "asc" | "desc" = "asc",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ buyers: Buyer[]; total: number; totalPages: number }> {
+    return BuyerRepository.getBuyersList(
+      filters,
+      sortBy,
+      sortOrder,
+      page,
+      limit
+    );
   }
 
   static async updateBuyer(

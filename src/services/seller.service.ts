@@ -35,9 +35,17 @@ class SellerService {
       type?: SellerType;
     },
     sortBy: "name" | "city" = "name",
-    sortOrder: "asc" | "desc" = "asc"
-  ): Promise<Seller[]> {
-    return SellerRepository.getSellersList(filters, sortBy, sortOrder);
+    sortOrder: "asc" | "desc" = "asc",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ sellers: Seller[]; total: number; totalPages: number }> {
+    return SellerRepository.getSellersList(
+      filters,
+      sortBy,
+      sortOrder,
+      page,
+      limit
+    );
   }
 
   static async updateSeller(

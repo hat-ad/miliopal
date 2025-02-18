@@ -38,6 +38,7 @@ export default class SellerController {
         type,
         sortBy,
         sortOrder,
+        page,
       } = req.query;
 
       const filters = {
@@ -50,6 +51,8 @@ export default class SellerController {
         type: type as "PRIVATE" | "BUSINESS" | undefined,
       };
 
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
+
       const sortedBy = (sortBy === "city" ? "city" : "name") as "name" | "city";
       const sortedOrder = (sortOrder === "desc" ? "desc" : "asc") as
         | "asc"
@@ -58,7 +61,8 @@ export default class SellerController {
       const sellers = await SellerService.getSellersList(
         filters,
         sortedBy,
-        sortedOrder
+        sortedOrder,
+        pageNumber
       );
       return OK(res, sellers, "Sellers retrieved successfully");
     } catch (error) {

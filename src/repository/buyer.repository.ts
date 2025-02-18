@@ -34,17 +34,35 @@ class BuyerRepository {
       where: { email },
     });
   }
-
   async getBuyersList(
     filters: {
       name?: string;
       email?: string;
       phone?: string;
     },
-    sortBy: "name",
-    sortOrder: "asc" | "desc" = "asc"
-  ): Promise<Buyer[]> {
-    return this.db.buyer.findMany({
+    sortBy: "name" = "name",
+    sortOrder: "asc" | "desc" = "asc",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ buyers: Buyer[]; total: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
+
+    const total = await this.db.buyer.count({
+      where: {
+        name: filters.name
+          ? { contains: filters.name, mode: "insensitive" }
+          : undefined,
+        email: filters.email
+          ? { contains: filters.email, mode: "insensitive" }
+          : undefined,
+        phone: filters.phone
+          ? { contains: filters.phone, mode: "insensitive" }
+          : undefined,
+        isDeleted: false,
+      },
+    });
+
+    const buyers = await this.db.buyer.findMany({
       where: {
         name: filters.name
           ? { contains: filters.name, mode: "insensitive" }
@@ -60,7 +78,13 @@ class BuyerRepository {
       orderBy: {
         [sortBy]: sortOrder,
       },
+      take: limit,
+      skip: offset,
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return { buyers, total, totalPages };
   }
 
   async updateBuyer(

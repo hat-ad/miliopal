@@ -28,13 +28,15 @@ export default class BuyerController {
 
   static async getBuyersList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, phone, sortBy, sortOrder } = req.query;
+      const { name, email, phone, sortOrder, page } = req.query;
 
       const filters = {
         name: name as string,
         email: email as string,
         phone: phone as string,
       };
+
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
 
       const sortedBy = "name";
       const sortedOrder = (sortOrder === "desc" ? "desc" : "asc") as
@@ -44,7 +46,8 @@ export default class BuyerController {
       const buyers = await BuyerService.getBuyersList(
         filters,
         sortedBy,
-        sortedOrder
+        sortedOrder,
+        pageNumber
       );
       return OK(res, buyers, "Buyers retrieved successfully");
     } catch (error) {
