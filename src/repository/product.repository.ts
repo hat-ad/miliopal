@@ -45,6 +45,7 @@ class ProductRepository {
           filters.isActive !== undefined
             ? { equals: filters.isActive }
             : undefined,
+        isDeleted: false,
       },
     });
 
@@ -59,6 +60,7 @@ class ProductRepository {
           filters.isActive !== undefined
             ? { equals: filters.isActive }
             : undefined,
+        isDeleted: false,
       },
       take: limit,
       skip: offset,
@@ -73,7 +75,7 @@ class ProductRepository {
     id: string,
     data: {
       name?: string;
-      phone?: string;
+      price?: number;
       isDeleted?: boolean;
       isActive?: boolean;
     }
@@ -91,6 +93,7 @@ class ProductRepository {
       where: { id },
       data: {
         isDeleted: true,
+        isActive: false,
       },
     });
   }

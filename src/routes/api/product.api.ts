@@ -1,35 +1,34 @@
-// import express from "express";
-// import SellerController from "@/controller/seller.controller";
-// import { validateCreateSeller } from "../validators/seller/createSeller.validator";
-// import { isAuthenticated } from "@/middleware/checkAuth";
+import express from "express";
+import ProductController from "@/controller/product.controller";
+import { validateCreateSeller } from "../validators/seller/createSeller.validator";
+import { isAuthenticated } from "@/middleware/checkAuth";
+import { validateCreateProduct } from "../validators/product/createProduct.validator";
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.post(
-//   "/create-seller",
-//   isAuthenticated,
-//   validateCreateSeller,
-//   SellerController.createSeller
-// );
+router.post(
+  "/create-product",
+  isAuthenticated,
+  validateCreateProduct,
+  ProductController.createProduct
+);
 
-// router.get("/get-seller/:id", isAuthenticated, SellerController.getSeller);
+router.get(
+  "/get-products-list",
+  isAuthenticated,
+  ProductController.getProductsList
+);
 
-// router.get(
-//   "/get-sellers-list",
-//   isAuthenticated,
-//   SellerController.getSellersList
-// );
+router.put(
+  "/update-product/:id",
+  isAuthenticated,
+  ProductController.updateProduct
+);
 
-// router.put(
-//   "/update-seller/:id",
-//   isAuthenticated,
-//   SellerController.updateSeller
-// );
+router.put(
+  "/delete-product/:id",
+  isAuthenticated,
+  ProductController.deleteProduct
+);
 
-// router.put(
-//   "/delete-seller/:id",
-//   isAuthenticated,
-//   SellerController.deleteSeller
-// );
-
-// export default router;
+export default router;

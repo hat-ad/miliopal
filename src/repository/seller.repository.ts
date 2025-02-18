@@ -43,48 +43,6 @@ class SellerRepository {
     });
   }
 
-  // async getSellersList(
-  //   filters: {
-  //     name?: string;
-  //     email?: string;
-  //     phone?: string;
-  //     address?: string;
-  //     postalCode?: string;
-  //     city?: string;
-  //     type?: SellerType;
-  //   },
-  //   sortBy: "name" | "city" = "name",
-  //   sortOrder: "asc" | "desc" = "asc"
-  // ): Promise<Seller[]> {
-  //   return this.db.seller.findMany({
-  //     where: {
-  //       name: filters.name
-  //         ? { contains: filters.name, mode: "insensitive" }
-  //         : undefined,
-  //       email: filters.email
-  //         ? { contains: filters.email, mode: "insensitive" }
-  //         : undefined,
-  //       phone: filters.phone
-  //         ? { contains: filters.phone, mode: "insensitive" }
-  //         : undefined,
-  //       address: filters.address
-  //         ? { contains: filters.address, mode: "insensitive" }
-  //         : undefined,
-  //       postalCode: filters.postalCode
-  //         ? { contains: filters.postalCode, mode: "insensitive" }
-  //         : undefined,
-  //       city: filters.city
-  //         ? { contains: filters.city, mode: "insensitive" }
-  //         : undefined,
-  //       type: filters.type ? filters.type : undefined,
-  //       isDeleted: false, // Exclude deleted sellers
-  //     },
-  //     orderBy: {
-  //       [sortBy]: sortOrder,
-  //     },
-  //   });
-  // }
-
   async getSellersList(
     filters: {
       name?: string;
