@@ -6,6 +6,17 @@ class UserService {
   static async createUser(data: { email: string; role: Role }): Promise<User> {
     return UserRepository.createUser(data);
   }
+  static async createUserInternal(data: {
+    email: string;
+    role: Role;
+    password?: string;
+    phone?: string;
+  }): Promise<User> {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+    return UserRepository.createUserInternal(data);
+  }
 
   static async updateUser(
     id: string,

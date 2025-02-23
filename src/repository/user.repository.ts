@@ -7,6 +7,17 @@ class UserRepository {
     this.db = PrismaService.getInstance();
   }
 
+  async createUserInternal(data: {
+    email: string;
+    role?: Role;
+    password?: string;
+    phone?: string;
+  }): Promise<User> {
+    return this.db.user.create({
+      data: data,
+    });
+  }
+
   async createUser(data: { email: string; role: Role }): Promise<User> {
     return this.db.user.create({
       data: {

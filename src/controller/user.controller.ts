@@ -4,6 +4,19 @@ import UserService from "@/services/user.service";
 import { generateToken } from "@/functions/function";
 
 export default class UserController {
+  static async createUserInternal(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+      let user = await UserService.getUserByEmail(email);
+      if (user) return ERROR(res, false, "User already exist");
+
+      user = await UserService.createUserInternal(req.body);
+      return OK(res, user, "User created successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
   static async createUser(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;

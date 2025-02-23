@@ -5,7 +5,18 @@ import { validateCreateUser } from "../validators/user/createUser.validator";
 
 const router = express.Router();
 
-router.post("/create-user", validateCreateUser, UserController.createUser);
+router.post(
+  "/create-user-internal",
+  validateCreateUser,
+  UserController.createUserInternal
+);
+
+router.post(
+  "/create-user",
+  isAuthenticated,
+  validateCreateUser,
+  UserController.createUser
+);
 
 router.put("/update-user/:id", UserController.updateUser);
 
