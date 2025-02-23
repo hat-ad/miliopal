@@ -3,9 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
 const CreateBuyerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone Number must be 10 digits"),
 });
 
 export type CreateBuyerInput = z.infer<typeof CreateBuyerSchema>;

@@ -1,14 +1,50 @@
 import BuyerRepository from "@/repository/buyer.repository";
-import { Buyer } from "@prisma/client";
+import bcrypt from "bcrypt";
+import { Buyer, Role } from "@prisma/client";
 
 class BuyerService {
   static async createBuyer(data: {
-    name?: string;
     email: string;
-    phone: string;
-    isDeleted?: boolean;
+    role: Role;
   }): Promise<Buyer> {
     return BuyerRepository.createBuyer(data);
+  }
+
+  static async updateBuyer(
+    id: string,
+    data: {
+      name?: string;
+      phone?: string;
+      password?: string;
+      token?: string;
+      isDeleted?: boolean;
+    }
+  ): Promise<Buyer | null> {
+    let updateData = { ...data };
+
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    return BuyerRepository.updateBuyer(id, updateData);
+  }
+
+  static async login(email: string, password: string): Promise<Buyer | null> {
+    const buyer = await BuyerRepository.getBuyerByEmail(email);
+    if (!buyer) {
+      throw new Error("User not found");
+    }
+
+    if (!buyer.password) {
+      throw new Error("Password not set for this user");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, buyer.password);
+    if (!isPasswordValid) {
+      throw new Error("Invalid credentials");
+    }
+
+    return buyer;
   }
 
   static async getBuyer(id: string): Promise<Buyer | null> {
@@ -24,6 +60,7 @@ class BuyerService {
       name?: string;
       email?: string;
       phone?: string;
+      isActive?: boolean;
     },
     sortBy: "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -37,18 +74,6 @@ class BuyerService {
       page,
       limit
     );
-  }
-
-  static async updateBuyer(
-    id: string,
-    data: {
-      name?: string;
-      email: string;
-      phone: string;
-      isDeleted?: boolean;
-    }
-  ): Promise<Buyer | null> {
-    return BuyerRepository.updateBuyer(id, data);
   }
 
   static async deleteBuyer(id: string): Promise<Buyer | null> {

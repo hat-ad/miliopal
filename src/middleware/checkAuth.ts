@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { UserTokenPayload } from "@/types/interface";
-import UserServices from "@/services/user.service";
 import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
 import { Role } from "@/types/enums";
+import BuyerService from "@/services/buyer.service";
 
 // Extend Express Request type
 declare global {
@@ -38,18 +38,18 @@ export const isAuthenticated = async (
       return ERROR(res, null, "Invalid token");
     }
 
-    const user = await UserServices.getUser(payload.sub);
-    if (!user) return ERROR(res, null, "User does not exist");
+    const buyer = await BuyerService.getBuyer(payload.sub);
+    if (!buyer) return ERROR(res, null, "Buyer does not exist");
 
-    const userPayload: UserTokenPayload = {
+    const buyerPayload: UserTokenPayload = {
       id: payload.sub,
-      role: user.role as Role,
-      email: user.email,
+      role: buyer.role as Role,
+      email: buyer.email,
     };
 
-    console.log("Authenticated User:", userPayload);
+    console.log("Authenticated User:", buyerPayload);
 
-    req.payload = userPayload;
+    req.payload = buyerPayload;
     next();
   } catch (error) {
     console.error("Authentication Error:", error);

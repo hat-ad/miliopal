@@ -1,5 +1,5 @@
 import PrismaService from "@/db/prisma-service";
-import { Buyer, PrismaClient } from "@prisma/client";
+import { Buyer, PrismaClient, Role } from "@prisma/client";
 
 class BuyerRepository {
   db: PrismaClient;
@@ -7,18 +7,29 @@ class BuyerRepository {
     this.db = PrismaService.getInstance();
   }
 
-  async createBuyer(data: {
-    name?: string;
-    email: string;
-    phone: string;
-    isDeleted?: boolean;
-  }): Promise<Buyer> {
+  async createBuyer(data: { email: string; role: Role }): Promise<Buyer> {
     return this.db.buyer.create({
       data: {
-        name: data.name,
         email: data.email,
-        phone: data.phone,
-        isDeleted: data.isDeleted,
+        role: data.role ?? Role.USER,
+      },
+    });
+  }
+
+  async updateBuyer(
+    id: string,
+    data: {
+      name?: string;
+      phone?: string;
+      password?: string;
+      token?: string;
+      isDeleted?: boolean;
+    }
+  ): Promise<Buyer> {
+    return this.db.buyer.update({
+      where: { id },
+      data: {
+        ...data,
       },
     });
   }
@@ -39,6 +50,7 @@ class BuyerRepository {
       name?: string;
       email?: string;
       phone?: string;
+      isActive?: boolean;
     },
     sortBy: "name" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -58,6 +70,7 @@ class BuyerRepository {
         phone: filters.phone
           ? { contains: filters.phone, mode: "insensitive" }
           : undefined,
+        isActive: filters.isActive ?? false,
         isDeleted: false,
       },
     });
@@ -73,6 +86,7 @@ class BuyerRepository {
         phone: filters.phone
           ? { contains: filters.phone, mode: "insensitive" }
           : undefined,
+        isActive: filters.isActive ?? false,
         isDeleted: false,
       },
       orderBy: {
@@ -85,23 +99,6 @@ class BuyerRepository {
     const totalPages = Math.ceil(total / limit);
 
     return { buyers, total, totalPages };
-  }
-
-  async updateBuyer(
-    id: string,
-    data: {
-      name?: string;
-      email?: string;
-      phone?: string;
-      isDeleted?: boolean;
-    }
-  ): Promise<Buyer> {
-    return this.db.buyer.update({
-      where: { id },
-      data: {
-        ...data,
-      },
-    });
   }
 
   async deleteBuyer(id: string): Promise<Buyer> {

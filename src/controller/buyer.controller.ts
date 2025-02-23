@@ -1,6 +1,7 @@
 import { OK, ERROR, BAD } from "@/utils/response-helper";
 import { Request, Response } from "express";
 import BuyerService from "@/services/buyer.service";
+import { generateToken } from "@/functions/function";
 
 export default class BuyerController {
   static async createBuyer(req: Request, res: Response): Promise<void> {
@@ -16,6 +17,32 @@ export default class BuyerController {
     }
   }
 
+  static async updateBuyer(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const token = generateToken(id.toString());
+
+      const buyer = await BuyerService.updateBuyer(id, { ...req.body, token });
+      return OK(res, buyer, "Buyer updated successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  static async login(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, password } = req.body;
+      const buyer = await BuyerService.login(email, password);
+      if (!buyer) return ERROR(res, false, "User not found");
+
+      const token = generateToken(buyer?.id.toString());
+
+      const response = await BuyerService.updateBuyer(buyer.id, { token });
+      return OK(res, response, "Login successful");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
   static async getBuyer(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -28,12 +55,13 @@ export default class BuyerController {
 
   static async getBuyersList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, phone, sortOrder, page } = req.query;
+      const { name, email, phone, isActive, sortOrder, page } = req.query;
 
       const filters = {
         name: name as string,
         email: email as string,
         phone: phone as string,
+        isActive: isActive ? isActive === "true" : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;
@@ -50,16 +78,6 @@ export default class BuyerController {
         pageNumber
       );
       return OK(res, buyers, "Buyers retrieved successfully");
-    } catch (error) {
-      return ERROR(res, false, error);
-    }
-  }
-
-  static async updateBuyer(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const buyer = await BuyerService.updateBuyer(id, req.body);
-      return OK(res, buyer, "Buyer updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }

@@ -1,9 +1,18 @@
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
 
 model Buyer {
   id         String     @id @default(uuid())
-  email      String     @unique
   name       String?
-  phone      String
+  phone      String?
+  email      String     @unique
+  password    String?
+  role        Role     @default(USER)
+  token       String?
+  isActive  Boolean    @default(false)
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
