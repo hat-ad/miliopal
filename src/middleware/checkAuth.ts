@@ -3,16 +3,7 @@ import jwt from "jsonwebtoken";
 import { UserTokenPayload } from "@/types/interface";
 import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
 import { Role } from "@/types/enums";
-import BuyerService from "@/services/buyer.service";
-
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      payload?: UserTokenPayload;
-    }
-  }
-}
+import UserService from "@/services/user.service";
 
 export const isAuthenticated = async (
   req: Request,
@@ -38,7 +29,7 @@ export const isAuthenticated = async (
       return ERROR(res, null, "Invalid token");
     }
 
-    const buyer = await BuyerService.getBuyer(payload.sub);
+    const buyer = await UserService.getUser(payload.sub);
     if (!buyer) return ERROR(res, null, "Buyer does not exist");
 
     const buyerPayload: UserTokenPayload = {

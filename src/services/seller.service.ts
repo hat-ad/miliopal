@@ -1,5 +1,4 @@
-import bcrypt from "bcrypt";
-import { Buyer, Seller, SellerType } from "@prisma/client";
+import { Seller, SellerType } from "@prisma/client";
 import SellerRepository from "@/repository/seller.repository";
 
 class SellerService {

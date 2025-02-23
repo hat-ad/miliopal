@@ -1,14 +1,14 @@
 import PrismaService from "@/db/prisma-service";
-import { Buyer, PrismaClient, Role } from "@prisma/client";
+import { User, PrismaClient, Role } from "@prisma/client";
 
-class BuyerRepository {
+class UserRepository {
   db: PrismaClient;
   constructor() {
     this.db = PrismaService.getInstance();
   }
 
-  async createBuyer(data: { email: string; role: Role }): Promise<Buyer> {
-    return this.db.buyer.create({
+  async createUser(data: { email: string; role: Role }): Promise<User> {
+    return this.db.user.create({
       data: {
         email: data.email,
         role: data.role ?? Role.USER,
@@ -16,7 +16,7 @@ class BuyerRepository {
     });
   }
 
-  async updateBuyer(
+  async updateUser(
     id: string,
     data: {
       name?: string;
@@ -25,8 +25,8 @@ class BuyerRepository {
       token?: string;
       isDeleted?: boolean;
     }
-  ): Promise<Buyer> {
-    return this.db.buyer.update({
+  ): Promise<User> {
+    return this.db.user.update({
       where: { id },
       data: {
         ...data,
@@ -34,18 +34,18 @@ class BuyerRepository {
     });
   }
 
-  async getBuyer(id: string): Promise<Buyer | null> {
-    return this.db.buyer.findUnique({
+  async getUser(id: string): Promise<User | null> {
+    return this.db.user.findUnique({
       where: { id },
     });
   }
 
-  async getBuyerByEmail(email: string): Promise<Buyer | null> {
-    return this.db.buyer.findUnique({
+  async getUserByEmail(email: string): Promise<User | null> {
+    return this.db.user.findUnique({
       where: { email },
     });
   }
-  async getBuyersList(
+  async getUsersList(
     filters: {
       name?: string;
       email?: string;
@@ -56,10 +56,10 @@ class BuyerRepository {
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
     limit: number = 10
-  ): Promise<{ buyers: Buyer[]; total: number; totalPages: number }> {
+  ): Promise<{ users: User[]; total: number; totalPages: number }> {
     const offset = (page - 1) * limit;
 
-    const total = await this.db.buyer.count({
+    const total = await this.db.user.count({
       where: {
         name: filters.name
           ? { contains: filters.name, mode: "insensitive" }
@@ -75,7 +75,7 @@ class BuyerRepository {
       },
     });
 
-    const buyers = await this.db.buyer.findMany({
+    const users = await this.db.user.findMany({
       where: {
         name: filters.name
           ? { contains: filters.name, mode: "insensitive" }
@@ -98,11 +98,11 @@ class BuyerRepository {
 
     const totalPages = Math.ceil(total / limit);
 
-    return { buyers, total, totalPages };
+    return { users, total, totalPages };
   }
 
-  async deleteBuyer(id: string): Promise<Buyer> {
-    return this.db.buyer.update({
+  async deleteUser(id: string): Promise<User> {
+    return this.db.user.update({
       where: { id },
       data: {
         isDeleted: true,
@@ -111,4 +111,4 @@ class BuyerRepository {
   }
 }
 
-export default new BuyerRepository();
+export default new UserRepository();

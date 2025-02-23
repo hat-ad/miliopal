@@ -11,6 +11,7 @@ declare global {
       PORT: number;
     }
   }
+
   namespace Express {
     interface Request {
       payload?: UserTokenPayload;

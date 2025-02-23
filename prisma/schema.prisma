@@ -9,27 +9,6 @@ datasource db {
 }
 
 
-enum Role {
-  USER
-  ADMIN
-  SUPERADMIN
-}
-
-model Buyer {
-  id         String     @id @default(uuid())
-  name       String?
-  phone      String?
-  email      String     @unique
-  password    String?
-  role        Role     @default(USER)
-  token       String?
-  isActive  Boolean    @default(false)
-  isDeleted  Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-}
-
-
 
 model Product {
   id         String     @id @default(uuid())
@@ -60,6 +39,27 @@ model Seller {
   companyName String?
   contactPerson String?
   organizationNumber Float?
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+model User {
+  id         String     @id @default(uuid())
+  name       String?
+  phone      String?
+  email      String     @unique
+  password    String?
+  role        Role     @default(USER)
+  token       String?
+  isActive  Boolean    @default(false)
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt

@@ -2,19 +2,19 @@ import { ERROR } from "@/utils/response-helper";
 import { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
-const CreateBuyerSchema = z.object({
+const CreateUserSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
-export type CreateBuyerInput = z.infer<typeof CreateBuyerSchema>;
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
-export const validateCreateBuyer = (
+export const validateCreateUser = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    CreateBuyerSchema.parse(req.body);
+    CreateUserSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof ZodError) {
