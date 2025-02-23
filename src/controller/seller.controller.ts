@@ -29,13 +29,16 @@ export default class SellerController {
   static async getSellersList(req: Request, res: Response): Promise<void> {
     try {
       const {
-        name,
         email,
+        type,
+        name,
         phone,
         address,
         postalCode,
         city,
-        type,
+        companyName,
+        contactPerson,
+        organizationNumber,
         sortBy,
         sortOrder,
         page,
@@ -48,6 +51,11 @@ export default class SellerController {
         address: address as string,
         postalCode: postalCode as string,
         city: city as string,
+        companyName: companyName as string,
+        contactPerson: contactPerson as string,
+        organizationNumber: organizationNumber
+          ? parseFloat(organizationNumber as string)
+          : undefined,
         type: type as "PRIVATE" | "BUSINESS" | undefined,
       };
 

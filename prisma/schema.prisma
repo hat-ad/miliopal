@@ -51,12 +51,15 @@ enum SellerType {
 model Seller {
   id         String     @id @default(uuid())
   email      String     @unique
-  name       String?
-  phone      String
-  address    String
-  postalCode String
-  city       String?
   type       SellerType
+  name       String?
+  phone      String?
+  address    String?
+  postalCode String?
+  city       String?
+  companyName String?
+  contactPerson String?
+  organizationNumber Float?
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt

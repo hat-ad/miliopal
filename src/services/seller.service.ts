@@ -4,14 +4,17 @@ import SellerRepository from "@/repository/seller.repository";
 
 class SellerService {
   static async createSeller(data: {
-    name?: string;
     email: string;
-    phone: string;
-    address: string;
-    postalCode: string;
-    city: string;
-    isDeleted?: boolean;
     type: SellerType;
+    name?: string;
+    phone?: string;
+    address?: string;
+    postalCode?: string;
+    city?: string;
+    companyName?: string;
+    contactPerson?: string;
+    organizationNumber?: number;
+    isDeleted?: boolean;
   }): Promise<Seller> {
     return SellerRepository.createSeller(data);
   }
@@ -20,19 +23,22 @@ class SellerService {
     return SellerRepository.getSeller(id);
   }
 
-  static async getSellerByEmail(email: string): Promise<Buyer | null> {
+  static async getSellerByEmail(email: string): Promise<Seller | null> {
     return SellerRepository.getSellerByEmail(email);
   }
 
   static async getSellersList(
     filters: {
-      name?: string;
       email?: string;
+      type?: SellerType;
+      name?: string;
       phone?: string;
       address?: string;
       postalCode?: string;
       city?: string;
-      type?: SellerType;
+      companyName?: string;
+      contactPerson?: string;
+      organizationNumber?: number;
     },
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -51,14 +57,17 @@ class SellerService {
   static async updateSeller(
     id: string,
     data: {
-      name?: string;
       email: string;
+      type: SellerType;
+      name?: string;
       phone: string;
       address: string;
       postalCode: string;
       city: string;
+      companyName?: string;
+      contactPerson?: string;
+      organizationNumber?: number;
       isDeleted?: boolean;
-      type: SellerType;
     }
   ): Promise<Seller | null> {
     return SellerRepository.updateSeller(id, data);

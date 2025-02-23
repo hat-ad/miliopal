@@ -3,12 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
 const CreateSellerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone Number must be 10 digits"),
-  address: z.string().min(1, "Address is required"),
-  postalCode: z.string().min(4, "postalCode is required"),
-  city: z.string().min(4, "City is required"),
   type: z.enum(["PRIVATE", "BUSINESS"], {
     invalid_type_error: "Invalid seller type",
   }),

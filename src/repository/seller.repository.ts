@@ -8,25 +8,31 @@ class SellerRepository {
   }
 
   async createSeller(data: {
-    name?: string;
     email: string;
-    phone: string;
-    address: string;
-    postalCode: string;
-    city: string;
-    isDeleted?: boolean;
     type: SellerType;
+    name?: string;
+    phone?: string;
+    address?: string;
+    postalCode?: string;
+    city?: string;
+    companyName?: string;
+    contactPerson?: string;
+    organizationNumber?: number;
+    isDeleted?: boolean;
   }): Promise<Seller> {
     return this.db.seller.create({
       data: {
-        name: data.name,
         email: data.email,
+        type: data.type,
+        name: data.name,
         phone: data.phone,
         address: data.address,
         postalCode: data.postalCode,
         city: data.city,
+        companyName: data.companyName,
+        contactPerson: data.contactPerson,
+        organizationNumber: data.organizationNumber,
         isDeleted: data.isDeleted,
-        type: data.type,
       },
     });
   }
@@ -52,6 +58,9 @@ class SellerRepository {
       postalCode?: string;
       city?: string;
       type?: SellerType;
+      companyName?: string;
+      contactPerson?: string;
+      organizationNumber?: number;
     },
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -62,12 +71,15 @@ class SellerRepository {
 
     const total = await this.db.seller.count({
       where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
         email: filters.email
           ? { contains: filters.email, mode: "insensitive" }
           : undefined,
+        type: filters.type ? filters.type : undefined,
+
+        name: filters.name
+          ? { contains: filters.name, mode: "insensitive" }
+          : undefined,
+
         phone: filters.phone
           ? { contains: filters.phone, mode: "insensitive" }
           : undefined,
@@ -80,19 +92,29 @@ class SellerRepository {
         city: filters.city
           ? { contains: filters.city, mode: "insensitive" }
           : undefined,
-        type: filters.type ? filters.type : undefined,
+        companyName: filters.companyName
+          ? { contains: filters.companyName, mode: "insensitive" }
+          : undefined,
+        contactPerson: filters.contactPerson
+          ? { contains: filters.contactPerson, mode: "insensitive" }
+          : undefined,
+        organizationNumber: filters.organizationNumber || null,
         isDeleted: false,
       },
     });
 
     const sellers = await this.db.seller.findMany({
       where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
         email: filters.email
           ? { contains: filters.email, mode: "insensitive" }
           : undefined,
+
+        type: filters.type ? filters.type : undefined,
+
+        name: filters.name
+          ? { contains: filters.name, mode: "insensitive" }
+          : undefined,
+
         phone: filters.phone
           ? { contains: filters.phone, mode: "insensitive" }
           : undefined,
@@ -105,7 +127,14 @@ class SellerRepository {
         city: filters.city
           ? { contains: filters.city, mode: "insensitive" }
           : undefined,
-        type: filters.type ? filters.type : undefined,
+        companyName: filters.companyName
+          ? { contains: filters.companyName, mode: "insensitive" }
+          : undefined,
+        contactPerson: filters.contactPerson
+          ? { contains: filters.contactPerson, mode: "insensitive" }
+          : undefined,
+        organizationNumber: filters.organizationNumber || null,
+
         isDeleted: false,
       },
       orderBy: {
@@ -125,11 +154,13 @@ class SellerRepository {
     id: string,
     data: {
       name?: string;
-      email?: string;
       phone?: string;
       address?: string;
       postalCode?: string;
       city?: string;
+      companyName?: string;
+      contactPerson?: string;
+      organizationNumber?: number;
       isDeleted?: boolean;
       type?: string;
     }
