@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
 
 -- CreateTable
-CREATE TABLE "Buyer" (
+CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "name" TEXT,
     "phone" TEXT,
@@ -15,8 +15,8 @@ CREATE TABLE "Buyer" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Buyer_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Buyer_email_key" ON "Buyer"("email");
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

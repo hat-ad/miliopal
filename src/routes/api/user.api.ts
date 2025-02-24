@@ -11,12 +11,7 @@ router.post(
   UserController.createUserInternal
 );
 
-router.post(
-  "/create-user",
-  isAuthenticated,
-  validateCreateUser,
-  UserController.createUser
-);
+router.post("/create-user", validateCreateUser, UserController.createUser);
 
 router.put("/update-user/:id", UserController.updateUser);
 

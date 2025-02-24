@@ -1,0 +1,12 @@
+
+model BusinessSeller {
+  id         String     @id @default(uuid())
+  companyName       String
+  contactPerson     String
+  organizationNumber Float
+  seller     Seller   @relation(fields: [id], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+

@@ -1,0 +1,10 @@
+
+model PrivateSeller {
+  id         String     @id @default(uuid())
+  name       String?
+  seller     Seller   @relation(fields: [id], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+

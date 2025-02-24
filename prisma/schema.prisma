@@ -10,6 +10,32 @@ datasource db {
 
 
 
+model BusinessSeller {
+  id         String     @id @default(uuid())
+  companyName       String
+  contactPerson     String
+  organizationNumber Float
+  seller     Seller   @relation(fields: [id], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+
+
+
+
+model PrivateSeller {
+  id         String     @id @default(uuid())
+  name       String?
+  seller     Seller   @relation(fields: [id], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+
+
+
+
 model Product {
   id         String     @id @default(uuid())
   name       String?
@@ -21,7 +47,6 @@ model Product {
 }
 
 
-
 enum SellerType {
   PRIVATE
   BUSINESS
@@ -31,14 +56,12 @@ model Seller {
   id         String     @id @default(uuid())
   email      String     @unique
   type       SellerType
-  name       String?
   phone      String?
   address    String?
   postalCode String?
   city       String?
-  companyName String?
-  contactPerson String?
-  organizationNumber Float?
+  privateSeller  PrivateSeller?
+  businessSeller BusinessSeller?
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt

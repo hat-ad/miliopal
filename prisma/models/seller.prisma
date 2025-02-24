@@ -1,4 +1,3 @@
-
 enum SellerType {
   PRIVATE
   BUSINESS
@@ -8,14 +7,12 @@ model Seller {
   id         String     @id @default(uuid())
   email      String     @unique
   type       SellerType
-  name       String?
   phone      String?
   address    String?
   postalCode String?
   city       String?
-  companyName String?
-  contactPerson String?
-  organizationNumber Float?
+  privateSeller  PrivateSeller?
+  businessSeller BusinessSeller?
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
