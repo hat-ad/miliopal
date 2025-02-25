@@ -10,8 +10,5 @@
   "module": {
     "type": "commonjs"
   },
-  "transform": {
-    "decoratorMetadata": true
-  },
   "sourceMaps": true
 }
