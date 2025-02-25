@@ -44,6 +44,7 @@ model Product {
   isActive   Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  productsPurchased ProductsPurchased[]
 }
 
 
@@ -55,6 +56,10 @@ model ProductsPurchased {
   purchaseId  String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
 }
 
 
@@ -79,6 +84,10 @@ model Purchase {
   status             OrderStatus
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  productsPurchased ProductsPurchased[]
+
 }
 
 
@@ -101,6 +110,7 @@ model Seller {
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  purchases  Purchase[]
 }
 
 
@@ -122,4 +132,5 @@ model User {
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  purchases  Purchase[]
 }

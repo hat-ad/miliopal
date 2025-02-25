@@ -16,4 +16,5 @@ model Seller {
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  purchases  Purchase[]
 }
