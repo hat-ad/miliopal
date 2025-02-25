@@ -267,7 +267,7 @@ class SellerRepository {
   }
 
   async getSellerSellingHistory(id: string): Promise<Seller> {
-    const seller = await this.db.seller.findUnique({
+    const sellerSellingHistory = await this.db.seller.findUnique({
       where: { id },
       include: {
         privateSeller: true,
@@ -285,10 +285,10 @@ class SellerRepository {
       },
     });
 
-    if (!seller) {
-      throw new Error("Seller not found");
+    if (!sellerSellingHistory) {
+      throw new Error(`No selling history found for seller ID: ${id}`);
     }
-    return seller;
+    return sellerSellingHistory;
   }
 }
 

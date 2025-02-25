@@ -66,6 +66,10 @@ class UserService {
   static async deleteUser(id: string): Promise<User | null> {
     return UserRepository.deleteUser(id);
   }
+
+  static async getUserSellingHistory(id: string): Promise<User | null> {
+    return UserRepository.getUserSellingHistory(id);
+  }
 }
 
 export default UserService;

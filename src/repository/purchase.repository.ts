@@ -35,6 +35,66 @@ class PurchaseRepository {
       },
     });
   }
+
+  async getPurchaseList(
+    filters: {
+      userId?: string;
+      sellerId?: string;
+      paymentMethod?: PaymentMethod;
+      bankAccountNumber?: string;
+      status?: OrderStatus;
+      orderNo?: string;
+    },
+    sortBy: "orderNo" | "createdAt" | "status" = "createdAt",
+    sortOrder: "asc" | "desc" = "desc",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ purchases: Purchase[]; total: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
+
+    const whereCondition: any = {
+      userId: filters.userId || undefined,
+      sellerId: filters.sellerId || undefined,
+      paymentMethod: filters.paymentMethod || undefined,
+      bankAccountNumber: filters.bankAccountNumber || undefined,
+      status: filters.status || undefined,
+      orderNo: filters.orderNo ? { contains: filters.orderNo } : undefined,
+    };
+
+    const total = await this.db.purchase.count({ where: whereCondition });
+
+    const purchases = await this.db.purchase.findMany({
+      where: whereCondition,
+      orderBy: { [sortBy]: sortOrder },
+      take: limit,
+      skip: offset,
+      include: {
+        user: true,
+        seller: {
+          include: {
+            privateSeller: true,
+            businessSeller: true,
+          },
+        },
+        productsPurchased: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    const transformedPurchases = purchases.map((purchase) => ({
+      ...purchase,
+      ...purchase.seller?.privateSeller,
+      ...purchase.seller?.businessSeller,
+      seller: undefined,
+    }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    return { purchases, total, totalPages };
+  }
 }
 
 export default new PurchaseRepository();

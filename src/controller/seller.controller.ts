@@ -104,8 +104,14 @@ export default class SellerController {
     try {
       const { id } = req.params;
 
-      const seller = await SellerService.getSellerSellingHistory(id);
-      return OK(res, seller, "Seller retrived successfully");
+      const sellerSellingHistory = await SellerService.getSellerSellingHistory(
+        id
+      );
+      return OK(
+        res,
+        sellerSellingHistory,
+        "Seller selling history retrived successfully"
+      );
     } catch (error) {
       return ERROR(res, false, error);
     }

@@ -13,4 +13,10 @@ router.post(
   PurchaseController.createPurchase
 );
 
+router.get(
+  "/get-purchase-list",
+  isAuthenticated,
+  PurchaseController.getPurchaseList
+);
+
 export default router;

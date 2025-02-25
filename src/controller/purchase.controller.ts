@@ -3,6 +3,7 @@ import { OK, ERROR } from "@/utils/response-helper";
 import PurchaseService from "@/services/purchase.service";
 import ProductsPurchasedService from "@/services/products_purchased.service";
 import SellerService from "@/services/seller.service";
+import { OrderStatus, PaymentMethod } from "@prisma/client";
 
 export default class PurchaseController {
   static async createPurchase(req: Request, res: Response): Promise<void> {
@@ -42,6 +43,51 @@ export default class PurchaseController {
       );
     } catch (error) {
       return ERROR(res, null, error);
+    }
+  }
+
+  static async getPurchaseList(req: Request, res: Response): Promise<void> {
+    try {
+      const {
+        userId,
+        sellerId,
+        paymentMethod,
+        bankAccountNumber,
+        status,
+        orderNo,
+        sortBy,
+        sortOrder,
+        page,
+      } = req.query;
+
+      const filters = {
+        userId: userId ? (userId as string) : undefined,
+        sellerId: sellerId ? (sellerId as string) : undefined,
+        paymentMethod: paymentMethod
+          ? (paymentMethod as PaymentMethod)
+          : undefined,
+        bankAccountNumber: bankAccountNumber
+          ? (bankAccountNumber as string)
+          : undefined,
+        status: status ? (status as OrderStatus) : undefined,
+        orderNo: orderNo ? (orderNo as string) : undefined,
+      };
+
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const sortedBy: "orderNo" | "createdAt" | "status" =
+        sortBy === "orderNo" || sortBy === "status" ? sortBy : "createdAt";
+      const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
+
+      const purchases = await PurchaseService.getPurchaseList(
+        filters,
+        sortedBy,
+        sortedOrder,
+        pageNumber
+      );
+
+      return OK(res, purchases, "Purchases retrieved successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
     }
   }
 }

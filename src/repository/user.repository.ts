@@ -111,6 +111,35 @@ class UserRepository {
       },
     });
   }
+
+  async getUserSellingHistory(id: string): Promise<User> {
+    const userSellingHistory = await this.db.user.findUnique({
+      where: { id },
+      include: {
+        purchases: {
+          include: {
+            seller: {
+              include: {
+                privateSeller: true,
+                businessSeller: true,
+              },
+            },
+            productsPurchased: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!userSellingHistory) {
+      throw new Error(`No selling history found for user ID: ${id}`);
+    }
+
+    return userSellingHistory;
+  }
 }
 
 export default new UserRepository();

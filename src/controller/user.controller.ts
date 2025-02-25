@@ -104,4 +104,25 @@ export default class UserController {
       return ERROR(res, false, error);
     }
   }
+
+  static async getUserSellingHistory(req: Request, res: Response) {
+    try {
+      const userId = req.payload?.id;
+
+      if (!userId) {
+        return ERROR(res, null, "Unauthorized: No user ID in token");
+      }
+
+      const userSellingHistory = await UserService.getUserSellingHistory(
+        userId
+      );
+      return OK(
+        res,
+        userSellingHistory,
+        "User selling history retrived successfully"
+      );
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }

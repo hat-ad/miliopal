@@ -21,4 +21,10 @@ router.get("/get-users-list", isAuthenticated, UserController.getUsersList);
 
 router.put("/delete-user/:id", isAuthenticated, UserController.deleteUser);
 
+router.get(
+  "/get-user-selling-history",
+  isAuthenticated,
+  UserController.getUserSellingHistory
+);
+
 export default router;
