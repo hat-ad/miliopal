@@ -100,11 +100,11 @@ export default class SellerController {
     }
   }
 
-  static async getSellerSellingDetails(req: Request, res: Response) {
+  static async getSellerSellingHistory(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
-      const seller = await SellerService.getSellerSellingDetails(id);
+      const seller = await SellerService.getSellerSellingHistory(id);
       return OK(res, seller, "Seller retrived successfully");
     } catch (error) {
       return ERROR(res, false, error);

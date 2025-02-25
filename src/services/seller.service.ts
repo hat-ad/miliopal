@@ -78,8 +78,8 @@ class SellerService {
     return SellerRepository.deleteSeller(id);
   }
 
-  static async getSellerSellingDetails(id: string): Promise<Seller | null> {
-    return SellerRepository.getSellerSellingDetails(id);
+  static async getSellerSellingHistory(id: string): Promise<Seller | null> {
+    return SellerRepository.getSellerSellingHistory(id);
   }
 }
 

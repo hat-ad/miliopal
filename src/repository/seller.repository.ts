@@ -179,10 +179,17 @@ class SellerRepository {
         businessSeller: true,
       },
     });
+    const transformedSellers = sellers.map((seller) => ({
+      ...seller,
+      ...seller.privateSeller,
+      ...seller.businessSeller,
+      privateSeller: undefined,
+      businessSeller: undefined,
+    }));
 
     const totalPages = Math.ceil(total / limit);
 
-    return { sellers, total, totalPages };
+    return { sellers: transformedSellers, total, totalPages };
   }
 
   async updateSeller(
@@ -259,7 +266,7 @@ class SellerRepository {
     });
   }
 
-  async getSellerSellingDetails(id: string): Promise<Seller> {
+  async getSellerSellingHistory(id: string): Promise<Seller> {
     const seller = await this.db.seller.findUnique({
       where: { id },
       include: {

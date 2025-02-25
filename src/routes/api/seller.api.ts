@@ -33,9 +33,9 @@ router.put(
 );
 
 router.get(
-  "/get-seller-selling-details/:id",
+  "/get-seller-selling-history/:id",
   isAuthenticated,
-  SellerController.getSellerSellingDetails
+  SellerController.getSellerSellingHistory
 );
 
 export default router;
