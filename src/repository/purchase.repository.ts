@@ -29,6 +29,10 @@ class PurchaseRepository {
         bankAccountNumber: data.bankAccountNumber ?? null,
         status: data.status,
       },
+      include: {
+        user: true,
+        seller: true,
+      },
     });
   }
 }

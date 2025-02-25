@@ -25,6 +25,10 @@ class ProductsPurchasedRepository {
       where: {
         purchaseId: products[0].purchaseId,
       },
+      include: {
+        purchase: true,
+        product: true,
+      },
     });
   }
 }
