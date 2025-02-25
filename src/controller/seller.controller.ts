@@ -99,4 +99,15 @@ export default class SellerController {
       return ERROR(res, false, error);
     }
   }
+
+  static async getSellerSellingDetails(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const seller = await SellerService.getSellerSellingDetails(id);
+      return OK(res, seller, "Seller retrived successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }

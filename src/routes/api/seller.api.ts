@@ -32,4 +32,10 @@ router.put(
   SellerController.deleteSeller
 );
 
+router.get(
+  "/get-seller-selling-details/:id",
+  isAuthenticated,
+  SellerController.getSellerSellingDetails
+);
+
 export default router;

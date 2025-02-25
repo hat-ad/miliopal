@@ -6,7 +6,7 @@ class ProductService {
     name: string;
     price: number;
     isDeleted?: boolean;
-    isActive?: boolean;
+    isArchived?: boolean;
   }): Promise<Product> {
     return ProductRepository.createProduct(data);
   }
@@ -15,7 +15,6 @@ class ProductService {
     filters: {
       name?: string;
       price?: number;
-      isActive?: boolean;
       isArchived?: boolean;
     },
     page: number = 1,
@@ -30,7 +29,6 @@ class ProductService {
       name?: string;
       price?: number;
       isDeleted?: boolean;
-      isActive?: boolean;
       isArchived?: boolean;
     }
   ): Promise<Product | null> {

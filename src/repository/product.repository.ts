@@ -11,14 +11,14 @@ class ProductRepository {
     name?: string;
     price: number;
     isDeleted?: boolean;
-    isActive?: boolean;
+    isArchived?: boolean;
   }): Promise<Product> {
     return this.db.product.create({
       data: {
         name: data.name,
         price: data.price,
         isDeleted: data.isDeleted,
-        isActive: data.isActive,
+        isArchived: data.isArchived,
       },
     });
   }
@@ -27,7 +27,6 @@ class ProductRepository {
     filters: {
       name?: string;
       price?: number;
-      isActive?: boolean;
       isArchived?: boolean;
     },
     page: number = 1,
@@ -42,10 +41,7 @@ class ProductRepository {
           : undefined,
         price:
           filters.price !== undefined ? { equals: filters.price } : undefined,
-        isActive:
-          filters.isActive !== undefined
-            ? { equals: filters.isActive }
-            : undefined,
+
         isArchived:
           filters.isArchived !== undefined
             ? { equals: filters.isArchived }
@@ -61,10 +57,7 @@ class ProductRepository {
           : undefined,
         price:
           filters.price !== undefined ? { equals: filters.price } : undefined,
-        isActive:
-          filters.isActive !== undefined
-            ? { equals: filters.isActive }
-            : undefined,
+
         isArchived:
           filters.isArchived !== undefined ? filters.isArchived : undefined,
         isDeleted: false,
@@ -84,7 +77,7 @@ class ProductRepository {
       name?: string;
       price?: number;
       isDeleted?: boolean;
-      isActive?: boolean;
+
       isArchived?: boolean;
     }
   ): Promise<Product> {
@@ -101,7 +94,6 @@ class ProductRepository {
       where: { id },
       data: {
         isDeleted: true,
-        isActive: false,
       },
     });
   }

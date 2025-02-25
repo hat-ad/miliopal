@@ -258,6 +258,31 @@ class SellerRepository {
       },
     });
   }
+
+  async getSellerSellingDetails(id: string): Promise<Seller> {
+    const seller = await this.db.seller.findUnique({
+      where: { id },
+      include: {
+        privateSeller: true,
+        businessSeller: true,
+        purchases: {
+          include: {
+            user: true,
+            productsPurchased: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!seller) {
+      throw new Error("Seller not found");
+    }
+    return seller;
+  }
 }
 
 export default new SellerRepository();

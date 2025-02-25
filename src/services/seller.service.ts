@@ -77,6 +77,10 @@ class SellerService {
   static async deleteSeller(id: string): Promise<Seller | null> {
     return SellerRepository.deleteSeller(id);
   }
+
+  static async getSellerSellingDetails(id: string): Promise<Seller | null> {
+    return SellerRepository.getSellerSellingDetails(id);
+  }
 }
 
 export default SellerService;
