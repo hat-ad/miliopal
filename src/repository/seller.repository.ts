@@ -94,6 +94,7 @@ class SellerRepository {
       companyName?: string;
       contactPerson?: string;
       organizationNumber?: number;
+      isArchived?: boolean;
     },
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -119,6 +120,9 @@ class SellerRepository {
       city: filters.city
         ? { contains: filters.city, mode: "insensitive" }
         : undefined,
+
+      isArchived:
+        filters.isArchived !== undefined ? filters.isArchived : undefined,
       isDeleted: false,
     };
 
@@ -193,6 +197,7 @@ class SellerRepository {
       contactPerson?: string;
       organizationNumber?: number;
       isDeleted?: boolean;
+      isArchived?: boolean;
       type?: SellerType;
     }
   ): Promise<Seller> {
@@ -214,6 +219,7 @@ class SellerRepository {
       postalCode: data.postalCode,
       city: data.city,
       isDeleted: data.isDeleted,
+      isArchived: data.isArchived,
     };
 
     if (existingSeller.type === "BUSINESS" && existingSeller.businessSeller) {

@@ -38,6 +38,7 @@ class SellerService {
       companyName?: string;
       contactPerson?: string;
       organizationNumber?: number;
+      isArchived?: boolean;
     },
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -67,6 +68,7 @@ class SellerService {
       contactPerson?: string;
       organizationNumber?: number;
       isDeleted?: boolean;
+      isArchived?: boolean;
     }
   ): Promise<Seller | null> {
     return SellerRepository.updateSeller(id, data);

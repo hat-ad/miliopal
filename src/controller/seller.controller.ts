@@ -39,6 +39,7 @@ export default class SellerController {
         companyName,
         contactPerson,
         organizationNumber,
+        isArchived,
         sortBy,
         sortOrder,
         page,
@@ -57,6 +58,7 @@ export default class SellerController {
           ? parseFloat(organizationNumber as string)
           : undefined,
         type: type as "PRIVATE" | "BUSINESS" | undefined,
+        isArchived: isArchived ? isArchived === "true" : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

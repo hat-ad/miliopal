@@ -25,6 +25,8 @@ class UserService {
       phone?: string;
       password?: string;
       token?: string;
+      isActive?: boolean;
+      isArchived?: boolean;
       isDeleted?: boolean;
     }
   ): Promise<User | null> {
@@ -51,6 +53,7 @@ class UserService {
       email?: string;
       phone?: string;
       isActive?: boolean;
+      isArchived?: boolean;
     },
     sortBy: "name",
     sortOrder: "asc" | "desc" = "asc",

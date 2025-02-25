@@ -16,6 +16,7 @@ class ProductService {
       name?: string;
       price?: number;
       isActive?: boolean;
+      isArchived?: boolean;
     },
     page: number = 1,
     limit: number = 10
@@ -30,6 +31,7 @@ class ProductService {
       price?: number;
       isDeleted?: boolean;
       isActive?: boolean;
+      isArchived?: boolean;
     }
   ): Promise<Product | null> {
     return ProductRepository.updateProduct(id, data);

@@ -14,12 +14,13 @@ export default class ProductController {
 
   static async getProductsList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, price, isActive, page } = req.query;
+      const { name, price, isActive, isArchived, page } = req.query;
 
       const filters = {
         name: name ? String(name) : undefined,
         price: price ? parseFloat(price as string) : undefined,
         isActive: isActive ? isActive === "true" : undefined,
+        isArchived: isArchived ? isArchived === "true" : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

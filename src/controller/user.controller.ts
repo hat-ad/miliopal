@@ -65,13 +65,15 @@ export default class UserController {
 
   static async getUsersList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, phone, isActive, sortOrder, page } = req.query;
+      const { name, email, phone, isActive, isArchived, sortOrder, page } =
+        req.query;
 
       const filters = {
         name: name as string,
         email: email as string,
         phone: phone as string,
         isActive: isActive ? isActive === "true" : undefined,
+        isArchived: isArchived ? isArchived === "true" : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

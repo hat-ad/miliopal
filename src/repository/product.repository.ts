@@ -28,6 +28,7 @@ class ProductRepository {
       name?: string;
       price?: number;
       isActive?: boolean;
+      isArchived?: boolean;
     },
     page: number = 1,
     limit: number = 10
@@ -45,6 +46,10 @@ class ProductRepository {
           filters.isActive !== undefined
             ? { equals: filters.isActive }
             : undefined,
+        isArchived:
+          filters.isArchived !== undefined
+            ? { equals: filters.isArchived }
+            : undefined,
         isDeleted: false,
       },
     });
@@ -60,6 +65,8 @@ class ProductRepository {
           filters.isActive !== undefined
             ? { equals: filters.isActive }
             : undefined,
+        isArchived:
+          filters.isArchived !== undefined ? filters.isArchived : undefined,
         isDeleted: false,
       },
       take: limit,
@@ -78,6 +85,7 @@ class ProductRepository {
       price?: number;
       isDeleted?: boolean;
       isActive?: boolean;
+      isArchived?: boolean;
     }
   ): Promise<Product> {
     return this.db.product.update({

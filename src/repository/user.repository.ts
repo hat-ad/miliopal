@@ -1,5 +1,5 @@
 import PrismaService from "@/db/prisma-service";
-import { User, PrismaClient, Role } from "@prisma/client";
+import { User, PrismaClient, Role, Prisma } from "@prisma/client";
 
 class UserRepository {
   db: PrismaClient;
@@ -33,6 +33,8 @@ class UserRepository {
       name?: string;
       phone?: string;
       password?: string;
+      isActive?: boolean;
+      isArchived?: boolean;
       isDeleted?: boolean;
     }
   ): Promise<User> {
@@ -55,12 +57,14 @@ class UserRepository {
       where: { email },
     });
   }
+
   async getUsersList(
     filters: {
       name?: string;
       email?: string;
       phone?: string;
       isActive?: boolean;
+      isArchived?: boolean;
     },
     sortBy: "name" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -69,39 +73,27 @@ class UserRepository {
   ): Promise<{ users: User[]; total: number; totalPages: number }> {
     const offset = (page - 1) * limit;
 
-    const total = await this.db.user.count({
-      where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
-        email: filters.email
-          ? { contains: filters.email, mode: "insensitive" }
-          : undefined,
-        phone: filters.phone
-          ? { contains: filters.phone, mode: "insensitive" }
-          : undefined,
-        isActive: filters.isActive ?? false,
-        isDeleted: false,
-      },
-    });
+    const whereCondition: Prisma.UserWhereInput = {
+      name: filters.name
+        ? { contains: filters.name, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      email: filters.email
+        ? { contains: filters.email, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      phone: filters.phone
+        ? { contains: filters.phone, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      isActive: filters.isActive !== undefined ? filters.isActive : undefined,
+      isArchived:
+        filters.isArchived !== undefined ? filters.isArchived : undefined,
+      isDeleted: false,
+    };
+
+    const total = await this.db.user.count({ where: whereCondition });
 
     const users = await this.db.user.findMany({
-      where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
-        email: filters.email
-          ? { contains: filters.email, mode: "insensitive" }
-          : undefined,
-        phone: filters.phone
-          ? { contains: filters.phone, mode: "insensitive" }
-          : undefined,
-        isActive: filters.isActive ?? false,
-        isDeleted: false,
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      where: whereCondition,
+      orderBy: { [sortBy]: sortOrder },
       take: limit,
       skip: offset,
     });

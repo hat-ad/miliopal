@@ -1,7 +1,6 @@
 import PrismaService from "@/db/prisma-service";
 import {
   PrismaClient,
-  Role,
   Purchase,
   PaymentMethod,
   OrderStatus,
