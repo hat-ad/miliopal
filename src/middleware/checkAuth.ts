@@ -29,18 +29,18 @@ export const isAuthenticated = async (
       return ERROR(res, null, "Invalid token");
     }
 
-    const buyer = await UserService.getUser(payload.sub);
-    if (!buyer) return ERROR(res, null, "Buyer does not exist");
+    const user = await UserService.getUser(payload.sub);
+    if (!user) return ERROR(res, null, "Buyer does not exist");
 
-    const buyerPayload: UserTokenPayload = {
+    const userPayload: UserTokenPayload = {
       id: payload.sub,
-      role: buyer.role as Role,
-      email: buyer.email,
+      role: user.role as Role,
+      email: user.email,
     };
 
-    console.log("Authenticated User:", buyerPayload);
+    console.log("Authenticated User:", userPayload);
 
-    req.payload = buyerPayload;
+    req.payload = userPayload;
     next();
   } catch (error) {
     console.error("Authentication Error:", error);

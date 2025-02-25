@@ -34,6 +34,11 @@ export default class UserController {
     try {
       const { id } = req.params;
       const token = generateToken(id.toString());
+      const existingUser = await UserService.getUser(id);
+
+      if (!existingUser) {
+        throw new Error("User not found");
+      }
 
       const user = await UserService.updateUser(id, { ...req.body, token });
       return OK(res, user, "User updated successfully");

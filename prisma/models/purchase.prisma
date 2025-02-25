@@ -1,0 +1,23 @@
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+enum OrderStatus {
+  PAID
+  UNPAID
+}
+
+model Purchase {
+  id                 String    @id @default(uuid())
+  orderNo            String    @unique
+  comment           String?
+  paymentMethod      PaymentMethod
+  bankAccountNumber  String?
+  sellerId           String
+  userId            String
+  status             OrderStatus
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+

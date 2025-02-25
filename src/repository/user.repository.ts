@@ -33,7 +33,6 @@ class UserRepository {
       name?: string;
       phone?: string;
       password?: string;
-      token?: string;
       isDeleted?: boolean;
     }
   ): Promise<User> {
