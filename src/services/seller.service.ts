@@ -1,5 +1,5 @@
-import { Seller, SellerType } from "@prisma/client";
 import SellerRepository from "@/repository/seller.repository";
+import { Purchase, Seller, SellerType } from "@prisma/client";
 
 class SellerService {
   static async createSeller(data: {
@@ -78,7 +78,9 @@ class SellerService {
     return SellerRepository.deleteSeller(id);
   }
 
-  static async getSellerSellingHistory(id: string): Promise<Seller | null> {
+  static async getSellerSellingHistory(
+    id: string
+  ): Promise<{ seller: Seller; purchase: Purchase[] } | null> {
     return SellerRepository.getSellerSellingHistory(id);
   }
 }

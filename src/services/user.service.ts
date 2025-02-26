@@ -1,6 +1,6 @@
 import UserRepository from "@/repository/user.repository";
+import { Purchase, Role, User } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { User, Role } from "@prisma/client";
 
 class UserService {
   static async createUser(data: { email: string; role: Role }): Promise<User> {
@@ -67,7 +67,9 @@ class UserService {
     return UserRepository.deleteUser(id);
   }
 
-  static async getUserSellingHistory(id: string): Promise<User | null> {
+  static async getUserSellingHistory(
+    id: string
+  ): Promise<{ buyer: User; purchase: Purchase[] } | null> {
     return UserRepository.getUserSellingHistory(id);
   }
 }

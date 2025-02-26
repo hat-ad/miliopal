@@ -1,6 +1,6 @@
-import { OK, ERROR } from "@/utils/response-helper";
-import { Request, Response } from "express";
 import SellerService from "@/services/seller.service";
+import { ERROR, OK } from "@/utils/response-helper";
+import { Request, Response } from "express";
 
 export default class SellerController {
   static async createSeller(req: Request, res: Response): Promise<void> {
@@ -107,6 +107,8 @@ export default class SellerController {
       const sellerSellingHistory = await SellerService.getSellerSellingHistory(
         id
       );
+
+
       return OK(
         res,
         sellerSellingHistory,

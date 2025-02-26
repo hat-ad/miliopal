@@ -1,5 +1,5 @@
 import PrismaService from "@/db/prisma-service";
-import { User, PrismaClient, Role, Prisma } from "@prisma/client";
+import { Prisma, PrismaClient, Purchase, Role, User } from "@prisma/client";
 
 class UserRepository {
   db: PrismaClient;
@@ -112,7 +112,9 @@ class UserRepository {
     });
   }
 
-  async getUserSellingHistory(id: string): Promise<User> {
+  async getUserSellingHistory(
+    id: string
+  ): Promise<{ buyer: User; purchase: Purchase[] } | null> {
     const userSellingHistory = await this.db.user.findUnique({
       where: { id },
       include: {
@@ -135,10 +137,14 @@ class UserRepository {
     });
 
     if (!userSellingHistory) {
-      throw new Error(`No selling history found for user ID: ${id}`);
+      return null;
     }
-
-    return userSellingHistory;
+    const response = {
+      buyer: userSellingHistory,
+      purchase: userSellingHistory.purchases,
+    };
+    response.buyer.purchases = [];
+    return response;
   }
 }
 
