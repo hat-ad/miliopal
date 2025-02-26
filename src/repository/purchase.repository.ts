@@ -95,6 +95,32 @@ class PurchaseRepository {
 
     return { purchases, total, totalPages };
   }
+
+  async getReceiptByOrderNo(orderNo: string): Promise<Purchase | null> {
+    const purchase = await this.db.purchase.findUnique({
+      where: { orderNo },
+      include: {
+        user: true,
+        seller: {
+          include: {
+            privateSeller: true,
+            businessSeller: true,
+          },
+        },
+        productsPurchased: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!purchase) {
+      throw new Error(`No purchase found with orderNo: ${orderNo}`);
+    }
+
+    return purchase;
+  }
 }
 
 export default new PurchaseRepository();

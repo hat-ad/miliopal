@@ -18,5 +18,10 @@ router.get(
   isAuthenticated,
   PurchaseController.getPurchaseList
 );
+router.get(
+  "/get-receipt-by-orderno/:orderNo",
+  isAuthenticated,
+  PurchaseController.getReceiptByOrderNo
+);
 
 export default router;

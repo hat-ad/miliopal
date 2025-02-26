@@ -90,4 +90,21 @@ export default class PurchaseController {
       return ERROR(res, false, error);
     }
   }
+
+  static async getReceiptByOrderNo(req: Request, res: Response) {
+    try {
+      const { orderNo } = req.params;
+
+      const purchaseDetails = await PurchaseService.getReceiptByOrderNo(
+        orderNo
+      );
+      return OK(
+        res,
+        purchaseDetails,
+        `Purchase Details of order ${orderNo} retrived successfully`
+      );
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }

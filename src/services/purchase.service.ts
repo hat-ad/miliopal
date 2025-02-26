@@ -38,6 +38,10 @@ class PurchaseService {
       limit
     );
   }
+
+  static async getReceiptByOrderNo(orderNo: string): Promise<Purchase | null> {
+    return purchaseRepository.getReceiptByOrderNo(orderNo);
+  }
 }
 
 export default PurchaseService;
