@@ -1,9 +1,9 @@
 import PrismaService from "@/db/prisma-service";
 import {
+  OrderStatus,
+  PaymentMethod,
   PrismaClient,
   Purchase,
-  PaymentMethod,
-  OrderStatus,
 } from "@prisma/client";
 
 class PurchaseRepository {
@@ -84,16 +84,25 @@ class PurchaseRepository {
       },
     });
 
-    const transformedPurchases = purchases.map((purchase) => ({
-      ...purchase,
-      ...purchase.seller?.privateSeller,
-      ...purchase.seller?.businessSeller,
-      seller: undefined,
-    }));
+    const transformedPurchases = purchases.map((purchase) => {
+      const seller = {
+        ...purchase.seller,
+        ...purchase.seller?.privateSeller,
+        ...purchase.seller?.businessSeller,
+      };
+
+      seller.privateSeller = null;
+      seller.businessSeller = null;
+
+      return {
+        ...purchase,
+        seller,
+      };
+    });
 
     const totalPages = Math.ceil(total / limit);
 
-    return { purchases, total, totalPages };
+    return { purchases: transformedPurchases, total, totalPages };
   }
 
   async getReceiptByOrderNo(orderNo: string): Promise<Purchase | null> {

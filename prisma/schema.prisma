@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,60 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model BusinessSeller {
-  id         String     @id @default(uuid())
-  companyName       String
-  contactPerson     String
+  id                 String   @id @default(uuid())
+  companyName        String
+  contactPerson      String
   organizationNumber Float
-  seller     Seller   @relation(fields: [id], references: [id])
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  seller             Seller   @relation(fields: [id], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
-
-
-
-
 
 model PrivateSeller {
-  id         String     @id @default(uuid())
-  name       String?
-  seller     Seller   @relation(fields: [id], references: [id])
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id        String   @id @default(uuid())
+  name      String?
+  seller    Seller   @relation(fields: [id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
-
-
-
 model Product {
-  id         String     @id @default(uuid())
-  name       String?
-  price      Float
-  isDeleted  Boolean    @default(false)
-  isArchived  Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id                String              @id @default(uuid())
+  name              String?
+  price             Float
+  isDeleted         Boolean             @default(false)
+  isArchived        Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   productsPurchased ProductsPurchased[]
 }
 
-
 model ProductsPurchased {
-  id          String  @id @default(uuid())
-  productId   String
-  price       Decimal
-  quantity    Int
-  purchaseId  String
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  productId  String
+  price      Float
+  quantity   Int
+  purchaseId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-
 }
-
 
 enum PaymentMethod {
   CASH
@@ -74,24 +60,21 @@ enum OrderStatus {
 }
 
 model Purchase {
-  id                 String    @id @default(uuid())
-  orderNo            String    @unique
+  id                String              @id @default(uuid())
+  orderNo           String              @unique
   comment           String?
-  paymentMethod      PaymentMethod
-  bankAccountNumber  String?
-  sellerId           String
+  paymentMethod     PaymentMethod
+  bankAccountNumber String?
+  sellerId          String
   userId            String
-  status             OrderStatus
-  isArchived  Boolean    @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  status            OrderStatus
+  isArchived        Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]
-
 }
-
-
 
 enum SellerType {
   PRIVATE
@@ -99,22 +82,21 @@ enum SellerType {
 }
 
 model Seller {
-  id         String     @id @default(uuid())
-  email      String     @unique
-  type       SellerType
-  phone      String?
-  address    String?
-  postalCode String?
-  city       String?
+  id             String          @id @default(uuid())
+  email          String          @unique
+  type           SellerType
+  phone          String?
+  address        String?
+  postalCode     String?
+  city           String?
   privateSeller  PrivateSeller?
   businessSeller BusinessSeller?
-  isArchived  Boolean    @default(false)
-  isDeleted  Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  purchases  Purchase[]
+  isArchived     Boolean         @default(false)
+  isDeleted      Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  purchases      Purchase[]
 }
-
 
 enum Role {
   USER
@@ -127,11 +109,11 @@ model User {
   name       String?
   phone      String?
   email      String     @unique
-  password    String?
-  role        Role     @default(USER)
-  token       String?
-  isActive  Boolean    @default(false)
-  isArchived  Boolean    @default(false)
+  password   String?
+  role       Role       @default(USER)
+  token      String?
+  isActive   Boolean    @default(false)
+  isArchived Boolean    @default(false)
   isDeleted  Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt

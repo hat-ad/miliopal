@@ -7,7 +7,7 @@ export const generateToken = (userId: string): string => {
     },
     process.env.SECRET || "",
     {
-      expiresIn: "1h",
+      expiresIn: "2h",
     }
   );
   return token;
