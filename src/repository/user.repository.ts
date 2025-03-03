@@ -12,17 +12,23 @@ class UserRepository {
     role?: Role;
     password?: string;
     phone?: string;
+    organizationId: string;
   }): Promise<User> {
     return this.db.user.create({
       data: data,
     });
   }
 
-  async createUser(data: { email: string; role: Role }): Promise<User> {
+  async createUser(data: {
+    email: string;
+    role: Role;
+    organizationId: string;
+  }): Promise<User> {
     return this.db.user.create({
       data: {
         email: data.email,
         role: data.role ?? Role.USER,
+        organizationId: data.organizationId,
       },
     });
   }

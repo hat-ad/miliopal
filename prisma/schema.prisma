@@ -31,9 +31,12 @@ model Product {
   price             Float
   isDeleted         Boolean             @default(false)
   isArchived        Boolean             @default(false)
+  organizationId   String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   productsPurchased ProductsPurchased[]
+  
 }
 
 model ProductsPurchased {
@@ -69,8 +72,10 @@ model Purchase {
   userId            String
   status            OrderStatus
   isArchived        Boolean             @default(false)
+  organizationId   String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]
@@ -93,8 +98,10 @@ model Seller {
   businessSeller BusinessSeller?
   isArchived     Boolean         @default(false)
   isDeleted      Boolean         @default(false)
+  organizationId String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   purchases      Purchase[]
 }
 
@@ -115,7 +122,21 @@ model User {
   isActive   Boolean    @default(false)
   isArchived Boolean    @default(false)
   isDeleted  Boolean    @default(false)
+  organizationId String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   purchases  Purchase[]
 }
+
+model Organization {
+  id                 String   @id @default(uuid())
+  organizationNumber Float    @unique // Ensure it's unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  users              User[]
+  sellers            Seller[]
+  products           Product[]
+  purchases          Purchase[]
+}
+

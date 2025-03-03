@@ -1,16 +1,29 @@
 import { OK, ERROR } from "@/utils/response-helper";
 import { Request, Response } from "express";
 import UserService from "@/services/user.service";
+import OrganizationService from "@/services/organization.service";
 import { generateToken } from "@/functions/function";
 
 export default class UserController {
   static async createUserInternal(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
+      const { email, organizationNumber } = req.body;
       let user = await UserService.getUserByEmail(email);
       if (user) return ERROR(res, false, "User already exist");
 
-      user = await UserService.createUserInternal(req.body);
+      let org = await OrganizationService.getOrganizationByNumber(
+        organizationNumber
+      );
+      if (org) {
+        return ERROR(res, false, "Organization already exist");
+      }
+      const newOrg = await OrganizationService.createOrganization({
+        organizationNumber,
+      });
+      user = await UserService.createUserInternal({
+        ...req.body,
+        organizationId: newOrg.id,
+      });
       return OK(res, user, "User created successfully");
     } catch (error) {
       return ERROR(res, false, error);
@@ -19,11 +32,24 @@ export default class UserController {
 
   static async createUser(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
+      const { email, organizationNumber } = req.body;
       let user = await UserService.getUserByEmail(email);
       if (user) return ERROR(res, false, "User already exist");
 
-      user = await UserService.createUser(req.body);
+      let org = await OrganizationService.getOrganizationByNumber(
+        organizationNumber
+      );
+      if (org) {
+        return ERROR(res, false, "Organization already exist");
+      }
+      const newOrg = await OrganizationService.createOrganization({
+        organizationNumber,
+      });
+
+      user = await UserService.createUser({
+        ...req.body,
+        organizationId: newOrg.id,
+      });
       return OK(res, user, "User created successfully");
     } catch (error) {
       return ERROR(res, false, error);

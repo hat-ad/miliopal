@@ -3,7 +3,11 @@ import { Purchase, Role, User } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 class UserService {
-  static async createUser(data: { email: string; role: Role }): Promise<User> {
+  static async createUser(data: {
+    email: string;
+    role: Role;
+    organizationId: string;
+  }): Promise<User> {
     return UserRepository.createUser(data);
   }
   static async createUserInternal(data: {
@@ -11,6 +15,7 @@ class UserService {
     role: Role;
     password?: string;
     phone?: string;
+    organizationId: string;
   }): Promise<User> {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
