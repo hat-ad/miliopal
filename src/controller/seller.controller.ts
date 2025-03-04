@@ -6,10 +6,15 @@ export default class SellerController {
   static async createSeller(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
+      const organizationId = req.payload?.organizationId;
+
       const seller = await SellerService.getSellerByEmail(email);
       if (seller) return ERROR(res, false, "Seller already exist");
 
-      const user = await SellerService.createSeller(req.body);
+      const user = await SellerService.createSeller({
+        ...req.body,
+        organizationId,
+      });
       return OK(res, user, "Seller created successfully");
     } catch (error) {
       return ERROR(res, false, error);
@@ -107,7 +112,6 @@ export default class SellerController {
       const sellerSellingHistory = await SellerService.getSellerSellingHistory(
         id
       );
-
 
       return OK(
         res,

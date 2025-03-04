@@ -9,6 +9,7 @@ class SellerRepository {
 
   async createSeller(data: {
     email: string;
+    organizationId: string;
     type: SellerType;
     name?: string;
     phone?: string;
@@ -33,6 +34,7 @@ class SellerRepository {
     return this.db.seller.create({
       data: {
         email: data.email,
+        organizationId: data.organizationId,
         type: data.type,
         phone: data.phone,
         address: data.address,
@@ -59,6 +61,7 @@ class SellerRepository {
       include: {
         privateSeller: true,
         businessSeller: true,
+        organization: true,
       },
     });
   }
@@ -72,6 +75,7 @@ class SellerRepository {
       include: {
         privateSeller: true,
         businessSeller: true,
+        organization: true,
       },
     });
   }
@@ -274,6 +278,7 @@ class SellerRepository {
       include: {
         privateSeller: true,
         businessSeller: true,
+        organization: true,
         purchases: {
           include: {
             user: true,
@@ -297,11 +302,10 @@ class SellerRepository {
         ...sellerSellingHistory.businessSeller,
         privateSeller: null,
         businessSeller: null,
+        purchases: [],
       },
       purchase: sellerSellingHistory.purchases,
     };
-
-    response.seller.purchases = [];
 
     return response;
   }

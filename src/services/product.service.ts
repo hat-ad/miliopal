@@ -5,6 +5,7 @@ class ProductService {
   static async createProduct(data: {
     name: string;
     price: number;
+    organizationId: string;
     isDeleted?: boolean;
     isArchived?: boolean;
   }): Promise<Product> {

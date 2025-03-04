@@ -14,6 +14,7 @@ class PurchaseRepository {
   async createPurchase(data: {
     userId: string;
     sellerId: string;
+    organizationId: string;
     comment?: string;
     paymentMethod: PaymentMethod;
     bankAccountNumber?: string;
@@ -24,6 +25,7 @@ class PurchaseRepository {
         orderNo: `ORD-${Date.now()}`,
         userId: data.userId,
         sellerId: data.sellerId,
+        organizationId: data.organizationId,
         comment: data.comment ?? null,
         paymentMethod: data.paymentMethod,
         bankAccountNumber: data.bankAccountNumber ?? null,
@@ -32,6 +34,7 @@ class PurchaseRepository {
       include: {
         user: true,
         seller: true,
+        organization: true,
       },
     });
   }
@@ -121,6 +124,7 @@ class PurchaseRepository {
             product: true,
           },
         },
+        organization: true,
       },
     });
 

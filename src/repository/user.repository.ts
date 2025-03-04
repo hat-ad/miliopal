@@ -55,6 +55,10 @@ class UserRepository {
   async getUser(id: string): Promise<User | null> {
     return this.db.user.findUnique({
       where: { id },
+      include: {
+        purchases: true,
+        organization: true,
+      },
     });
   }
 
@@ -69,6 +73,7 @@ class UserRepository {
       name?: string;
       email?: string;
       phone?: string;
+      organizationId?: string;
       isActive?: boolean;
       isArchived?: boolean;
     },
@@ -88,6 +93,12 @@ class UserRepository {
         : undefined,
       phone: filters.phone
         ? { contains: filters.phone, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      organizationId: filters.organizationId
+        ? {
+            contains: filters.organizationId,
+            mode: Prisma.QueryMode.insensitive,
+          }
         : undefined,
       isActive: filters.isActive !== undefined ? filters.isActive : undefined,
       isArchived:
@@ -130,6 +141,7 @@ class UserRepository {
               include: {
                 privateSeller: true,
                 businessSeller: true,
+                organization: true,
               },
             },
             productsPurchased: {
@@ -139,6 +151,7 @@ class UserRepository {
             },
           },
         },
+        organization: true,
       },
     });
 

@@ -93,11 +93,13 @@ export default class UserController {
     try {
       const { name, email, phone, isActive, isArchived, sortOrder, page } =
         req.query;
+      const organizationId = req.payload?.organizationId;
 
       const filters = {
         name: name as string,
         email: email as string,
         phone: phone as string,
+        // organizationId: organizationId as string,
         isActive: isActive ? isActive === "true" : undefined,
         isArchived: isArchived ? isArchived === "true" : undefined,
       };

@@ -5,7 +5,12 @@ import ProductService from "@/services/product.service";
 export default class ProductController {
   static async createProduct(req: Request, res: Response): Promise<void> {
     try {
-      const product = await ProductService.createProduct(req.body);
+      const organizationId = req.payload?.organizationId;
+
+      const product = await ProductService.createProduct({
+        ...req.body,
+        organizationId,
+      });
       return OK(res, product, "Product created successfully");
     } catch (error) {
       return ERROR(res, false, error);

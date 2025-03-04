@@ -9,6 +9,8 @@ export default class PurchaseController {
   static async createPurchase(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
+      const organizationId = req.payload?.organizationId;
+
       const { products, ...purchaseData } = req.body;
       const { sellerId } = purchaseData;
 
@@ -23,6 +25,7 @@ export default class PurchaseController {
       }
       const purchase = await PurchaseService.createPurchase({
         userId,
+        organizationId,
         ...purchaseData,
       });
 

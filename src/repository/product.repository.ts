@@ -10,6 +10,7 @@ class ProductRepository {
   async createProduct(data: {
     name?: string;
     price: number;
+    organizationId: string;
     isDeleted?: boolean;
     isArchived?: boolean;
   }): Promise<Product> {
@@ -17,6 +18,7 @@ class ProductRepository {
       data: {
         name: data.name,
         price: data.price,
+        organizationId: data.organizationId,
         isDeleted: data.isDeleted,
         isArchived: data.isArchived,
       },
@@ -77,7 +79,6 @@ class ProductRepository {
       name?: string;
       price?: number;
       isDeleted?: boolean;
-
       isArchived?: boolean;
     }
   ): Promise<Product> {

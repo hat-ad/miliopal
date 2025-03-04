@@ -1,9 +1,10 @@
 import SellerRepository from "@/repository/seller.repository";
-import { Purchase, Seller, SellerType } from "@prisma/client";
+import { Organization, Purchase, Seller, SellerType } from "@prisma/client";
 
 class SellerService {
   static async createSeller(data: {
     email: string;
+    organizationId: string;
     type: SellerType;
     name?: string;
     phone?: string;
@@ -29,6 +30,7 @@ class SellerService {
   static async getSellersList(
     filters: {
       email?: string;
+      organizationId?: string;
       type?: SellerType;
       name?: string;
       phone?: string;

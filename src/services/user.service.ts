@@ -57,6 +57,7 @@ class UserService {
       name?: string;
       email?: string;
       phone?: string;
+      organizationId?: string;
       isActive?: boolean;
       isArchived?: boolean;
     },

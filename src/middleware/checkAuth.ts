@@ -36,6 +36,7 @@ export const isAuthenticated = async (
       id: payload.sub,
       role: user.role as Role,
       email: user.email,
+      organizationId: user.organizationId,
     };
 
     console.log("Authenticated User:", userPayload);
