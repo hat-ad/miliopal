@@ -30,6 +30,7 @@ class ProductRepository {
       name?: string;
       price?: number;
       isArchived?: boolean;
+      organizationId?: string;
     },
     page: number = 1,
     limit: number = 10
@@ -48,6 +49,12 @@ class ProductRepository {
           filters.isArchived !== undefined
             ? { equals: filters.isArchived }
             : undefined,
+        organizationId: filters.organizationId
+          ? {
+              contains: filters.organizationId,
+              mode: "insensitive",
+            }
+          : undefined,
         isDeleted: false,
       },
     });
@@ -62,6 +69,13 @@ class ProductRepository {
 
         isArchived:
           filters.isArchived !== undefined ? filters.isArchived : undefined,
+
+        organizationId: filters.organizationId
+          ? {
+              contains: filters.organizationId,
+              mode: "insensitive",
+            }
+          : undefined,
         isDeleted: false,
       },
       take: limit,

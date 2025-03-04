@@ -99,7 +99,7 @@ export default class UserController {
         name: name as string,
         email: email as string,
         phone: phone as string,
-        // organizationId: organizationId as string,
+        organizationId: organizationId as string,
         isActive: isActive ? isActive === "true" : undefined,
         isArchived: isArchived ? isArchived === "true" : undefined,
       };

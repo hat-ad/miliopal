@@ -62,6 +62,7 @@ export default class PurchaseController {
         sortOrder,
         page,
       } = req.query;
+      const organizationId = req.payload?.organizationId;
 
       const filters = {
         userId: userId ? (userId as string) : undefined,
@@ -74,6 +75,7 @@ export default class PurchaseController {
           : undefined,
         status: status ? (status as OrderStatus) : undefined,
         orderNo: orderNo ? (orderNo as string) : undefined,
+        organizationId: organizationId as string,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

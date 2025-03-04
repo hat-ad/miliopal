@@ -49,7 +49,7 @@ export default class SellerController {
         sortOrder,
         page,
       } = req.query;
-
+      const organizationId = req.payload?.organizationId;
       const filters = {
         name: name as string,
         email: email as string,
@@ -64,6 +64,7 @@ export default class SellerController {
           : undefined,
         type: type as "PRIVATE" | "BUSINESS" | undefined,
         isArchived: isArchived ? isArchived === "true" : undefined,
+        organizationId: organizationId as string,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

@@ -17,6 +17,7 @@ class ProductService {
       name?: string;
       price?: number;
       isArchived?: boolean;
+      organizationId?: string;
     },
     page: number = 1,
     limit: number = 10

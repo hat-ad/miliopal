@@ -47,6 +47,7 @@ class PurchaseRepository {
       bankAccountNumber?: string;
       status?: OrderStatus;
       orderNo?: string;
+      organizationId?: string;
     },
     sortBy: "orderNo" | "createdAt" | "status" = "createdAt",
     sortOrder: "asc" | "desc" = "desc",
@@ -62,6 +63,12 @@ class PurchaseRepository {
       bankAccountNumber: filters.bankAccountNumber || undefined,
       status: filters.status || undefined,
       orderNo: filters.orderNo ? { contains: filters.orderNo } : undefined,
+      organizationId: filters.organizationId
+        ? {
+            contains: filters.organizationId,
+            mode: "insensitive",
+          }
+        : undefined,
     };
 
     const total = await this.db.purchase.count({ where: whereCondition });

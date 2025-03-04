@@ -21,10 +21,13 @@ export default class ProductController {
     try {
       const { name, price, isArchived, page } = req.query;
 
+      const organizationId = req.payload?.organizationId;
+
       const filters = {
         name: name ? String(name) : undefined,
         price: price ? parseFloat(price as string) : undefined,
         isArchived: isArchived ? isArchived === "true" : undefined,
+        organizationId: organizationId as string,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

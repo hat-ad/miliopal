@@ -1,8 +1,5 @@
-import AuthRepository from "@/repository/auth.repository";
-import bcrypt from "bcrypt";
 import { Purchase, PaymentMethod, OrderStatus, User } from "@prisma/client";
 import purchaseRepository from "@/repository/purchase.repository";
-import userRepository from "@/repository/user.repository";
 
 class PurchaseService {
   static async createPurchase(data: {
@@ -12,6 +9,7 @@ class PurchaseService {
     paymentMethod: PaymentMethod;
     bankAccountNumber?: string;
     status: OrderStatus;
+    organizationId: string;
   }): Promise<Purchase | null> {
     return purchaseRepository.createPurchase(data);
   }
@@ -24,6 +22,7 @@ class PurchaseService {
       bankAccountNumber?: string;
       status?: OrderStatus;
       orderNo?: string;
+      organizationId?: string;
     },
     sortBy: "orderNo" | "createdAt" | "status" = "createdAt", // ✅ Fix here
     sortOrder: "asc" | "desc" = "desc",

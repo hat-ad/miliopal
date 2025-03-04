@@ -99,6 +99,7 @@ class SellerRepository {
       contactPerson?: string;
       organizationNumber?: number;
       isArchived?: boolean;
+      organizationId?: string;
     },
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
@@ -124,7 +125,12 @@ class SellerRepository {
       city: filters.city
         ? { contains: filters.city, mode: "insensitive" }
         : undefined,
-
+      organizationId: filters.organizationId
+        ? {
+            contains: filters.organizationId,
+            mode: "insensitive",
+          }
+        : undefined,
       isArchived:
         filters.isArchived !== undefined ? filters.isArchived : undefined,
       isDeleted: false,
