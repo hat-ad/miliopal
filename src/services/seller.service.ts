@@ -80,9 +80,11 @@ class SellerService {
     return SellerRepository.deleteSeller(id);
   }
 
-  static async getSellerSellingHistory(
-    id: string
-  ): Promise<{ seller: Seller; purchase: Purchase[] } | null> {
+  static async getSellerSellingHistory(id: string): Promise<{
+    seller: Seller;
+    purchase: Purchase[];
+    organization: Organization | null;
+  } | null> {
     return SellerRepository.getSellerSellingHistory(id);
   }
 }

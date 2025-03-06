@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import UserService from "@/services/user.service";
 import OrganizationService from "@/services/organization.service";
 import { generateToken } from "@/functions/function";
+import { Role } from "@/types/enums";
 
 export default class UserController {
   static async createUserInternal(req: Request, res: Response): Promise<void> {
@@ -30,27 +31,21 @@ export default class UserController {
     }
   }
 
-  static async createUser(req: Request, res: Response): Promise<void> {
+  static async inviteUser(req: Request, res: Response): Promise<void> {
     try {
-      const { email, organizationNumber } = req.body;
+      const { email } = req.body;
+      const organizationId = req.payload?.organizationId;
       let user = await UserService.getUserByEmail(email);
       if (user) return ERROR(res, false, "User already exist");
 
-      let org = await OrganizationService.getOrganizationByNumber(
-        organizationNumber
-      );
-      if (org) {
-        return ERROR(res, false, "Organization already exist");
-      }
-      const newOrg = await OrganizationService.createOrganization({
-        organizationNumber,
-      });
-
       user = await UserService.createUser({
         ...req.body,
-        organizationId: newOrg.id,
+        organizationId,
       });
-      return OK(res, user, "User created successfully");
+
+      //invite user
+
+      return OK(res, user, "User invited successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }

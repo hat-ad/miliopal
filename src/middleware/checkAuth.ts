@@ -30,7 +30,7 @@ export const isAuthenticated = async (
     }
 
     const user = await UserService.getUser(payload.sub);
-    if (!user) return ERROR(res, null, "Buyer does not exist");
+    if (!user) return ERROR(res, null, "User does not exist");
 
     const userPayload: UserTokenPayload = {
       id: payload.sub,

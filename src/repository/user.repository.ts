@@ -1,5 +1,12 @@
 import PrismaService from "@/db/prisma-service";
-import { Prisma, PrismaClient, Purchase, Role, User } from "@prisma/client";
+import {
+  Organization,
+  Prisma,
+  PrismaClient,
+  Purchase,
+  Role,
+  User,
+} from "@prisma/client";
 
 class UserRepository {
   db: PrismaClient;
@@ -9,13 +16,16 @@ class UserRepository {
 
   async createUserInternal(data: {
     email: string;
-    role?: Role;
     password?: string;
     phone?: string;
-    organizationId: string;
+    organizationId?: string;
   }): Promise<User> {
     return this.db.user.create({
-      data: data,
+      data: {
+        email: data.email,
+        organizationId: data.organizationId,
+        role: Role.SUPERADMIN,
+      },
     });
   }
 
@@ -39,6 +49,7 @@ class UserRepository {
       name?: string;
       phone?: string;
       password?: string;
+      token?: string;
       isActive?: boolean;
       isArchived?: boolean;
       isDeleted?: boolean;
@@ -129,9 +140,11 @@ class UserRepository {
     });
   }
 
-  async getUserSellingHistory(
-    id: string
-  ): Promise<{ buyer: User; purchase: Purchase[] } | null> {
+  async getUserSellingHistory(id: string): Promise<{
+    buyer: User;
+    purchase: Purchase[];
+    organization: Organization | null;
+  } | null> {
     const userSellingHistory = await this.db.user.findUnique({
       where: { id },
       include: {
@@ -158,11 +171,19 @@ class UserRepository {
     if (!userSellingHistory) {
       return null;
     }
+
+    const { purchases, organization, ...userDetails } = userSellingHistory;
+
+    // Merge privateSeller and businessSeller into main seller object
+
     const response = {
-      buyer: userSellingHistory,
-      purchase: userSellingHistory.purchases,
+      buyer: {
+        ...userDetails,
+      },
+      purchase: purchases,
+      organization: organization ?? null,
     };
-    response.buyer.purchases = [];
+
     return response;
   }
 }

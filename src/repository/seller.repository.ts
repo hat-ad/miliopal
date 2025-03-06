@@ -1,5 +1,11 @@
 import PrismaService from "@/db/prisma-service";
-import { PrismaClient, Purchase, Seller, SellerType } from "@prisma/client";
+import {
+  Organization,
+  PrismaClient,
+  Purchase,
+  Seller,
+  SellerType,
+} from "@prisma/client";
 
 class SellerRepository {
   db: PrismaClient;
@@ -276,9 +282,11 @@ class SellerRepository {
     });
   }
 
-  async getSellerSellingHistory(
-    id: string
-  ): Promise<{ seller: Seller; purchase: Purchase[] } | null> {
+  async getSellerSellingHistory(id: string): Promise<{
+    seller: Seller;
+    purchase: Purchase[];
+    organization: Organization | null;
+  } | null> {
     const sellerSellingHistory = await this.db.seller.findUnique({
       where: { id },
       include: {
@@ -301,16 +309,22 @@ class SellerRepository {
     if (!sellerSellingHistory) {
       return null;
     }
+    const {
+      privateSeller,
+      businessSeller,
+      purchases,
+      organization,
+      ...sellerDetails
+    } = sellerSellingHistory;
+
     const response = {
       seller: {
-        ...sellerSellingHistory,
-        ...sellerSellingHistory.privateSeller,
-        ...sellerSellingHistory.businessSeller,
-        privateSeller: null,
-        businessSeller: null,
-        purchases: [],
+        ...sellerDetails,
+        ...(privateSeller || null),
+        ...(businessSeller || null),
       },
-      purchase: sellerSellingHistory.purchases,
+      purchase: purchases,
+      organization: organization ?? null,
     };
 
     return response;
