@@ -24,6 +24,34 @@ class OrganizationRepository {
       where: { organizationNumber },
     });
   }
+
+  async getOrganizationDetails(id: string): Promise<Organization | null> {
+    return this.db.organization.findUnique({
+      where: { id },
+      include: {
+        users: true,
+        sellers: true,
+        products: true,
+        purchases: true,
+      },
+    });
+  }
+
+  async updateOrganization(
+    id: string,
+    data: {
+      companyName?: string;
+      organizationNumber?: number;
+      postalCode?: string;
+      city?: string;
+      address?: string;
+    }
+  ): Promise<Organization | null> {
+    return this.db.organization.update({
+      where: { id },
+      data,
+    });
+  }
 }
 
 export default new OrganizationRepository();

@@ -17,6 +17,25 @@ class OrganizationService {
       organizationNumber
     );
   }
+
+  static async getOrganizationDetails(
+    organizationId: string
+  ): Promise<Organization | null> {
+    return organizationRepository.getOrganizationDetails(organizationId);
+  }
+
+  static async updateOrganization(
+    organizationId: string,
+    data: {
+      companyName?: string;
+      organizationNumber?: number;
+      postalCode?: string;
+      city?: string;
+      address?: string;
+    }
+  ): Promise<Organization | null> {
+    return organizationRepository.updateOrganization(organizationId, data);
+  }
 }
 
 export default OrganizationService;
