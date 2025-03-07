@@ -13,9 +13,11 @@ class OrganizationService {
   static async getOrganizationByNumber(
     organizationNumber: number
   ): Promise<Organization | null> {
-    return organizationRepository.getOrganizationWithByNumber(
-      organizationNumber
-    );
+    return organizationRepository.getOrganizationByNumber(organizationNumber);
+  }
+
+  static async getOrganizationById(id: string): Promise<Organization | null> {
+    return organizationRepository.getOrganizationById(id);
   }
 
   static async getOrganizationDetails(

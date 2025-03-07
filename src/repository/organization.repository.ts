@@ -17,11 +17,17 @@ class OrganizationRepository {
     });
   }
 
-  async getOrganizationWithByNumber(
+  async getOrganizationByNumber(
     organizationNumber: number
   ): Promise<Organization | null> {
     return this.db.organization.findUnique({
       where: { organizationNumber },
+    });
+  }
+
+  async getOrganizationById(id: string): Promise<Organization | null> {
+    return this.db.organization.findUnique({
+      where: { id },
     });
   }
 

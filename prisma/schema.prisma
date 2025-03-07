@@ -141,5 +141,21 @@ model Organization {
   sellers            Seller[]
   products           Product[]
   purchases          Purchase[]
+  receipts           Receipt[]
+}
+
+
+
+model Receipt {
+  id                  String   @id @default(uuid())
+  organizationId      String
+  startingOrderNumber Float
+  currentOrderNumber  Float
+  logo                String
+  receiptText         String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  
 }
 
