@@ -2,26 +2,23 @@ import { ERROR } from "@/utils/response-helper";
 import { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
-const CreateSellerSchema = z.object({
+const InviteUserSchema = z.object({
   email: z.string().email("Invalid email address"),
-  type: z.enum(["PRIVATE", "BUSINESS"], {
-    invalid_type_error: "Invalid seller type",
-  }),
 });
 
-export type CreateSellerInput = z.infer<typeof CreateSellerSchema>;
+export type InviteUserInput = z.infer<typeof InviteUserSchema>;
 
-export const validateCreateSeller = (
+export const validateInviteUser = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { email, type } = req.body;
-    const payload = { email, type };
+    const { email } = req.body;
+    const payload = { email };
     req.body = payload;
 
-    CreateSellerSchema.parse(req.body);
+    InviteUserSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof ZodError) {

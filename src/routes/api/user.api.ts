@@ -1,7 +1,8 @@
 import express from "express";
 import UserController from "@/controller/user.controller";
 import { isAuthenticated } from "@/middleware/checkAuth";
-import { validateCreateUser } from "../validators/user/createUser.validator";
+import { validateInviteUser } from "../validators/user/inviteUser.validator";
+import { validateCreateUser } from "../validators/user/createUser.validate";
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.post(
 
 router.post(
   "/create-user",
-  validateCreateUser,
+  validateInviteUser,
   isAuthenticated,
   UserController.inviteUser
 );

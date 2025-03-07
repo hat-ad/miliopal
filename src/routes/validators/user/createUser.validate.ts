@@ -4,6 +4,7 @@ import { z, ZodError } from "zod";
 
 const CreateUserSchema = z.object({
   email: z.string().email("Invalid email address"),
+  organizationNumber: z.number().min(1, "Organization number is required!"),
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
@@ -14,6 +15,10 @@ export const validateCreateUser = (
   next: NextFunction
 ) => {
   try {
+    const { email, organizationNumber } = req.body;
+    const payload = { email, organizationNumber };
+    req.body = payload;
+
     CreateUserSchema.parse(req.body);
     next();
   } catch (error) {

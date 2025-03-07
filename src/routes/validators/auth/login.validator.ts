@@ -15,6 +15,10 @@ export const validateLogin = (
   next: NextFunction
 ) => {
   try {
+    const { email, password } = req.body;
+    const payload = { email, password };
+    req.body = payload;
+
     loginSchema.parse(req.body);
     next();
   } catch (error) {
