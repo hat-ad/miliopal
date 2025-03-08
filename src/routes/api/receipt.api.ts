@@ -18,4 +18,10 @@ router.get(
   ReceiptController.getSingleReceipt
 );
 
+router.put(
+  "/update-receipt/:id",
+  isAuthenticated,
+  ReceiptController.updateReceipt
+);
+
 export default router;

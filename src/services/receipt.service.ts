@@ -11,8 +11,19 @@ class ReceiptService {
   }): Promise<Receipt | null> {
     return receiptRepository.createReceipt(data);
   }
+
   static async getSingleReceipt(id: string): Promise<Receipt | null> {
     return receiptRepository.getSingleReceipt(id);
+  }
+
+  static async updateReceipt(
+    id: string,
+    data: {
+      logo?: string;
+      receiptText?: string;
+    }
+  ): Promise<Receipt | null> {
+    return receiptRepository.updateReceipt(id, data);
   }
 }
 

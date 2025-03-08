@@ -33,4 +33,14 @@ export default class ReceiptController {
       return ERROR(res, false, error);
     }
   }
+
+  static async updateReceipt(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const receipt = await ReceiptService.updateReceipt(id, req.body);
+      return OK(res, receipt, "Receipt updated successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }

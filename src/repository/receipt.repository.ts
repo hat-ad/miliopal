@@ -31,6 +31,21 @@ class ReceiptRepository {
       include: { organization: true },
     });
   }
+
+  async updateReceipt(
+    id: string,
+    data: {
+      logo?: string;
+      receiptText?: string;
+    }
+  ): Promise<Receipt> {
+    return this.db.receipt.update({
+      where: { id },
+      data: {
+        ...data,
+      },
+    });
+  }
 }
 
 export default new ReceiptRepository();
