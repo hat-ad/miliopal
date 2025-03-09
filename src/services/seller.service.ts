@@ -19,7 +19,7 @@ class SellerService {
     city?: string;
     companyName?: string;
     contactPerson?: string;
-    organizationNumber?: number;
+    organizationNumber?: string;
     isDeleted?: boolean;
   }): Promise<Seller> {
     return SellerRepository.createSeller(data);
@@ -45,7 +45,7 @@ class SellerService {
       city?: string;
       companyName?: string;
       contactPerson?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       isArchived?: boolean;
     },
     sortBy: "name" | "city" = "name",
@@ -74,7 +74,7 @@ class SellerService {
       city: string;
       companyName?: string;
       contactPerson?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       isDeleted?: boolean;
       isArchived?: boolean;
     }

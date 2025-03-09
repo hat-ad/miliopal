@@ -1,17 +1,15 @@
-import AuthRepository from "@/repository/auth.repository";
-import bcrypt from "bcrypt";
-import { User, Role, Organization, Seller } from "@prisma/client";
 import organizationRepository from "@/repository/organization.repository";
+import { Organization, Seller, User } from "@prisma/client";
 
 class OrganizationService {
   static async createOrganization(data: {
-    organizationNumber: number;
+    organizationNumber: string;
   }): Promise<Organization> {
     return organizationRepository.createOrganization(data);
   }
 
   static async getOrganizationByNumber(
-    organizationNumber: number
+    organizationNumber: string
   ): Promise<Organization | null> {
     return organizationRepository.getOrganizationByNumber(organizationNumber);
   }
@@ -30,7 +28,7 @@ class OrganizationService {
     organizationId: string,
     data: {
       companyName?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       postalCode?: string;
       city?: string;
       address?: string;

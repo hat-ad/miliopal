@@ -25,13 +25,13 @@ class SellerRepository {
     city?: string;
     companyName?: string;
     contactPerson?: string;
-    organizationNumber?: number;
+    organizationNumber?: string;
     isDeleted?: boolean;
   }): Promise<Seller> {
     if (data.type === "PRIVATE" && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
-    if (data.type === "BUSINESS" && !Number(data.organizationNumber)) {
+    if (data.type === "BUSINESS" && !data.organizationNumber) {
       throw new Error("Business Seller must have company details.");
     }
 
@@ -57,7 +57,7 @@ class SellerRepository {
                 create: {
                   companyName: data.companyName!,
                   contactPerson: data.contactPerson!,
-                  organizationNumber: Number(data.organizationNumber)!,
+                  organizationNumber: data.organizationNumber!,
                 },
               }
             : undefined,
@@ -101,7 +101,7 @@ class SellerRepository {
       type?: SellerType;
       companyName?: string;
       contactPerson?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       isArchived?: boolean;
       organizationId?: string;
     },
@@ -216,7 +216,7 @@ class SellerRepository {
       city?: string;
       companyName?: string;
       contactPerson?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       isDeleted?: boolean;
       isArchived?: boolean;
       type?: SellerType;

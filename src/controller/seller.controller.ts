@@ -84,10 +84,9 @@ export default class SellerController {
         ...(city && { city: city as string }),
         ...(companyName && { companyName: companyName as string }),
         ...(contactPerson && { contactPerson: contactPerson as string }),
-        ...(organizationNumber &&
-          !isNaN(Number(organizationNumber)) && {
-            organizationNumber: Number(organizationNumber),
-          }),
+        ...(organizationNumber && {
+          organizationNumber: organizationNumber as string,
+        }),
         ...(type &&
           (type === "PRIVATE" || type === "BUSINESS") && {
             type: type as "PRIVATE" | "BUSINESS",

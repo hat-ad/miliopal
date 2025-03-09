@@ -1,5 +1,5 @@
 import PrismaService from "@/db/prisma-service";
-import { PrismaClient, Organization, User, Seller } from "@prisma/client";
+import { Organization, PrismaClient, Seller, User } from "@prisma/client";
 
 class OrganizationRepository {
   db: PrismaClient;
@@ -8,7 +8,7 @@ class OrganizationRepository {
   }
 
   async createOrganization(data: {
-    organizationNumber: number;
+    organizationNumber: string;
   }): Promise<Organization> {
     return this.db.organization.create({
       data: {
@@ -18,7 +18,7 @@ class OrganizationRepository {
   }
 
   async getOrganizationByNumber(
-    organizationNumber: number
+    organizationNumber: string
   ): Promise<Organization | null> {
     return this.db.organization.findUnique({
       where: { organizationNumber },
@@ -49,7 +49,7 @@ class OrganizationRepository {
     id: string,
     data: {
       companyName?: string;
-      organizationNumber?: number;
+      organizationNumber?: string;
       postalCode?: string;
       city?: string;
       address?: string;
