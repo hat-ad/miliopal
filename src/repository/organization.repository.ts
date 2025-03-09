@@ -1,5 +1,5 @@
 import PrismaService from "@/db/prisma-service";
-import { PrismaClient, Organization } from "@prisma/client";
+import { PrismaClient, Organization, User, Seller } from "@prisma/client";
 
 class OrganizationRepository {
   db: PrismaClient;
@@ -31,7 +31,9 @@ class OrganizationRepository {
     });
   }
 
-  async getOrganizationDetails(id: string): Promise<Organization | null> {
+  async getOrganizationDetails(
+    id: string
+  ): Promise<(Organization & { users: User[]; sellers: Seller[] }) | null> {
     return this.db.organization.findUnique({
       where: { id },
       include: {

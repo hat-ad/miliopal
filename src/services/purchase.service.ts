@@ -48,7 +48,9 @@ class PurchaseService {
     );
   }
 
-  static async getReceiptByOrderNo(orderNo: string): Promise<Purchase | null> {
+  static async getReceiptByOrderNo(
+    orderNo: string
+  ): Promise<(Purchase & { user: User; seller: Seller }) | null> {
     return purchaseRepository.getReceiptByOrderNo(orderNo);
   }
 }

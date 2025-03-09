@@ -185,9 +185,41 @@ export default class PurchaseController {
       const purchaseDetails = await PurchaseService.getReceiptByOrderNo(
         orderNo
       );
+
+      const decryptedPurchaseDetails = {
+        ...purchaseDetails,
+        user: purchaseDetails?.user
+          ? {
+              ...purchaseDetails.user,
+              email: purchaseDetails.user.email
+                ? decrypt(purchaseDetails.user.email)
+                : null,
+
+              name: purchaseDetails.user.name
+                ? decrypt(purchaseDetails.user.name)
+                : null,
+
+              phone: purchaseDetails.user.phone
+                ? decrypt(purchaseDetails.user.phone)
+                : null,
+            }
+          : null,
+        seller: purchaseDetails?.seller
+          ? {
+              ...purchaseDetails.seller,
+              email: purchaseDetails.seller.email
+                ? decrypt(purchaseDetails.seller.email)
+                : null,
+              phone: purchaseDetails.seller.phone
+                ? decrypt(purchaseDetails.seller.phone)
+                : null,
+            }
+          : null,
+      };
+
       return OK(
         res,
-        purchaseDetails,
+        decryptedPurchaseDetails,
         `Purchase Details of order ${orderNo} retrived successfully`
       );
     } catch (error) {

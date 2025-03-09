@@ -115,7 +115,9 @@ class PurchaseRepository {
     return { purchases: transformedPurchases, total, totalPages };
   }
 
-  async getReceiptByOrderNo(orderNo: string): Promise<Purchase | null> {
+  async getReceiptByOrderNo(
+    orderNo: string
+  ): Promise<Purchase & { user: User; seller: Seller }> {
     const purchase = await this.db.purchase.findUnique({
       where: { orderNo },
       include: {
@@ -139,7 +141,7 @@ class PurchaseRepository {
       throw new Error(`No purchase found with orderNo: ${orderNo}`);
     }
 
-    return purchase;
+    return purchase as Purchase & { user: User; seller: Seller };
   }
 }
 

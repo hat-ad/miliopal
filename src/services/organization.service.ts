@@ -1,6 +1,6 @@
 import AuthRepository from "@/repository/auth.repository";
 import bcrypt from "bcrypt";
-import { User, Role, Organization } from "@prisma/client";
+import { User, Role, Organization, Seller } from "@prisma/client";
 import organizationRepository from "@/repository/organization.repository";
 
 class OrganizationService {
@@ -22,7 +22,7 @@ class OrganizationService {
 
   static async getOrganizationDetails(
     organizationId: string
-  ): Promise<Organization | null> {
+  ): Promise<(Organization & { users: User[]; sellers: Seller[] }) | null> {
     return organizationRepository.getOrganizationDetails(organizationId);
   }
 

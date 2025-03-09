@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import AuthService from "@/services/auth.service";
 import { generateToken } from "@/functions/function";
 import OrganizationService from "@/services/organization.service";
+import { decrypt } from "@/utils/AES";
 
 export default class OrganizationController {
   static async getOrganizationDetails(
@@ -15,10 +16,39 @@ export default class OrganizationController {
       if (!organizationId) {
         return ERROR(res, false, "Organization ID is required.");
       }
+
       const organization = await OrganizationService.getOrganizationDetails(
         organizationId
       );
-      return OK(res, organization, "Organization retrieved successfully");
+
+      if (!organization) {
+        return ERROR(res, false, "Organization not found.");
+      }
+
+      const decryptedUsers = organization.users.map((user) => ({
+        ...user,
+        email: user.email ? decrypt(user.email) : null,
+        name: user.name ? decrypt(user.name) : null,
+        phone: user.phone ? decrypt(user.phone) : null,
+      }));
+
+      const decryptedSellers = organization.sellers.map((seller) => ({
+        ...seller,
+        email: seller.email ? decrypt(seller.email) : null,
+        phone: seller.phone ? decrypt(seller.phone) : null,
+      }));
+
+      const decryptedOrganization = {
+        ...organization,
+        users: decryptedUsers,
+        sellers: decryptedSellers,
+      };
+
+      return OK(
+        res,
+        decryptedOrganization,
+        "Organization retrieved successfully"
+      );
     } catch (error) {
       return ERROR(res, false, error);
     }
