@@ -5,6 +5,7 @@ import {
   Purchase,
   Seller,
   SellerType,
+  User,
 } from "@prisma/client";
 
 class SellerRepository {
@@ -30,10 +31,7 @@ class SellerRepository {
     if (data.type === "PRIVATE" && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
-    if (
-      data.type === "BUSINESS" &&
-      (!data.companyName || !data.contactPerson || !data.organizationNumber)
-    ) {
+    if (data.type === "BUSINESS" && !Number(data.organizationNumber)) {
       throw new Error("Business Seller must have company details.");
     }
 
@@ -59,7 +57,7 @@ class SellerRepository {
                 create: {
                   companyName: data.companyName!,
                   contactPerson: data.contactPerson!,
-                  organizationNumber: data.organizationNumber!,
+                  organizationNumber: Number(data.organizationNumber)!,
                 },
               }
             : undefined,
@@ -284,7 +282,7 @@ class SellerRepository {
 
   async getSellerSellingHistory(id: string): Promise<{
     seller: Seller;
-    purchase: Purchase[];
+    purchase: (Purchase & { user?: User | null })[];
     organization: Organization | null;
   } | null> {
     const sellerSellingHistory = await this.db.seller.findUnique({
@@ -309,6 +307,7 @@ class SellerRepository {
     if (!sellerSellingHistory) {
       return null;
     }
+
     const {
       privateSeller,
       businessSeller,
@@ -317,17 +316,24 @@ class SellerRepository {
       ...sellerDetails
     } = sellerSellingHistory;
 
-    const response = {
+    return {
       seller: {
         ...sellerDetails,
         ...(privateSeller || null),
         ...(businessSeller || null),
       },
-      purchase: purchases,
+      purchase: purchases.map((purchase) => ({
+        ...purchase,
+        user: purchase.user
+          ? {
+              ...purchase.user,
+              email: purchase.user.email ?? null,
+              phone: purchase.user.phone ?? null,
+            }
+          : null,
+      })),
       organization: organization ?? null,
     };
-
-    return response;
   }
 }
 

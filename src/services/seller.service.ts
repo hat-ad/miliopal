@@ -1,5 +1,11 @@
 import SellerRepository from "@/repository/seller.repository";
-import { Organization, Purchase, Seller, SellerType } from "@prisma/client";
+import {
+  Organization,
+  Purchase,
+  Seller,
+  SellerType,
+  User,
+} from "@prisma/client";
 
 class SellerService {
   static async createSeller(data: {
@@ -82,7 +88,7 @@ class SellerService {
 
   static async getSellerSellingHistory(id: string): Promise<{
     seller: Seller;
-    purchase: Purchase[];
+    purchase: (Purchase & { user?: User | null })[];
     organization: Organization | null;
   } | null> {
     return SellerRepository.getSellerSellingHistory(id);

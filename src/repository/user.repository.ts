@@ -174,8 +174,6 @@ class UserRepository {
 
     const { purchases, organization, ...userDetails } = userSellingHistory;
 
-    // Merge privateSeller and businessSeller into main seller object
-
     const response = {
       buyer: {
         ...userDetails,

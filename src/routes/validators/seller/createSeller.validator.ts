@@ -17,10 +17,6 @@ export const validateCreateSeller = (
   next: NextFunction
 ) => {
   try {
-    const { email, type } = req.body;
-    const payload = { email, type };
-    req.body = payload;
-
     CreateSellerSchema.parse(req.body);
     next();
   } catch (error) {

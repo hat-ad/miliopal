@@ -11,7 +11,7 @@ model BusinessSeller {
   id                 String   @id @default(uuid())
   companyName        String?
   contactPerson      String?
-  organizationNumber Float
+  organizationNumber Int
   seller             Seller   @relation(fields: [id], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -75,7 +75,7 @@ model Purchase {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]
 }
@@ -134,7 +134,7 @@ model Organization {
   address            String?
   postalCode         String?
   city               String?
-  organizationNumber Float    @unique // Ensure it's unique
+  organizationNumber Int    @unique // Ensure it's unique
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   users              User[]

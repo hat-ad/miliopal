@@ -3,12 +3,15 @@ import { Request, Response } from "express";
 import UserService from "@/services/user.service";
 import OrganizationService from "@/services/organization.service";
 import { generateToken, sendMail } from "@/functions/function";
+import { decrypt, encrypt } from "@/utils/AES";
 
 export default class UserController {
   static async createUserInternal(req: Request, res: Response): Promise<void> {
     try {
       const { email, organizationNumber } = req.body;
-      let user = await UserService.getUserByEmail(email);
+      const encryptedEmail = encrypt(email);
+
+      let user = await UserService.getUserByEmail(encryptedEmail);
       if (user) return ERROR(res, false, "User already exist");
 
       let org = await OrganizationService.getOrganizationByNumber(
@@ -20,11 +23,20 @@ export default class UserController {
       const newOrg = await OrganizationService.createOrganization({
         organizationNumber,
       });
+
       user = await UserService.createUserInternal({
-        ...req.body,
+        email: encryptedEmail,
         organizationId: newOrg.id,
       });
-      return OK(res, user, "User created successfully");
+
+      const responseUser = {
+        ...user,
+        email: user?.email ? decrypt(user.email) : null,
+        name: user?.name ? decrypt(user.name) : null,
+        phone: user?.phone ? decrypt(user.phone) : null,
+      };
+
+      return OK(res, responseUser, "User created successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -34,16 +46,26 @@ export default class UserController {
     try {
       const { email } = req.body;
       const organizationId = req.payload?.organizationId;
-      let user = await UserService.getUserByEmail(email);
+
+      const encryptedEmail = encrypt(email);
+
+      let user = await UserService.getUserByEmail(encryptedEmail);
       if (user) return ERROR(res, false, "User already exist");
 
       user = await UserService.createUser({
         ...req.body,
+        email: encryptedEmail,
         organizationId,
       });
 
       if (!user) return ERROR(res, false, "user not created");
 
+      const responseUser = {
+        ...user,
+        email: user?.email ? decrypt(user.email) : null,
+        name: user?.name ? decrypt(user.name) : null,
+        phone: user?.phone ? decrypt(user.phone) : null,
+      };
       const invitedUser = {
         email,
         subject: "You're Invited!",
@@ -57,8 +79,7 @@ export default class UserController {
         invitedUser.text,
         invitedUser.html
       );
-
-      return OK(res, user, "User invited successfully");
+      return OK(res, responseUser, "User invited successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -67,15 +88,34 @@ export default class UserController {
   static async updateUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const { name, phone } = req.body;
+
+      const encryptedName = name ? encrypt(name) : null;
+      const encryptedPhone = phone ? encrypt(phone) : null;
+
       const token = generateToken(id.toString());
+
       const existingUser = await UserService.getUser(id);
 
       if (!existingUser) {
         throw new Error("User not found");
       }
 
-      const user = await UserService.updateUser(id, { ...req.body, token });
-      return OK(res, user, "User updated successfully");
+      const user = await UserService.updateUser(id, {
+        ...req.body,
+        name: encryptedName,
+        phone: encryptedPhone,
+        token,
+      });
+      if (!user) return ERROR(res, false, "User not updated!");
+
+      const responseUser = {
+        ...user,
+        email: user?.email ? decrypt(user.email) : null,
+        name: user?.name ? decrypt(user.name) : null,
+        phone: user?.phone ? decrypt(user.phone) : null,
+      };
+      return OK(res, responseUser, "User updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -90,7 +130,16 @@ export default class UserController {
       } else {
         const userID = req.payload?.id;
         const user = await UserService.getUser(userID as string);
-        return OK(res, user, "User retrieved successfully");
+        if (!user) return ERROR(res, false, "User not found!");
+
+        const responseUser = {
+          ...user,
+          email: user?.email ? decrypt(user.email) : null,
+          name: user?.name ? decrypt(user.name) : null,
+          phone: user?.phone ? decrypt(user.phone) : null,
+        };
+
+        return OK(res, responseUser, "User retrieved successfully");
       }
     } catch (error) {
       return ERROR(res, false, error);
@@ -103,31 +152,47 @@ export default class UserController {
         req.query;
       const organizationId = req.payload?.organizationId;
 
+      const encryptedEmail = email ? encrypt(email as string) : undefined;
+      const encryptedName = name ? encrypt(name as string) : undefined;
+      const encryptedPhone = phone ? encrypt(phone as string) : undefined;
+
       const filters = {
-        name: name as string,
-        email: email as string,
-        phone: phone as string,
-        organizationId: organizationId as string,
-        isActive: isActive ? isActive === "true" : undefined,
-        isArchived: isArchived ? isArchived === "true" : undefined,
+        ...(encryptedName && { name: encryptedName }),
+        ...(encryptedEmail && { email: encryptedEmail }),
+        ...(encryptedPhone && { phone: encryptedPhone }),
+        ...(organizationId && { organizationId }),
+        ...(isActive !== undefined && { isActive: isActive === "true" }),
+        ...(isArchived !== undefined && { isArchived: isArchived === "true" }),
       };
 
-      const pageNumber = page ? parseInt(page as string, 10) : 1;
-
       const sortedBy = "name";
-      const sortedOrder = (sortOrder === "desc" ? "desc" : "asc") as
-        | "asc"
-        | "desc";
+      const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
+      const pageNumber = !isNaN(Number(page))
+        ? parseInt(page as string, 10)
+        : 1;
 
-      const users = await UserService.getUsersList(
+      const { users, total, totalPages } = await UserService.getUsersList(
         filters,
         sortedBy,
         sortedOrder,
         pageNumber
       );
-      return OK(res, users, "Users retrieved successfully");
+
+      const responseUsers = users.map((user) => ({
+        ...user,
+        name: user.name ? decrypt(user.name) : null,
+        email: user.email ? decrypt(user.email) : null,
+        phone: user.phone ? decrypt(user.phone) : null,
+      }));
+
+      return OK(
+        res,
+        { users: responseUsers, total, totalPages },
+        "Users retrieved successfully"
+      );
     } catch (error) {
-      return ERROR(res, false, error);
+      console.error("Error retrieving users list:", error);
+      return ERROR(res, false, "An error occurred while retrieving users");
     }
   }
 
@@ -135,7 +200,16 @@ export default class UserController {
     try {
       const { id } = req.params;
       const user = await UserService.deleteUser(id);
-      return OK(res, user, "User deleted successfully");
+      if (!user) return ERROR(res, false, "User not deleted!");
+
+      const responseUser = {
+        ...user,
+        email: user?.email ? decrypt(user.email) : null,
+        name: user?.name ? decrypt(user.name) : null,
+        phone: user?.phone ? decrypt(user.phone) : null,
+      };
+
+      return OK(res, responseUser, "User deleted successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -152,11 +226,24 @@ export default class UserController {
       const userSellingHistory = await UserService.getUserSellingHistory(
         userId
       );
-      return OK(
-        res,
-        userSellingHistory,
-        "User selling history retrived successfully"
-      );
+
+      const response = {
+        buyer: {
+          ...userSellingHistory?.buyer,
+          email: userSellingHistory?.buyer.email
+            ? decrypt(userSellingHistory.buyer.email)
+            : null,
+          name: userSellingHistory?.buyer.name
+            ? decrypt(userSellingHistory.buyer.name)
+            : null,
+          phone: userSellingHistory?.buyer.phone
+            ? decrypt(userSellingHistory.buyer.phone)
+            : null,
+        },
+        purchase: userSellingHistory?.purchase,
+        organization: userSellingHistory?.organization,
+      };
+      return OK(res, response, "User selling history retrived successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }

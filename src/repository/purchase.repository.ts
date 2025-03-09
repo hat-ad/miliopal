@@ -4,6 +4,8 @@ import {
   PaymentMethod,
   PrismaClient,
   Purchase,
+  Seller,
+  User,
 } from "@prisma/client";
 
 class PurchaseRepository {
@@ -31,11 +33,6 @@ class PurchaseRepository {
         bankAccountNumber: data.bankAccountNumber ?? null,
         status: data.status,
       },
-      include: {
-        user: true,
-        seller: true,
-        organization: true,
-      },
     });
   }
 
@@ -53,7 +50,11 @@ class PurchaseRepository {
     sortOrder: "asc" | "desc" = "desc",
     page: number = 1,
     limit: number = 10
-  ): Promise<{ purchases: Purchase[]; total: number; totalPages: number }> {
+  ): Promise<{
+    purchases: (Purchase & { user?: User | null; seller?: Seller | null })[];
+    total: number;
+    totalPages: number;
+  }> {
     const offset = (page - 1) * limit;
 
     const whereCondition: any = {
@@ -95,14 +96,13 @@ class PurchaseRepository {
     });
 
     const transformedPurchases = purchases.map((purchase) => {
-      const seller = {
-        ...purchase.seller,
-        ...purchase.seller?.privateSeller,
-        ...purchase.seller?.businessSeller,
-      };
-
-      seller.privateSeller = null;
-      seller.businessSeller = null;
+      const seller = purchase.seller
+        ? {
+            ...purchase.seller,
+            ...purchase.seller.privateSeller,
+            ...purchase.seller.businessSeller,
+          }
+        : null;
 
       return {
         ...purchase,

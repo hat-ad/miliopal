@@ -1,21 +1,34 @@
 import SellerService from "@/services/seller.service";
+import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class SellerController {
   static async createSeller(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
+      const { email, phone } = req.body;
       const organizationId = req.payload?.organizationId;
 
-      const seller = await SellerService.getSellerByEmail(email);
+      const encryptedEmail = encrypt(email);
+      const encryptedPhone = phone ? encrypt(phone) : null;
+
+      let seller = await SellerService.getSellerByEmail(encryptedEmail);
       if (seller) return ERROR(res, false, "Seller already exist");
 
-      const user = await SellerService.createSeller({
+      seller = await SellerService.createSeller({
         ...req.body,
+        email: encryptedEmail,
+        phone: encryptedPhone,
         organizationId,
       });
-      return OK(res, user, "Seller created successfully");
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+
+      return OK(res, responseSeller, "Seller created successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -25,7 +38,13 @@ export default class SellerController {
     try {
       const { id } = req.params;
       const seller = await SellerService.getSeller(id);
-      return OK(res, seller, "Seller retrieved successfully");
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+      return OK(res, responseSeller, "Seller retrieved successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -49,48 +68,82 @@ export default class SellerController {
         sortOrder,
         page,
       } = req.query;
+
       const organizationId = req.payload?.organizationId;
+
+      const encryptedEmail = email ? encrypt(email as string) : undefined;
+      const encryptedPhone = phone ? encrypt(phone as string) : undefined;
+
       const filters = {
-        name: name as string,
-        email: email as string,
-        phone: phone as string,
-        address: address as string,
-        postalCode: postalCode as string,
-        city: city as string,
-        companyName: companyName as string,
-        contactPerson: contactPerson as string,
-        organizationNumber: organizationNumber
-          ? parseFloat(organizationNumber as string)
-          : undefined,
-        type: type as "PRIVATE" | "BUSINESS" | undefined,
-        isArchived: isArchived ? isArchived === "true" : undefined,
-        organizationId: organizationId as string,
+        ...(encryptedEmail && { email: encryptedEmail }),
+        ...(encryptedPhone && { phone: encryptedPhone }),
+        ...(organizationId && { organizationId }),
+        ...(name && { name: name as string }),
+        ...(address && { address: address as string }),
+        ...(postalCode && { postalCode: postalCode as string }),
+        ...(city && { city: city as string }),
+        ...(companyName && { companyName: companyName as string }),
+        ...(contactPerson && { contactPerson: contactPerson as string }),
+        ...(organizationNumber &&
+          !isNaN(Number(organizationNumber)) && {
+            organizationNumber: Number(organizationNumber),
+          }),
+        ...(type &&
+          (type === "PRIVATE" || type === "BUSINESS") && {
+            type: type as "PRIVATE" | "BUSINESS",
+          }),
+        ...(isArchived !== undefined && { isArchived: isArchived === "true" }),
       };
 
-      const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const sortedBy: "name" | "city" = sortBy === "city" ? "city" : "name";
+      const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
+      const pageNumber = !isNaN(Number(page))
+        ? parseInt(page as string, 10)
+        : 1;
 
-      const sortedBy = (sortBy === "city" ? "city" : "name") as "name" | "city";
-      const sortedOrder = (sortOrder === "desc" ? "desc" : "asc") as
-        | "asc"
-        | "desc";
-
-      const sellers = await SellerService.getSellersList(
+      const { sellers, total, totalPages } = await SellerService.getSellersList(
         filters,
         sortedBy,
         sortedOrder,
         pageNumber
       );
-      return OK(res, sellers, "Sellers retrieved successfully");
+
+      const responseSellers = sellers.map((seller) => ({
+        ...seller,
+        email: seller.email ? decrypt(seller.email) : null,
+        phone: seller.phone ? decrypt(seller.phone) : null,
+      }));
+
+      return OK(
+        res,
+        { sellers: responseSellers, total, totalPages },
+        "Sellers retrieved successfully"
+      );
     } catch (error) {
-      return ERROR(res, false, error);
+      return ERROR(res, false, error || "Error retrieving sellers");
     }
   }
 
   static async updateSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const seller = await SellerService.updateSeller(id, req.body);
-      return OK(res, seller, "Seller updated successfully");
+      const { email, phone } = req.body;
+
+      const encryptedEmail = email ? encrypt(email) : null;
+      const encryptedPhone = phone ? encrypt(phone) : null;
+
+      const seller = await SellerService.updateSeller(id, {
+        ...req.body,
+        email: encryptedEmail,
+        phone: encryptedPhone,
+      });
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+      return OK(res, responseSeller, "Seller updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -100,7 +153,13 @@ export default class SellerController {
     try {
       const { id } = req.params;
       const seller = await SellerService.deleteSeller(id);
-      return OK(res, seller, "Seller deleted successfully");
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+      return OK(res, responseSeller, "Seller deleted successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -114,9 +173,43 @@ export default class SellerController {
         id
       );
 
+      const decryptedSeller = {
+        ...sellerSellingHistory?.seller,
+        email: sellerSellingHistory?.seller?.email
+          ? decrypt(sellerSellingHistory.seller.email)
+          : null,
+        phone: sellerSellingHistory?.seller?.phone
+          ? decrypt(sellerSellingHistory.seller.phone)
+          : null,
+      };
+
+      const decryptedPurchases = sellerSellingHistory?.purchase.map(
+        (purchase) => ({
+          ...purchase,
+          user: purchase?.user
+            ? {
+                ...purchase?.user,
+                email: purchase?.user.email
+                  ? decrypt(purchase.user.email)
+                  : null,
+                name: purchase?.user.name ? decrypt(purchase.user.name) : null,
+                phone: purchase?.user.phone
+                  ? decrypt(purchase.user.phone)
+                  : null,
+              }
+            : null,
+        })
+      );
+
+      const responseSeller = {
+        ...sellerSellingHistory,
+        seller: decryptedSeller,
+        purchase: decryptedPurchases,
+      };
+
       return OK(
         res,
-        sellerSellingHistory,
+        responseSeller,
         "Seller selling history retrived successfully"
       );
     } catch (error) {

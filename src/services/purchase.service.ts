@@ -1,4 +1,10 @@
-import { Purchase, PaymentMethod, OrderStatus, User } from "@prisma/client";
+import {
+  Purchase,
+  PaymentMethod,
+  OrderStatus,
+  User,
+  Seller,
+} from "@prisma/client";
 import purchaseRepository from "@/repository/purchase.repository";
 
 class PurchaseService {
@@ -28,7 +34,11 @@ class PurchaseService {
     sortOrder: "asc" | "desc" = "desc",
     page: number = 1,
     limit: number = 10
-  ): Promise<{ purchases: Purchase[]; total: number; totalPages: number }> {
+  ): Promise<{
+    purchases: (Purchase & { user?: User | null; seller?: Seller | null })[];
+    total: number;
+    totalPages: number;
+  }> {
     return purchaseRepository.getPurchaseList(
       filters,
       sortBy,
