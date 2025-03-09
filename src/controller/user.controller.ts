@@ -2,8 +2,7 @@ import { OK, ERROR } from "@/utils/response-helper";
 import { Request, Response } from "express";
 import UserService from "@/services/user.service";
 import OrganizationService from "@/services/organization.service";
-import { generateToken } from "@/functions/function";
-import { Role } from "@/types/enums";
+import { generateToken, sendMail } from "@/functions/function";
 
 export default class UserController {
   static async createUserInternal(req: Request, res: Response): Promise<void> {
@@ -43,7 +42,21 @@ export default class UserController {
         organizationId,
       });
 
-      //invite user
+      if (!user) return ERROR(res, false, "user not created");
+
+      const invitedUser = {
+        email,
+        subject: "You're Invited!",
+        text: "Hello, you've been invited to join our platform.",
+        html: "<p>Hello,</p><p>You've been invited to join our platform.</p>",
+      };
+
+      await sendMail(
+        invitedUser.email,
+        invitedUser.subject,
+        invitedUser.text,
+        invitedUser.html
+      );
 
       return OK(res, user, "User invited successfully");
     } catch (error) {
