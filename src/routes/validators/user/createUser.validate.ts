@@ -5,6 +5,9 @@ import { z, ZodError } from "zod";
 const CreateUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   organizationNumber: z.string().min(1, "Organization number is required!"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z.string().min(10, "Phone number is required!"),
+  name: z.string().min(1, "Name is required!"),
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;

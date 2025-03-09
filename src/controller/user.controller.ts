@@ -1,15 +1,17 @@
-import { OK, ERROR } from "@/utils/response-helper";
-import { Request, Response } from "express";
-import UserService from "@/services/user.service";
-import OrganizationService from "@/services/organization.service";
 import { generateToken, sendMail } from "@/functions/function";
+import OrganizationService from "@/services/organization.service";
+import UserService from "@/services/user.service";
 import { decrypt, encrypt } from "@/utils/AES";
+import { ERROR, OK } from "@/utils/response-helper";
+import { Request, Response } from "express";
 
 export default class UserController {
   static async createUserInternal(req: Request, res: Response): Promise<void> {
     try {
-      const { email, organizationNumber } = req.body;
+      const { email, password, organizationNumber, phone, name } = req.body;
       const encryptedEmail = encrypt(email);
+      const encryptedName = encrypt(name);
+      const encryptedPhone = encrypt(phone);
 
       let user = await UserService.getUserByEmail(encryptedEmail);
       if (user) return ERROR(res, false, "User already exist");
@@ -27,6 +29,9 @@ export default class UserController {
       user = await UserService.createUserInternal({
         email: encryptedEmail,
         organizationId: newOrg.id,
+        password,
+        phone: encryptedPhone,
+        name: encryptedName,
       });
 
       const responseUser = {

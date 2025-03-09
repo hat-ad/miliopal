@@ -19,11 +19,15 @@ class UserRepository {
     password?: string;
     phone?: string;
     organizationId?: string;
+    name?: string;
   }): Promise<User> {
     return this.db.user.create({
       data: {
         email: data.email,
         organizationId: data.organizationId,
+        name: data.name,
+        password: data.password,
+        phone: data.phone,
         role: Role.SUPERADMIN,
       },
     });

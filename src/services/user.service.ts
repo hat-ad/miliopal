@@ -15,6 +15,7 @@ class UserService {
     password?: string;
     phone?: string;
     organizationId: string;
+    name?: string;
   }): Promise<User> {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
