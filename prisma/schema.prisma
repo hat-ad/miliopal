@@ -133,7 +133,7 @@ model Organization {
   address            String?
   postalCode         String?
   city               String?
-  organizationNumber Int        @unique // Ensure it's unique
+  organizationNumber String     @unique // Ensure it's unique
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   users              User[]
