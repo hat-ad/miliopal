@@ -31,12 +31,11 @@ model Product {
   price             Float
   isDeleted         Boolean             @default(false)
   isArchived        Boolean             @default(false)
-  organizationId   String?
+  organizationId    String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   productsPurchased ProductsPurchased[]
-  
 }
 
 model ProductsPurchased {
@@ -47,8 +46,8 @@ model ProductsPurchased {
   purchaseId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 }
 
 enum PaymentMethod {
@@ -71,11 +70,11 @@ model Purchase {
   userId            String
   status            OrderStatus
   isArchived        Boolean             @default(false)
-  organizationId   String?
+  organizationId    String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]
 }
@@ -100,7 +99,7 @@ model Seller {
   organizationId String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   purchases      Purchase[]
 }
 
@@ -111,32 +110,32 @@ enum Role {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  name       String?
-  phone      String?
-  email      String     @unique
-  password   String?
-  role       Role       @default(USER)
-  token      String?
-  isActive   Boolean    @default(false)
-  isArchived Boolean    @default(false)
-  isDeleted  Boolean    @default(false)
+  id             String        @id @default(uuid())
+  name           String?
+  phone          String?
+  email          String        @unique
+  password       String?
+  role           Role          @default(USER)
+  token          String?
+  isActive       Boolean       @default(false)
+  isArchived     Boolean       @default(false)
+  isDeleted      Boolean       @default(false)
   organizationId String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  purchases  Purchase[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  purchases      Purchase[]
 }
 
 model Organization {
-  id                 String   @id @default(uuid())
+  id                 String     @id @default(uuid())
   companyName        String?
   address            String?
   postalCode         String?
   city               String?
-  organizationNumber Int    @unique // Ensure it's unique
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  organizationNumber Int        @unique // Ensure it's unique
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
   users              User[]
   sellers            Seller[]
   products           Product[]
@@ -144,18 +143,14 @@ model Organization {
   receipts           Receipt[]
 }
 
-
-
 model Receipt {
-  id                  String   @id @default(uuid())
+  id                  String        @id @default(uuid())
   organizationId      String
   startingOrderNumber Float
   currentOrderNumber  Float
   logo                String
   receiptText         String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 }
-
