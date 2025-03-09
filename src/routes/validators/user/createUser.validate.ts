@@ -18,8 +18,8 @@ export const validateCreateUser = (
   next: NextFunction
 ) => {
   try {
-    const { email, organizationNumber } = req.body;
-    const payload = { email, organizationNumber };
+    const { email, organizationNumber, password, phone, name } = req.body;
+    const payload = { email, organizationNumber, password, phone, name };
     req.body = payload;
 
     CreateUserSchema.parse(req.body);
