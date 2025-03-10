@@ -21,10 +21,11 @@ class PurchaseRepository {
     paymentMethod: PaymentMethod;
     bankAccountNumber?: string;
     status: OrderStatus;
+    orderNo: string;
   }): Promise<Purchase> {
     return this.db.purchase.create({
       data: {
-        orderNo: `ORD-${Date.now()}`,
+        orderNo: data.orderNo,
         userId: data.userId,
         sellerId: data.sellerId,
         organizationId: data.organizationId,

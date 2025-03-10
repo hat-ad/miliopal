@@ -16,6 +16,7 @@ class PurchaseService {
     bankAccountNumber?: string;
     status: OrderStatus;
     organizationId: string;
+    orderNo: string;
   }): Promise<Purchase | null> {
     return purchaseRepository.createPurchase(data);
   }

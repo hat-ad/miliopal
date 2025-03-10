@@ -32,6 +32,15 @@ class ReceiptRepository {
     });
   }
 
+  async getReceiptByOrganizationId(
+    organizationId: string
+  ): Promise<Receipt | null> {
+    return this.db.receipt.findFirst({
+      where: { organizationId },
+      include: { organization: true },
+    });
+  }
+
   async updateReceipt(
     id: string,
     data: {

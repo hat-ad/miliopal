@@ -5,6 +5,7 @@ import ProductsPurchasedService from "@/services/products_purchased.service";
 import SellerService from "@/services/seller.service";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { decrypt } from "@/utils/AES";
+import ReceiptService from "@/services/receipt.service";
 
 export default class PurchaseController {
   static async createPurchase(req: Request, res: Response): Promise<void> {
@@ -15,18 +16,32 @@ export default class PurchaseController {
       const { products, ...purchaseData } = req.body;
       const { sellerId } = purchaseData;
 
-      if (!userId) {
-        return ERROR(res, null, "Unauthorized: No user ID in token");
-      }
+      if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
+
+      if (!organizationId) return ERROR(res, null, "Organization Id not found");
 
       const sellerExists = await SellerService.getSeller(sellerId);
 
       if (!sellerExists) {
         throw new Error("Seller does not exist");
       }
+
+      const receipt = await ReceiptService.getReceiptByOrganizationId(
+        organizationId
+      );
+      if (!receipt?.startingOrderNumber || !receipt?.currentOrderNumber) {
+        return ERROR(
+          res,
+          false,
+          "Starting order number / Current order number is missing. Please set before purchasing."
+        );
+      }
+
+      const orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
       const purchase = await PurchaseService.createPurchase({
         userId,
         organizationId,
+        orderNo,
         ...purchaseData,
       });
 
@@ -49,53 +64,6 @@ export default class PurchaseController {
       return ERROR(res, null, error);
     }
   }
-
-  // static async getPurchaseList(req: Request, res: Response): Promise<void> {
-  //   try {
-  //     const {
-  //       userId,
-  //       sellerId,
-  //       paymentMethod,
-  //       bankAccountNumber,
-  //       status,
-  //       orderNo,
-  //       sortBy,
-  //       sortOrder,
-  //       page,
-  //     } = req.query;
-  //     const organizationId = req.payload?.organizationId;
-
-  //     const filters = {
-  //       userId: userId ? (userId as string) : undefined,
-  //       sellerId: sellerId ? (sellerId as string) : undefined,
-  //       paymentMethod: paymentMethod
-  //         ? (paymentMethod as PaymentMethod)
-  //         : undefined,
-  //       bankAccountNumber: bankAccountNumber
-  //         ? (bankAccountNumber as string)
-  //         : undefined,
-  //       status: status ? (status as OrderStatus) : undefined,
-  //       orderNo: orderNo ? (orderNo as string) : undefined,
-  //       organizationId: organizationId as string,
-  //     };
-
-  //     const pageNumber = page ? parseInt(page as string, 10) : 1;
-  //     const sortedBy: "orderNo" | "createdAt" | "status" =
-  //       sortBy === "orderNo" || sortBy === "status" ? sortBy : "createdAt";
-  //     const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
-
-  //     const purchases = await PurchaseService.getPurchaseList(
-  //       filters,
-  //       sortedBy,
-  //       sortedOrder,
-  //       pageNumber
-  //     );
-
-  //     return OK(res, purchases, "Purchases retrieved successfully");
-  //   } catch (error) {
-  //     return ERROR(res, false, error);
-  //   }
-  // }
 
   static async getPurchaseList(req: Request, res: Response): Promise<void> {
     try {

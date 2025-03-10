@@ -146,8 +146,8 @@ model Organization {
 model Receipt {
   id                  String        @id @default(uuid())
   organizationId      String
-  startingOrderNumber Float
-  currentOrderNumber  Float
+  startingOrderNumber Int
+  currentOrderNumber  Int
   logo                String
   receiptText         String?
   createdAt           DateTime      @default(now())
