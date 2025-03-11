@@ -17,8 +17,14 @@ class PurchaseService {
     status: OrderStatus;
     organizationId: string;
     orderNo: string;
+    totalAmount: number;
+    notes?: string;
   }): Promise<Purchase | null> {
     return purchaseRepository.createPurchase(data);
+  }
+
+  static async getPurchase(id: string): Promise<Purchase | null> {
+    return purchaseRepository.getPurchase(id);
   }
 
   static async getPurchaseList(

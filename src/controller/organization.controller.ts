@@ -1,7 +1,5 @@
 import { OK, ERROR, BAD } from "@/utils/response-helper";
 import { Request, Response } from "express";
-import AuthService from "@/services/auth.service";
-import { generateToken } from "@/functions/function";
 import OrganizationService from "@/services/organization.service";
 import { decrypt } from "@/utils/AES";
 

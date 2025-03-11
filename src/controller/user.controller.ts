@@ -92,21 +92,23 @@ export default class UserController {
 
   static async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const userId = req.payload?.id;
       const { name, phone } = req.body;
 
       const encryptedName = name ? encrypt(name) : null;
       const encryptedPhone = phone ? encrypt(phone) : null;
 
-      const token = generateToken(id.toString());
+      if (!userId) return ERROR(res, false, "Unauthorized: User ID is missing");
 
-      const existingUser = await UserService.getUser(id);
+      const token = generateToken(userId.toString());
+
+      const existingUser = await UserService.getUser(userId);
 
       if (!existingUser) {
         throw new Error("User not found");
       }
 
-      const user = await UserService.updateUser(id, {
+      const user = await UserService.updateUser(userId, {
         ...req.body,
         name: encryptedName,
         phone: encryptedPhone,

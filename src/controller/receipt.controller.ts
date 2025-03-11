@@ -1,6 +1,4 @@
-import OrganizationService from "@/services/organization.service";
 import ReceiptService from "@/services/receipt.service";
-import SellerService from "@/services/seller.service";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
@@ -11,8 +9,10 @@ export default class ReceiptController {
       if (!organizationId) {
         return ERROR(res, false, "Organization ID is required.");
       }
-      const org = await OrganizationService.getOrganizationById(organizationId);
-      if (!org) return ERROR(res, false, "Organization not exist");
+      const org = await ReceiptService.getReceiptByOrganizationId(
+        organizationId
+      );
+      if (org) return ERROR(res, false, "Organization receipt already exist!");
 
       const receipt = await ReceiptService.createReceipt({
         ...req.body,

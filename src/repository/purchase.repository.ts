@@ -22,6 +22,8 @@ class PurchaseRepository {
     bankAccountNumber?: string;
     status: OrderStatus;
     orderNo: string;
+    totalAmount: number;
+    notes?: string;
   }): Promise<Purchase> {
     return this.db.purchase.create({
       data: {
@@ -33,7 +35,15 @@ class PurchaseRepository {
         paymentMethod: data.paymentMethod,
         bankAccountNumber: data.bankAccountNumber ?? null,
         status: data.status,
+        totalAmount: data.totalAmount,
+        notes: data.notes ?? null,
       },
+    });
+  }
+
+  async getPurchase(id: string): Promise<Purchase | null> {
+    return this.db.purchase.findUnique({
+      where: { id },
     });
   }
 

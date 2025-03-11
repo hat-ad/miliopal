@@ -19,7 +19,7 @@ router.post(
   UserController.inviteUser
 );
 
-router.put("/update-user/:id", UserController.updateUser);
+router.put("/update-user", isAuthenticated, UserController.updateUser);
 
 router.get("/get-user", isAuthenticated, UserController.getUser);
 

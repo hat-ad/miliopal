@@ -24,4 +24,10 @@ router.get(
   PurchaseController.getReceiptByOrderNo
 );
 
+router.post(
+  "/credit-purchase-order/:purchaseId",
+  isAuthenticated,
+  PurchaseController.creditPurchaseOrder
+);
+
 export default router;

@@ -12,13 +12,13 @@ export default class PurchaseController {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
-
       const { products, ...purchaseData } = req.body;
       const { sellerId } = purchaseData;
 
       if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
 
-      if (!organizationId) return ERROR(res, null, "Organization Id not found");
+      if (!organizationId)
+        return ERROR(res, null, "No Organization ID in token");
 
       const sellerExists = await SellerService.getSeller(sellerId);
 
@@ -37,11 +37,19 @@ export default class PurchaseController {
         );
       }
 
+      const totalAmount = products
+        .map(
+          (product: { price: number; quantity: number }) =>
+            product.price * product.quantity
+        )
+        .reduce((sum: number, value: number) => sum + value, 0);
+
       const orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
       const purchase = await PurchaseService.createPurchase({
         userId,
         organizationId,
         orderNo,
+        totalAmount,
         ...purchaseData,
       });
 
@@ -192,6 +200,37 @@ export default class PurchaseController {
       );
     } catch (error) {
       return ERROR(res, false, error);
+    }
+  }
+
+  static async creditPurchaseOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { purchaseId } = req.params;
+      const { creditNotes } = req.body;
+
+      const purchase = await PurchaseService.getPurchase(purchaseId.toString());
+      if (!purchase) return ERROR(res, false, "purchase not found!");
+
+      const purchaseCredit = await PurchaseService.createPurchase({
+        userId: purchase.userId,
+        sellerId: purchase.sellerId,
+        organizationId: purchase.organizationId ?? "",
+        orderNo: purchase.orderNo,
+        paymentMethod: purchase.paymentMethod,
+        bankAccountNumber: purchase.bankAccountNumber ?? undefined,
+        status: purchase.status,
+        totalAmount: 0,
+        notes: creditNotes,
+        comment: purchase.comment ?? undefined,
+      });
+
+      return OK(
+        res,
+        purchaseCredit,
+        "Purchase created successfully with products"
+      );
+    } catch (error) {
+      return ERROR(res, null, error);
     }
   }
 }
