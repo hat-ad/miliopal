@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { UserTokenPayload } from "@/types/interface";
 import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
 import { Role } from "@/types/enums";
 import UserService from "@/services/user.service";
+import { UserTokenPayload } from "@/types/common";
 
 export const isAuthenticated = async (
   req: Request,

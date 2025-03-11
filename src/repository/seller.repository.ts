@@ -1,5 +1,11 @@
 import PrismaService from "@/db/prisma-service";
 import {
+  CreateSellerInterface,
+  GetSellersFilterInterface,
+  SellerSellingHistoryInterface,
+  UpdateSellerInterface,
+} from "@/interfaces/seller";
+import {
   Organization,
   PrismaClient,
   Purchase,
@@ -14,20 +20,7 @@ class SellerRepository {
     this.db = PrismaService.getInstance();
   }
 
-  async createSeller(data: {
-    email: string;
-    organizationId: string;
-    type: SellerType;
-    name?: string;
-    phone?: string;
-    address?: string;
-    postalCode?: string;
-    city?: string;
-    companyName?: string;
-    contactPerson?: string;
-    organizationNumber?: string;
-    isDeleted?: boolean;
-  }): Promise<Seller> {
+  async createSeller(data: CreateSellerInterface): Promise<Seller> {
     if (data.type === "PRIVATE" && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
@@ -91,20 +84,7 @@ class SellerRepository {
   }
 
   async getSellersList(
-    filters: {
-      name?: string;
-      email?: string;
-      phone?: string;
-      address?: string;
-      postalCode?: string;
-      city?: string;
-      type?: SellerType;
-      companyName?: string;
-      contactPerson?: string;
-      organizationNumber?: string;
-      isArchived?: boolean;
-      organizationId?: string;
-    },
+    filters: GetSellersFilterInterface,
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
@@ -206,22 +186,7 @@ class SellerRepository {
     return { sellers: transformedSellers, total, totalPages };
   }
 
-  async updateSeller(
-    id: string,
-    data: {
-      name?: string;
-      phone?: string;
-      address?: string;
-      postalCode?: string;
-      city?: string;
-      companyName?: string;
-      contactPerson?: string;
-      organizationNumber?: string;
-      isDeleted?: boolean;
-      isArchived?: boolean;
-      type?: SellerType;
-    }
-  ): Promise<Seller> {
+  async updateSeller(id: string, data: UpdateSellerInterface): Promise<Seller> {
     const existingSeller = await this.db.seller.findUnique({
       where: { id },
       include: {
@@ -280,11 +245,9 @@ class SellerRepository {
     });
   }
 
-  async getSellerSellingHistory(id: string): Promise<{
-    seller: Seller;
-    purchase: (Purchase & { user?: User | null })[];
-    organization: Organization | null;
-  } | null> {
+  async getSellerSellingHistory(
+    id: string
+  ): Promise<SellerSellingHistoryInterface | null> {
     const sellerSellingHistory = await this.db.seller.findUnique({
       where: { id },
       include: {

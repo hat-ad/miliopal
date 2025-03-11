@@ -1,22 +1,21 @@
+import {
+  CreateUserInterface,
+  CreateUserInternalInterface,
+  GetUsersFilterInterface,
+  UserSellingHistoryInterface,
+  UserUpdateData,
+} from "@/interfaces/user";
 import UserRepository from "@/repository/user.repository";
 import { Organization, Purchase, Role, User } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 class UserService {
-  static async createUser(data: {
-    email: string;
-    role: Role;
-    organizationId: string;
-  }): Promise<User> {
+  static async createUser(data: CreateUserInterface): Promise<User> {
     return UserRepository.createUser(data);
   }
-  static async createUserInternal(data: {
-    email: string;
-    password?: string;
-    phone?: string;
-    organizationId: string;
-    name?: string;
-  }): Promise<User> {
+  static async createUserInternal(
+    data: CreateUserInternalInterface
+  ): Promise<User> {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
@@ -25,15 +24,7 @@ class UserService {
 
   static async updateUser(
     id: string,
-    data: {
-      name?: string;
-      phone?: string;
-      password?: string;
-      token?: string;
-      isActive?: boolean;
-      isArchived?: boolean;
-      isDeleted?: boolean;
-    }
+    data: UserUpdateData
   ): Promise<User | null> {
     let updateData = { ...data };
 
@@ -53,14 +44,7 @@ class UserService {
   }
 
   static async getUsersList(
-    filters: {
-      name?: string;
-      email?: string;
-      phone?: string;
-      organizationId?: string;
-      isActive?: boolean;
-      isArchived?: boolean;
-    },
+    filters: GetUsersFilterInterface,
     sortBy: "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
@@ -73,11 +57,9 @@ class UserService {
     return UserRepository.deleteUser(id);
   }
 
-  static async getUserSellingHistory(id: string): Promise<{
-    buyer: User;
-    purchase: Purchase[];
-    organization: Organization | null;
-  } | null> {
+  static async getUserSellingHistory(
+    id: string
+  ): Promise<UserSellingHistoryInterface | null> {
     return UserRepository.getUserSellingHistory(id);
   }
 }

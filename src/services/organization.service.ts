@@ -1,3 +1,4 @@
+import { UpdateOrganization } from "@/interfaces/organization";
 import organizationRepository from "@/repository/organization.repository";
 import { Organization, Seller, User } from "@prisma/client";
 
@@ -26,13 +27,7 @@ class OrganizationService {
 
   static async updateOrganization(
     organizationId: string,
-    data: {
-      companyName?: string;
-      organizationNumber?: string;
-      postalCode?: string;
-      city?: string;
-      address?: string;
-    }
+    data: UpdateOrganization
   ): Promise<Organization | null> {
     return organizationRepository.updateOrganization(organizationId, data);
   }

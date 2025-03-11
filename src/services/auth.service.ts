@@ -1,6 +1,7 @@
 import AuthRepository from "@/repository/auth.repository";
 import bcrypt from "bcrypt";
-import { User, Role } from "@prisma/client";
+import { User } from "@prisma/client";
+import { UserUpdateData } from "@/interfaces/user";
 
 class AuthService {
   static async login(email: string, password: string): Promise<User | null> {
@@ -22,13 +23,7 @@ class AuthService {
   }
   static async updateUser(
     id: string,
-    data: {
-      name?: string;
-      phone?: string;
-      password?: string;
-      token?: string;
-      isDeleted?: boolean;
-    }
+    data: UserUpdateData
   ): Promise<User | null> {
     let updateData = { ...data };
 

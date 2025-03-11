@@ -1,4 +1,8 @@
 import PrismaService from "@/db/prisma-service";
+import {
+  CreateReceiptInterface,
+  UpdateReceiptInterface,
+} from "@/interfaces/receipt";
 import { User, PrismaClient, Role, Receipt } from "@prisma/client";
 
 class ReceiptRepository {
@@ -7,13 +11,7 @@ class ReceiptRepository {
     this.db = PrismaService.getInstance();
   }
 
-  async createReceipt(data: {
-    organizationId: string;
-    startingOrderNumber: number;
-    currentOrderNumber: number;
-    logo: string;
-    receiptText?: string;
-  }): Promise<Receipt> {
+  async createReceipt(data: CreateReceiptInterface): Promise<Receipt> {
     return this.db.receipt.create({
       data: {
         organizationId: data.organizationId,
@@ -43,10 +41,7 @@ class ReceiptRepository {
 
   async updateReceipt(
     id: string,
-    data: {
-      logo?: string;
-      receiptText?: string;
-    }
+    data: UpdateReceiptInterface
   ): Promise<Receipt> {
     return this.db.receipt.update({
       where: { id },

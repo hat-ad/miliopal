@@ -1,24 +1,18 @@
 import { Product } from "@prisma/client";
 import ProductRepository from "@/repository/product.repository";
+import {
+  CreateProductInterface,
+  GetProductsFilterInterface,
+  UpdateProductInterface,
+} from "@/interfaces/product";
 
 class ProductService {
-  static async createProduct(data: {
-    name: string;
-    price: number;
-    organizationId: string;
-    isDeleted?: boolean;
-    isArchived?: boolean;
-  }): Promise<Product> {
+  static async createProduct(data: CreateProductInterface): Promise<Product> {
     return ProductRepository.createProduct(data);
   }
 
   static async getProductsList(
-    filters: {
-      name?: string;
-      price?: number;
-      isArchived?: boolean;
-      organizationId?: string;
-    },
+    filters: GetProductsFilterInterface,
     page: number = 1,
     limit: number = 10
   ): Promise<{ products: Product[]; total: number; totalPages: number }> {
@@ -27,12 +21,7 @@ class ProductService {
 
   static async updateProduct(
     id: string,
-    data: {
-      name?: string;
-      price?: number;
-      isDeleted?: boolean;
-      isArchived?: boolean;
-    }
+    data: UpdateProductInterface
   ): Promise<Product | null> {
     return ProductRepository.updateProduct(id, data);
   }

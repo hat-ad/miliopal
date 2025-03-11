@@ -1,4 +1,9 @@
 import PrismaService from "@/db/prisma-service";
+import {
+  CreateProductInterface,
+  GetProductsFilterInterface,
+  UpdateProductInterface,
+} from "@/interfaces/product";
 import { PrismaClient, Product } from "@prisma/client";
 
 class ProductRepository {
@@ -7,13 +12,7 @@ class ProductRepository {
     this.db = PrismaService.getInstance();
   }
 
-  async createProduct(data: {
-    name?: string;
-    price: number;
-    organizationId: string;
-    isDeleted?: boolean;
-    isArchived?: boolean;
-  }): Promise<Product> {
+  async createProduct(data: CreateProductInterface): Promise<Product> {
     return this.db.product.create({
       data: {
         name: data.name,
@@ -26,12 +25,7 @@ class ProductRepository {
   }
 
   async getProductsList(
-    filters: {
-      name?: string;
-      price?: number;
-      isArchived?: boolean;
-      organizationId?: string;
-    },
+    filters: GetProductsFilterInterface,
     page: number = 1,
     limit: number = 10
   ): Promise<{ products: Product[]; total: number; totalPages: number }> {
@@ -89,12 +83,7 @@ class ProductRepository {
 
   async updateProduct(
     id: string,
-    data: {
-      name?: string;
-      price?: number;
-      isDeleted?: boolean;
-      isArchived?: boolean;
-    }
+    data: UpdateProductInterface
   ): Promise<Product> {
     return this.db.product.update({
       where: { id },

@@ -1,30 +1,16 @@
 import PrismaService from "@/db/prisma-service";
 import {
-  OrderStatus,
-  PaymentMethod,
-  PrismaClient,
-  Purchase,
-  Seller,
-  User,
-} from "@prisma/client";
+  CreatePurchaseInterface,
+  GetPurchaseFilterInterface,
+} from "@/interfaces/purchase";
+import { PrismaClient, Purchase, Seller, User } from "@prisma/client";
 
 class PurchaseRepository {
   db: PrismaClient;
   constructor() {
     this.db = PrismaService.getInstance();
   }
-  async createPurchase(data: {
-    userId: string;
-    sellerId: string;
-    organizationId: string;
-    comment?: string;
-    paymentMethod: PaymentMethod;
-    bankAccountNumber?: string;
-    status: OrderStatus;
-    orderNo: string;
-    totalAmount: number;
-    notes?: string;
-  }): Promise<Purchase> {
+  async createPurchase(data: CreatePurchaseInterface): Promise<Purchase> {
     return this.db.purchase.create({
       data: {
         orderNo: data.orderNo,
@@ -48,15 +34,7 @@ class PurchaseRepository {
   }
 
   async getPurchaseList(
-    filters: {
-      userId?: string;
-      sellerId?: string;
-      paymentMethod?: PaymentMethod;
-      bankAccountNumber?: string;
-      status?: OrderStatus;
-      orderNo?: string;
-      organizationId?: string;
-    },
+    filters: GetPurchaseFilterInterface,
     sortBy: "orderNo" | "createdAt" | "status" = "createdAt",
     sortOrder: "asc" | "desc" = "desc",
     page: number = 1,

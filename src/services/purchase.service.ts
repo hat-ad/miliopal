@@ -6,20 +6,15 @@ import {
   Seller,
 } from "@prisma/client";
 import purchaseRepository from "@/repository/purchase.repository";
+import {
+  CreatePurchaseInterface,
+  GetPurchaseFilterInterface,
+} from "@/interfaces/purchase";
 
 class PurchaseService {
-  static async createPurchase(data: {
-    userId: string;
-    sellerId: string;
-    comment?: string;
-    paymentMethod: PaymentMethod;
-    bankAccountNumber?: string;
-    status: OrderStatus;
-    organizationId: string;
-    orderNo: string;
-    totalAmount: number;
-    notes?: string;
-  }): Promise<Purchase | null> {
+  static async createPurchase(
+    data: CreatePurchaseInterface
+  ): Promise<Purchase | null> {
     return purchaseRepository.createPurchase(data);
   }
 
@@ -28,15 +23,7 @@ class PurchaseService {
   }
 
   static async getPurchaseList(
-    filters: {
-      userId?: string;
-      sellerId?: string;
-      paymentMethod?: PaymentMethod;
-      bankAccountNumber?: string;
-      status?: OrderStatus;
-      orderNo?: string;
-      organizationId?: string;
-    },
+    filters: GetPurchaseFilterInterface,
     sortBy: "orderNo" | "createdAt" | "status" = "createdAt", // ✅ Fix here
     sortOrder: "asc" | "desc" = "desc",
     page: number = 1,

@@ -1,3 +1,9 @@
+import {
+  CreateSellerInterface,
+  GetSellersFilterInterface,
+  SellerSellingHistoryInterface,
+  UpdateSellerInterface,
+} from "@/interfaces/seller";
 import SellerRepository from "@/repository/seller.repository";
 import {
   Organization,
@@ -8,20 +14,7 @@ import {
 } from "@prisma/client";
 
 class SellerService {
-  static async createSeller(data: {
-    email: string;
-    organizationId: string;
-    type: SellerType;
-    name?: string;
-    phone?: string;
-    address?: string;
-    postalCode?: string;
-    city?: string;
-    companyName?: string;
-    contactPerson?: string;
-    organizationNumber?: string;
-    isDeleted?: boolean;
-  }): Promise<Seller> {
+  static async createSeller(data: CreateSellerInterface): Promise<Seller> {
     return SellerRepository.createSeller(data);
   }
 
@@ -34,20 +27,7 @@ class SellerService {
   }
 
   static async getSellersList(
-    filters: {
-      email?: string;
-      organizationId?: string;
-      type?: SellerType;
-      name?: string;
-      phone?: string;
-      address?: string;
-      postalCode?: string;
-      city?: string;
-      companyName?: string;
-      contactPerson?: string;
-      organizationNumber?: string;
-      isArchived?: boolean;
-    },
+    filters: GetSellersFilterInterface,
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
@@ -64,20 +44,7 @@ class SellerService {
 
   static async updateSeller(
     id: string,
-    data: {
-      email: string;
-      type: SellerType;
-      name?: string;
-      phone: string;
-      address: string;
-      postalCode: string;
-      city: string;
-      companyName?: string;
-      contactPerson?: string;
-      organizationNumber?: string;
-      isDeleted?: boolean;
-      isArchived?: boolean;
-    }
+    data: UpdateSellerInterface
   ): Promise<Seller | null> {
     return SellerRepository.updateSeller(id, data);
   }
@@ -86,11 +53,9 @@ class SellerService {
     return SellerRepository.deleteSeller(id);
   }
 
-  static async getSellerSellingHistory(id: string): Promise<{
-    seller: Seller;
-    purchase: (Purchase & { user?: User | null })[];
-    organization: Organization | null;
-  } | null> {
+  static async getSellerSellingHistory(
+    id: string
+  ): Promise<SellerSellingHistoryInterface | null> {
     return SellerRepository.getSellerSellingHistory(id);
   }
 }

@@ -1,4 +1,5 @@
 import PrismaService from "@/db/prisma-service";
+import { UserUpdateData } from "@/interfaces/user";
 import { User, PrismaClient, Role } from "@prisma/client";
 
 class AuthRepository {
@@ -13,16 +14,7 @@ class AuthRepository {
     });
   }
 
-  async updateUser(
-    id: string,
-    data: {
-      name?: string;
-      phone?: string;
-      password?: string;
-      token?: string;
-      isDeleted?: boolean;
-    }
-  ): Promise<User> {
+  async updateUser(id: string, data: UserUpdateData): Promise<User> {
     return this.db.user.update({
       where: { id },
       data: {

@@ -1,4 +1,4 @@
-import { UserTokenPayload } from "./interface";
+import { UserTokenPayload } from "./common";
 
 declare global {
   namespace NodeJS {

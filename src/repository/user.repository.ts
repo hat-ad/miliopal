@@ -1,12 +1,12 @@
 import PrismaService from "@/db/prisma-service";
 import {
-  Organization,
-  Prisma,
-  PrismaClient,
-  Purchase,
-  Role,
-  User,
-} from "@prisma/client";
+  CreateUserInterface,
+  CreateUserInternalInterface,
+  GetUsersFilterInterface,
+  UserSellingHistoryInterface,
+  UserUpdateData,
+} from "@/interfaces/user";
+import { Prisma, PrismaClient, Role, User } from "@prisma/client";
 
 class UserRepository {
   db: PrismaClient;
@@ -14,13 +14,7 @@ class UserRepository {
     this.db = PrismaService.getInstance();
   }
 
-  async createUserInternal(data: {
-    email: string;
-    password?: string;
-    phone?: string;
-    organizationId?: string;
-    name?: string;
-  }): Promise<User> {
+  async createUserInternal(data: CreateUserInternalInterface): Promise<User> {
     return this.db.user.create({
       data: {
         email: data.email,
@@ -33,11 +27,7 @@ class UserRepository {
     });
   }
 
-  async createUser(data: {
-    email: string;
-    role: Role;
-    organizationId: string;
-  }): Promise<User> {
+  async createUser(data: CreateUserInterface): Promise<User> {
     return this.db.user.create({
       data: {
         email: data.email,
@@ -47,18 +37,7 @@ class UserRepository {
     });
   }
 
-  async updateUser(
-    id: string,
-    data: {
-      name?: string;
-      phone?: string;
-      password?: string;
-      token?: string;
-      isActive?: boolean;
-      isArchived?: boolean;
-      isDeleted?: boolean;
-    }
-  ): Promise<User> {
+  async updateUser(id: string, data: UserUpdateData): Promise<User> {
     return this.db.user.update({
       where: { id },
       data: {
@@ -84,14 +63,7 @@ class UserRepository {
   }
 
   async getUsersList(
-    filters: {
-      name?: string;
-      email?: string;
-      phone?: string;
-      organizationId?: string;
-      isActive?: boolean;
-      isArchived?: boolean;
-    },
+    filters: GetUsersFilterInterface,
     sortBy: "name" = "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
@@ -144,11 +116,9 @@ class UserRepository {
     });
   }
 
-  async getUserSellingHistory(id: string): Promise<{
-    buyer: User;
-    purchase: Purchase[];
-    organization: Organization | null;
-  } | null> {
+  async getUserSellingHistory(
+    id: string
+  ): Promise<UserSellingHistoryInterface | null> {
     const userSellingHistory = await this.db.user.findUnique({
       where: { id },
       include: {

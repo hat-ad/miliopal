@@ -1,4 +1,5 @@
 import PrismaService from "@/db/prisma-service";
+import { UpdateOrganization } from "@/interfaces/organization";
 import { Organization, PrismaClient, Seller, User } from "@prisma/client";
 
 class OrganizationRepository {
@@ -47,13 +48,7 @@ class OrganizationRepository {
 
   async updateOrganization(
     id: string,
-    data: {
-      companyName?: string;
-      organizationNumber?: string;
-      postalCode?: string;
-      city?: string;
-      address?: string;
-    }
+    data: UpdateOrganization
   ): Promise<Organization | null> {
     return this.db.organization.update({
       where: { id },

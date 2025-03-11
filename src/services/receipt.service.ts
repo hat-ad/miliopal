@@ -1,14 +1,14 @@
 import { Receipt } from "@prisma/client";
 import receiptRepository from "@/repository/receipt.repository";
+import {
+  CreateReceiptInterface,
+  UpdateReceiptInterface,
+} from "@/interfaces/receipt";
 
 class ReceiptService {
-  static async createReceipt(data: {
-    organizationId: string;
-    startingOrderNumber: number;
-    currentOrderNumber: number;
-    logo: string;
-    receiptText?: string;
-  }): Promise<Receipt | null> {
+  static async createReceipt(
+    data: CreateReceiptInterface
+  ): Promise<Receipt | null> {
     return receiptRepository.createReceipt(data);
   }
 
@@ -24,10 +24,7 @@ class ReceiptService {
 
   static async updateReceipt(
     id: string,
-    data: {
-      logo?: string;
-      receiptText?: string;
-    }
+    data: UpdateReceiptInterface
   ): Promise<Receipt | null> {
     return receiptRepository.updateReceipt(id, data);
   }
