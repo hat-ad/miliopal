@@ -1,12 +1,11 @@
-import { config } from "dotenv";
-import express, { Express, Response, Request } from "express";
+import api from "@/routes";
+import logger from "@/utils/logger";
 import cors from "cors";
+import { config } from "dotenv";
+import express, { Express, Request, Response } from "express";
 import helmet from "helmet";
 import path from "path";
-import logger from "@/utils/logger";
-import api from "@/routes";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
 config(); // Loads environment variables from .env file
 
 const app: Express = express();

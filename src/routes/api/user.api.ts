@@ -1,8 +1,15 @@
-import express from "express";
 import UserController from "@/controller/user.controller";
 import { isAuthenticated } from "@/middleware/checkAuth";
+import express from "express";
+import { validateActivateUser } from "../validators/user/activateUser.validator";
+import { validateCreateUser } from "../validators/user/createUser.validator";
 import { validateInviteUser } from "../validators/user/inviteUser.validator";
-import { validateCreateUser } from "../validators/user/createUser.validate";
+import {
+  validateOTPValidation,
+  validateResetPassword,
+  validateSendResetPassword,
+} from "../validators/user/resetPassword.validator";
+import { validateUpdateUser } from "../validators/user/updateUser.validator";
 
 const router = express.Router();
 
@@ -19,7 +26,18 @@ router.post(
   UserController.inviteUser
 );
 
-router.put("/update-user", isAuthenticated, UserController.updateUser);
+router.put(
+  "/activate-user",
+  isAuthenticated,
+  validateActivateUser,
+  UserController.activateUser
+);
+router.put(
+  "/update-user",
+  isAuthenticated,
+  validateUpdateUser,
+  UserController.updateUser
+);
 
 router.get("/get-user", isAuthenticated, UserController.getUser);
 
@@ -33,4 +51,21 @@ router.get(
   UserController.getUserSellingHistory
 );
 
+router.post(
+  "/send-reset-password-link",
+  validateSendResetPassword,
+  UserController.sendResetPasswordEmail
+);
+
+router.post(
+  "/validate-reset-password-link",
+  validateOTPValidation,
+  UserController.isOTPValid
+);
+
+router.post(
+  "/reset-password",
+  validateResetPassword,
+  UserController.resetPassword
+);
 export default router;

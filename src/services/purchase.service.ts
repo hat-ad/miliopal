@@ -1,15 +1,9 @@
 import {
-  Purchase,
-  PaymentMethod,
-  OrderStatus,
-  User,
-  Seller,
-} from "@prisma/client";
-import purchaseRepository from "@/repository/purchase.repository";
-import {
   CreatePurchaseInterface,
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
+import purchaseRepository from "@/repository/purchase.repository";
+import { Purchase, Seller, User } from "@prisma/client";
 
 class PurchaseService {
   static async createPurchase(
@@ -43,9 +37,10 @@ class PurchaseService {
   }
 
   static async getReceiptByOrderNo(
-    orderNo: string
+    orderNo: string,
+    organizationId: string
   ): Promise<(Purchase & { user: User; seller: Seller }) | null> {
-    return purchaseRepository.getReceiptByOrderNo(orderNo);
+    return purchaseRepository.getReceiptByOrderNo(orderNo, organizationId);
   }
 }
 

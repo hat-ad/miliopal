@@ -1,6 +1,7 @@
-import { generateToken, sendMail } from "@/functions/function";
+import { generateOTP } from "@/functions/function";
 import OrganizationService from "@/services/organization.service";
 import UserService from "@/services/user.service";
+import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
@@ -55,7 +56,8 @@ export default class UserController {
       const encryptedEmail = encrypt(email);
 
       let user = await UserService.getUserByEmail(encryptedEmail);
-      if (user) return ERROR(res, false, "User already exist");
+      if (user && user.organizationId === organizationId)
+        return ERROR(res, false, "User already exist");
 
       user = await UserService.createUser({
         ...req.body,
@@ -71,20 +73,42 @@ export default class UserController {
         name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
-      const invitedUser = {
-        email,
-        subject: "You're Invited!",
-        text: "Hello, you've been invited to join our platform.",
-        html: "<p>Hello,</p><p>You've been invited to join our platform.</p>",
-      };
 
-      await sendMail(
-        invitedUser.email,
-        invitedUser.subject,
-        invitedUser.text,
-        invitedUser.html
-      );
+      await sendWelcomeMail(user.id, email, responseUser.name || "");
+
       return OK(res, responseUser, "User invited successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  static async activateUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userID, password } = req.body;
+
+      const existingUser = await UserService.getUser(userID);
+
+      if (!existingUser) {
+        throw new Error("User not found");
+      }
+
+      if (existingUser?.isActive) {
+        throw new Error("User is already active");
+      }
+
+      const user = await UserService.updateUser(existingUser.id, {
+        password,
+        isActive: true,
+      });
+      if (!user) return ERROR(res, false, "User not updated!");
+
+      const responseUser = {
+        ...user,
+        email: user?.email ? decrypt(user.email) : null,
+        name: user?.name ? decrypt(user.name) : null,
+        phone: user?.phone ? decrypt(user.phone) : null,
+      };
+      return OK(res, responseUser, "User updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
@@ -95,12 +119,14 @@ export default class UserController {
       const userId = req.payload?.id;
       const { name, phone } = req.body;
 
-      const encryptedName = name ? encrypt(name) : null;
-      const encryptedPhone = phone ? encrypt(phone) : null;
+      if (name) {
+        req.body.name = encrypt(name);
+      }
+      if (phone) {
+        req.body.phone = encrypt(phone);
+      }
 
       if (!userId) return ERROR(res, false, "Unauthorized: User ID is missing");
-
-      const token = generateToken(userId.toString());
 
       const existingUser = await UserService.getUser(userId);
 
@@ -110,9 +136,6 @@ export default class UserController {
 
       const user = await UserService.updateUser(userId, {
         ...req.body,
-        name: encryptedName,
-        phone: encryptedPhone,
-        token,
       });
       if (!user) return ERROR(res, false, "User not updated!");
 
@@ -251,6 +274,72 @@ export default class UserController {
         organization: userSellingHistory?.organization,
       };
       return OK(res, response, "User selling history retrived successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  static async sendResetPasswordEmail(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      const encryptedEmail = encrypt(email);
+      const otp = generateOTP();
+      const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      const user = await UserService.getUserByEmail(encryptedEmail);
+      if (!user) {
+        return ERROR(res, false, "User not found");
+      }
+
+      await UserService.sendResetPasswordEmail(user.id, otp, otpExpiry);
+
+      await sendResetPasswordMail(user.id, email, otp);
+      return OK(res, null, "Email sent successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  static async isOTPValid(req: Request, res: Response) {
+    try {
+      const { email, otp } = req.body;
+
+      const encryptedEmail = encrypt(email);
+      const user = await UserService.getUserByEmail(encryptedEmail);
+      if (!user) {
+        return ERROR(res, false, "User not found");
+      }
+
+      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      if (!isOTPValid) {
+        return ERROR(res, false, "Invalid OTP");
+      }
+
+      return OK(res, isOTPValid, "Link is valid!");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response) {
+    try {
+      const { email, otp, password } = req.body;
+
+      const encryptedEmail = encrypt(email);
+      const user = await UserService.getUserByEmail(encryptedEmail);
+      if (!user) {
+        return ERROR(res, false, "User not found");
+      }
+
+      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      if (!isOTPValid) {
+        return ERROR(res, false, "Invalid OTP");
+      }
+
+      await UserService.resetPassword(user.id, password);
+
+      return OK(res, isOTPValid, "Password reset successful");
     } catch (error) {
       return ERROR(res, false, error);
     }

@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
-import { OK, ERROR } from "@/utils/response-helper";
-import PurchaseService from "@/services/purchase.service";
 import ProductsPurchasedService from "@/services/products_purchased.service";
-import SellerService from "@/services/seller.service";
-import { OrderStatus, PaymentMethod } from "@prisma/client";
-import { decrypt } from "@/utils/AES";
+import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
+import SellerService from "@/services/seller.service";
+import { decrypt } from "@/utils/AES";
+import { ERROR, OK } from "@/utils/response-helper";
+import { OrderStatus, PaymentMethod } from "@prisma/client";
+import { Request, Response } from "express";
 
 export default class PurchaseController {
   static async createPurchase(req: Request, res: Response): Promise<void> {
@@ -157,9 +157,14 @@ export default class PurchaseController {
   static async getReceiptByOrderNo(req: Request, res: Response) {
     try {
       const { orderNo } = req.params;
+      const organizationId = req.payload?.organizationId;
 
+      if (!organizationId) {
+        return ERROR(res, false, "No Organization ID in token");
+      }
       const purchaseDetails = await PurchaseService.getReceiptByOrderNo(
-        orderNo
+        orderNo,
+        organizationId
       );
 
       const decryptedPurchaseDetails = {

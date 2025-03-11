@@ -6,7 +6,7 @@ import {
   UserUpdateData,
 } from "@/interfaces/user";
 import UserRepository from "@/repository/user.repository";
-import { Organization, Purchase, Role, User } from "@prisma/client";
+import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 class UserService {
@@ -27,6 +27,9 @@ class UserService {
     data: UserUpdateData
   ): Promise<User | null> {
     let updateData = { ...data };
+
+    const user = await UserRepository.getUser(id);
+    if (!user) return null;
 
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
@@ -61,6 +64,42 @@ class UserService {
     id: string
   ): Promise<UserSellingHistoryInterface | null> {
     return UserRepository.getUserSellingHistory(id);
+  }
+
+  static async sendResetPasswordEmail(
+    userID: string,
+    otp: string,
+    otpExpiry: Date
+  ): Promise<void> {
+    await UserRepository.updateUser(userID, { otp, otpExpiry });
+  }
+
+  static async isOTPValid(userID: string, otp: string): Promise<boolean> {
+    const user = await UserRepository.getUser(userID);
+    if (!user) {
+      return false;
+    }
+    if (user.otp !== otp) {
+      return false;
+    }
+    if (user.otpExpiry && user.otpExpiry < new Date()) {
+      return false;
+    }
+    await UserRepository.updateUser(userID, {
+      otp: null,
+      otpExpiry: null,
+    });
+
+    return true;
+  }
+
+  static async resetPassword(userID: string, password: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await UserRepository.updateUser(userID, {
+      otp: null,
+      otpExpiry: null,
+      password: hashedPassword,
+    });
   }
 }
 

@@ -71,3 +71,16 @@ export const sendMail = async (
     console.log(err);
   }
 };
+
+export const stringToHex = (str: string): string => {
+  return Buffer.from(str).toString("hex");
+};
+
+export const hexToString = (hex: string): string => {
+  return Buffer.from(hex, "hex").toString();
+};
+
+export const generateOTP = (): string => {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  return otp;
+};

@@ -105,10 +105,11 @@ class PurchaseRepository {
   }
 
   async getReceiptByOrderNo(
-    orderNo: string
+    orderNo: string,
+    organizationId: string
   ): Promise<Purchase & { user: User; seller: Seller }> {
-    const purchase = await this.db.purchase.findUnique({
-      where: { orderNo },
+    const purchase = await this.db.purchase.findFirst({
+      where: { orderNo, organizationId },
       include: {
         user: true,
         seller: {

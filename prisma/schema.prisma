@@ -26,16 +26,17 @@ model PrivateSeller {
 }
 
 model Product {
-  id                String              @id @default(uuid())
-  name              String?
-  price             Float
-  isDeleted         Boolean             @default(false)
-  isArchived        Boolean             @default(false)
-  organizationId    String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  productsPurchased ProductsPurchased[]
+  id                 String               @id @default(uuid())
+  name               String?
+  price              Float
+  isDeleted          Boolean              @default(false)
+  isArchived         Boolean              @default(false)
+  organizationId     String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  organization       Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  productsPurchased  ProductsPurchased[]
+  ProductForDelivery ProductForDelivery[]
 }
 
 model ProductsPurchased {
@@ -62,7 +63,7 @@ enum OrderStatus {
 
 model Purchase {
   id                String              @id @default(uuid())
-  orderNo           String              
+  orderNo           String
   comment           String?
   paymentMethod     PaymentMethod
   bankAccountNumber String?
@@ -87,8 +88,8 @@ enum SellerType {
 }
 
 model Seller {
-  id             String          @id @default(uuid())
-  email          String          @unique
+  id             String           @id @default(uuid())
+  email          String           @unique
   type           SellerType
   phone          String?
   address        String?
@@ -96,13 +97,14 @@ model Seller {
   city           String?
   privateSeller  PrivateSeller?
   businessSeller BusinessSeller?
-  isArchived     Boolean         @default(false)
-  isDeleted      Boolean         @default(false)
+  isArchived     Boolean          @default(false)
+  isDeleted      Boolean          @default(false)
   organizationId String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   purchases      Purchase[]
+  PickUpDelivery PickUpDelivery[]
 }
 
 enum Role {
@@ -112,37 +114,41 @@ enum Role {
 }
 
 model User {
-  id             String        @id @default(uuid())
+  id             String           @id @default(uuid())
   name           String?
   phone          String?
-  email          String        @unique
+  otp            String?
+  otpExpiry      DateTime?
+  email          String           @unique
   password       String?
-  role           Role          @default(USER)
+  role           Role             @default(USER)
   token          String?
-  isActive       Boolean       @default(false)
-  isArchived     Boolean       @default(false)
-  isDeleted      Boolean       @default(false)
+  isActive       Boolean          @default(false)
+  isArchived     Boolean          @default(false)
+  isDeleted      Boolean          @default(false)
   organizationId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   purchases      Purchase[]
+  PickUpDelivery PickUpDelivery[]
 }
 
 model Organization {
-  id                 String     @id @default(uuid())
+  id                 String           @id @default(uuid())
   companyName        String?
   address            String?
   postalCode         String?
   city               String?
-  organizationNumber String     @unique // Ensure it's unique
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  organizationNumber String           @unique // Ensure it's unique
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
   users              User[]
   sellers            Seller[]
   products           Product[]
   purchases          Purchase[]
   receipts           Receipt[]
+  pickupDeliveries   PickUpDelivery[]
 }
 
 model Receipt {
@@ -150,9 +156,36 @@ model Receipt {
   organizationId      String
   startingOrderNumber Int
   currentOrderNumber  Int
-  logo                String
+  logo                String?
   receiptText         String?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
-  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ProductForDelivery {
+  id               String         @id @default(uuid())
+  productId        String
+  pickUpDeliveryId String
+  quantity         Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  PickUpDelivery   PickUpDelivery @relation(fields: [pickUpDeliveryId], references: [id], onDelete: Cascade)
+}
+
+model PickUpDelivery {
+  id                  String               @id @default(uuid())
+  PONumber            String
+  comment             String?
+  sellerId            String
+  userId              String
+  isArchived          Boolean              @default(false)
+  organizationId      String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller              Seller               @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  productsForDelivery ProductForDelivery[]
 }

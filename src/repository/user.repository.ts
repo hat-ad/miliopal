@@ -30,6 +30,7 @@ class UserRepository {
   async createUser(data: CreateUserInterface): Promise<User> {
     return this.db.user.create({
       data: {
+        name: data.name,
         email: data.email,
         role: data.role ?? Role.USER,
         organizationId: data.organizationId,

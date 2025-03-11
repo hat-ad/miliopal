@@ -4,6 +4,7 @@ export interface CreateUserInterface {
   email: string;
   role: Role;
   organizationId: string;
+  name: string;
 }
 
 export interface CreateUserInternalInterface {
@@ -22,6 +23,8 @@ export interface UserUpdateData {
   isActive?: boolean;
   isArchived?: boolean;
   isDeleted?: boolean;
+  otp?: string | null;
+  otpExpiry?: Date | null;
 }
 
 export interface GetUsersFilterInterface {
