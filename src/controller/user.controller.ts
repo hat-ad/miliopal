@@ -282,12 +282,20 @@ export default class UserController {
   static async sendResetPasswordEmail(req: Request, res: Response) {
     try {
       const { email } = req.body;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, false, "Unauthorized: Organization ID is missing");
+      }
 
       const encryptedEmail = encrypt(email);
       const otp = generateOTP();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-      const user = await UserService.getUserByEmail(encryptedEmail);
+      const user = await UserService.getUserByEmail(
+        encryptedEmail,
+        organizationId
+      );
       if (!user) {
         return ERROR(res, false, "User not found");
       }
@@ -303,10 +311,9 @@ export default class UserController {
 
   static async isOTPValid(req: Request, res: Response) {
     try {
-      const { email, otp } = req.body;
+      const { userID, otp } = req.body;
 
-      const encryptedEmail = encrypt(email);
-      const user = await UserService.getUserByEmail(encryptedEmail);
+      const user = await UserService.getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
@@ -324,10 +331,9 @@ export default class UserController {
 
   static async resetPassword(req: Request, res: Response) {
     try {
-      const { email, otp, password } = req.body;
+      const { userID, otp, password } = req.body;
 
-      const encryptedEmail = encrypt(email);
-      const user = await UserService.getUserByEmail(encryptedEmail);
+      const user = await UserService.getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }

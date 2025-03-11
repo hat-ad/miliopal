@@ -57,7 +57,15 @@ class UserRepository {
     });
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  async getUserByEmail(
+    email: string,
+    organizationId?: string
+  ): Promise<User | null> {
+    if (organizationId) {
+      return this.db.user.findUnique({
+        where: { email, organizationId },
+      });
+    }
     return this.db.user.findUnique({
       where: { email },
     });

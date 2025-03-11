@@ -11,14 +11,14 @@ export type SendResetPasswordInput = z.infer<
 >;
 
 const OTPValidationInputSchema = z.object({
-  email: z.string().email(),
+  userID: z.string().min(1, "User id is required!"),
   otp: z.string().min(6, "OTP is required!"),
 });
 
 export type OTPValidationInput = z.infer<typeof OTPValidationInputSchema>;
 
 const ResetPasswordSchema = z.object({
-  email: z.string().email(),
+  userID: z.string().min(1, "User id is required!"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   otp: z.string().min(6, "OTP is required!"),
 });

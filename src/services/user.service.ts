@@ -42,8 +42,11 @@ class UserService {
     return UserRepository.getUser(id);
   }
 
-  static async getUserByEmail(email: string): Promise<User | null> {
-    return UserRepository.getUserByEmail(email);
+  static async getUserByEmail(
+    email: string,
+    organizationId?: string
+  ): Promise<User | null> {
+    return UserRepository.getUserByEmail(email, organizationId);
   }
 
   static async getUsersList(

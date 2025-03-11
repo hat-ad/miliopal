@@ -26,12 +26,7 @@ router.post(
   UserController.inviteUser
 );
 
-router.put(
-  "/activate-user",
-  isAuthenticated,
-  validateActivateUser,
-  UserController.activateUser
-);
+router.put("/activate-user", validateActivateUser, UserController.activateUser);
 router.put(
   "/update-user",
   isAuthenticated,
@@ -53,6 +48,7 @@ router.get(
 
 router.post(
   "/send-reset-password-link",
+  isAuthenticated,
   validateSendResetPassword,
   UserController.sendResetPasswordEmail
 );
