@@ -3,7 +3,7 @@ import {
   CreateReceiptInterface,
   UpdateReceiptInterface,
 } from "@/interfaces/receipt";
-import { User, PrismaClient, Role, Receipt } from "@prisma/client";
+import { PrismaClient, Receipt } from "@prisma/client";
 
 class ReceiptRepository {
   db: PrismaClient;

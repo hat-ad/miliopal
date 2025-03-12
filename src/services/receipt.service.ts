@@ -1,9 +1,9 @@
-import { Receipt } from "@prisma/client";
-import receiptRepository from "@/repository/receipt.repository";
 import {
   CreateReceiptInterface,
   UpdateReceiptInterface,
 } from "@/interfaces/receipt";
+import receiptRepository from "@/repository/receipt.repository";
+import { Receipt } from "@prisma/client";
 
 class ReceiptService {
   static async createReceipt(

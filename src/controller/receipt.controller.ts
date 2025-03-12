@@ -26,8 +26,12 @@ export default class ReceiptController {
 
   static async getSingleReceipt(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const receipt = await ReceiptService.getSingleReceipt(id);
+      const organizationId = req.payload?.organizationId;
+      if (!organizationId)
+        return ERROR(res, false, "Organization ID is required.");
+      const receipt = await ReceiptService.getReceiptByOrganizationId(
+        organizationId
+      );
       return OK(res, receipt, "Receipt retrieved successfully");
     } catch (error) {
       return ERROR(res, false, error);

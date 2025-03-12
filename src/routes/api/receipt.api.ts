@@ -1,6 +1,6 @@
-import express from "express";
 import ReceiptController from "@/controller/receipt.controller";
 import { isAuthenticated } from "@/middleware/checkAuth";
+import express from "express";
 import { validateCreateReceipt } from "../validators/receipt/createReceipt.validator";
 
 const router = express.Router();
@@ -12,11 +12,7 @@ router.post(
   ReceiptController.createReceipt
 );
 
-router.get(
-  "/get-receipt/:id",
-  isAuthenticated,
-  ReceiptController.getSingleReceipt
-);
+router.get("/get-receipt", isAuthenticated, ReceiptController.getSingleReceipt);
 
 router.put(
   "/update-receipt/:id",

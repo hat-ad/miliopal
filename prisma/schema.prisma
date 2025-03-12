@@ -176,7 +176,7 @@ model ProductForDelivery {
 
 model PickUpDelivery {
   id                  String               @id @default(uuid())
-  PONumber            String
+  PONumber            String?
   comment             String?
   sellerId            String
   userId              String
