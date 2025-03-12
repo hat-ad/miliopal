@@ -1,4 +1,4 @@
-import ProductsPurchasedRepository from "@/repository/products_purchased.repository";
+import ProductsPurchasedRepository from "@/repository/products-purchased.repository";
 import { ProductsPurchased } from "@prisma/client";
 
 class ProductsPurchasedService {

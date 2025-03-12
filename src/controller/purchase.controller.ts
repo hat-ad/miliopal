@@ -1,4 +1,4 @@
-import ProductsPurchasedService from "@/services/products_purchased.service";
+import ProductsPurchasedService from "@/services/products-purchased.service";
 import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
 import SellerService from "@/services/seller.service";

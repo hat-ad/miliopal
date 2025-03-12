@@ -171,7 +171,7 @@ model ProductForDelivery {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  PickUpDelivery   PickUpDelivery @relation(fields: [pickUpDeliveryId], references: [id], onDelete: Cascade)
+  pickUpDelivery   PickUpDelivery @relation(fields: [pickUpDeliveryId], references: [id], onDelete: Cascade)
 }
 
 model PickUpDelivery {
