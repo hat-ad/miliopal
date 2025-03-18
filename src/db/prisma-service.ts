@@ -8,7 +8,7 @@ class PrismaService {
   public static getInstance(): PrismaClient {
     if (!PrismaService.instance) {
       PrismaService.instance = new PrismaClient({
-        log: ["query", "info", "warn", "error"],
+        log: ["info", "warn", "error"],
       });
     }
     return PrismaService.instance;

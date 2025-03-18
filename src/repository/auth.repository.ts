@@ -1,6 +1,6 @@
 import PrismaService from "@/db/prisma-service";
 import { UserUpdateData } from "@/interfaces/user";
-import { User, PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 
 class AuthRepository {
   db: PrismaClient;

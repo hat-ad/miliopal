@@ -5,14 +5,7 @@ import {
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import {
-  Organization,
-  PrismaClient,
-  Purchase,
-  Seller,
-  SellerType,
-  User,
-} from "@prisma/client";
+import { PrismaClient, Seller } from "@prisma/client";
 
 class SellerRepository {
   db: PrismaClient;
@@ -24,8 +17,14 @@ class SellerRepository {
     if (data.type === "PRIVATE" && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
-    if (data.type === "BUSINESS" && !data.organizationNumber) {
-      throw new Error("Business Seller must have company details.");
+    if (
+      data.type === "BUSINESS" &&
+      !data.organizationNumber &&
+      !data.bankAccountNumber
+    ) {
+      throw new Error(
+        "Business Seller must have company details and bank account number."
+      );
     }
 
     return this.db.seller.create({
@@ -51,6 +50,7 @@ class SellerRepository {
                   companyName: data.companyName!,
                   contactPerson: data.contactPerson!,
                   organizationNumber: data.organizationNumber!,
+                  bankAccountNumber: data.bankAccountNumber!,
                 },
               }
             : undefined,

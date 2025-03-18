@@ -18,6 +18,7 @@ export interface CreateSellerInterface {
   companyName?: string;
   contactPerson?: string;
   organizationNumber?: string;
+  bankAccountNumber?: string;
   isDeleted?: boolean;
 }
 
@@ -46,6 +47,7 @@ export interface UpdateSellerInterface {
   city: string;
   companyName?: string;
   contactPerson?: string;
+  bankAccountNumber?: string;
   organizationNumber?: string;
   isDeleted?: boolean;
   isArchived?: boolean;

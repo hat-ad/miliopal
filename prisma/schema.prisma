@@ -12,6 +12,7 @@ model BusinessSeller {
   companyName        String?
   contactPerson      String?
   organizationNumber String
+  bankAccountNumber  String?
   seller             Seller   @relation(fields: [id], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -67,6 +68,7 @@ model Purchase {
   comment           String?
   paymentMethod     PaymentMethod
   bankAccountNumber String?
+  bankTransferDate  DateTime?
   totalAmount       Int?
   notes             String?
   sellerId          String
@@ -114,41 +116,50 @@ enum Role {
 }
 
 model User {
-  id             String           @id @default(uuid())
-  name           String?
-  phone          String?
-  otp            String?
-  otpExpiry      DateTime?
-  email          String           @unique
-  password       String?
-  role           Role             @default(USER)
-  token          String?
-  isActive       Boolean          @default(false)
-  isArchived     Boolean          @default(false)
-  isDeleted      Boolean          @default(false)
-  organizationId String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  purchases      Purchase[]
-  PickUpDelivery PickUpDelivery[]
+  id                  String                  @id @default(uuid())
+  name                String?
+  phone               String?
+  otp                 String?
+  otpExpiry           DateTime?
+  email               String                  @unique
+  password            String?
+  role                Role                    @default(USER)
+  token               String?
+  isActive            Boolean                 @default(false)
+  isArchived          Boolean                 @default(false)
+  isDeleted           Boolean                 @default(false)
+  organizationId      String
+  wallet              Float                   @default(0)
+  lastReconciled      DateTime?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchases           Purchase[]
+  PickUpDelivery      PickUpDelivery[]
+  CashHistory         CashHistory[]
+  reconciliations     ReconciliationHistory[] @relation("ReconciledHistory")
+  reconciliationsMade ReconciliationHistory[] @relation("Reconciliator")
 }
 
 model Organization {
-  id                 String           @id @default(uuid())
-  companyName        String?
-  address            String?
-  postalCode         String?
-  city               String?
-  organizationNumber String           @unique // Ensure it's unique
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  users              User[]
-  sellers            Seller[]
-  products           Product[]
-  purchases          Purchase[]
-  receipts           Receipt[]
-  pickupDeliveries   PickUpDelivery[]
+  id                    String                  @id @default(uuid())
+  companyName           String?
+  address               String?
+  postalCode            String?
+  city                  String?
+  organizationNumber    String                  @unique // Ensure it's unique
+  wallet                Float
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  users                 User[]
+  sellers               Seller[]
+  products              Product[]
+  purchases             Purchase[]
+  receipts              Receipt[]
+  pickupDeliveries      PickUpDelivery[]
+  CashHistory           CashHistory[]
+  ReconciliationHistory ReconciliationHistory[]
+  TodoListSettings      TodoListSettings?
 }
 
 model Receipt {
@@ -188,4 +199,79 @@ model PickUpDelivery {
   user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller              Seller               @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsForDelivery ProductForDelivery[]
+}
+
+enum CashHistoryType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum AccountType {
+  COMPANY
+  INDIVIDUAL
+}
+
+model CashHistory {
+  id             String          @id @default(uuid())
+  amount         Float
+  note           String?
+  type           CashHistoryType
+  accountType    AccountType
+  organizationId String
+  userId         String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReconciliationHistory {
+  id                      BigInt       @id @default(autoincrement())
+  userId                  String
+  reConciliatedBy         String
+  organizationId          String
+  expectedAmount          Float
+  amountCounted           Float
+  comment                 String
+  reconciliationStartTime DateTime
+  reconciliationEndTime   DateTime
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                    User         @relation(fields: [userId], references: [id], onDelete: Cascade, name: "ReconciledHistory")
+  reconciliator           User         @relation(fields: [reConciliatedBy], references: [id], onDelete: Cascade, name: "Reconciliator")
+}
+
+enum TodoListEvent {
+  COMPANY_CASH_BALANCE_BELOW_THRESHOLD
+  INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD
+  INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD
+  PURCHASE_INITIATED_WITH_BANK_TRANSFER
+  ORDER_PICKUP_INITIATED
+}
+
+enum TodoListStatus {
+  DONE
+  PENDING
+}
+
+model TodoList {
+  id             String         @id @default(uuid())
+  organizationId String
+  meta           Json
+  event          TodoListEvent
+  status         TodoListStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model TodoListSettings {
+  id                                  String       @id @default(uuid())
+  organizationId                      String       @unique
+  companyCashBalanceLowerThreshold    Float
+  individualCashBalanceLowerThreshold Float
+  individualCashBalanceUpperThreshold Float
+  createdAt                           DateTime     @default(now())
+  updatedAt                           DateTime     @updatedAt
+  organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
