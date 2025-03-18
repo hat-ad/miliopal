@@ -50,10 +50,11 @@ export default class UserController {
 
   static async inviteUser(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
+      const { email, name } = req.body;
       const organizationId = req.payload?.organizationId;
 
       const encryptedEmail = encrypt(email);
+      const encryptedName = encrypt(name);
 
       let user = await UserService.getUserByEmail(encryptedEmail);
       if (user && user.organizationId === organizationId)
@@ -62,6 +63,7 @@ export default class UserController {
       user = await UserService.createUser({
         ...req.body,
         email: encryptedEmail,
+        name: encryptedName,
         organizationId,
       });
 

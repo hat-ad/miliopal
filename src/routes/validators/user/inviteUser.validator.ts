@@ -5,7 +5,9 @@ import { z, ZodError } from "zod";
 const InviteUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   role: z.string().min(3, "Role is required!"),
-  name: z.string().min(3, "Name is required!"),
+  name: z
+    .string()
+    .min(3, "Name is required must be at least 3 characters long!"),
 });
 
 export type InviteUserInput = z.infer<typeof InviteUserSchema>;
