@@ -1,23 +1,60 @@
+import PrismaService from "@/db/prisma-service";
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreatePickupDelivery,
   GetPickupDeliveryFilterInterface,
 } from "@/interfaces/pickup-delivery";
 
-import PickupDeliveryRepository from "@/repository/pickup-delivery.repository";
-import { PickUpDelivery, Seller, User } from "@prisma/client";
+import {
+  PickUpDelivery,
+  ProductForDelivery,
+  Seller,
+  User,
+} from "@prisma/client";
 
 class PickupDeliveryService {
-  static async createPickupDelivery(
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
+  }
+
+  async createPickupDelivery(
     data: CreatePickupDelivery
-  ): Promise<PickUpDelivery | null> {
-    return PickupDeliveryRepository.createPickupDelivery(data);
+  ): Promise<{
+    pickUpDelivery: PickUpDelivery;
+    products_for_delivery: ProductForDelivery[];
+  } | null> {
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const pickupDeliveryRepo = factory.getPickUpDeliveryRepository();
+      const productsPickupDeliveryRepo = factory.getProductsPickupRepository();
+      const todoListRepo = factory.getTodoListRepository();
+      const pickUpDelivery = await pickupDeliveryRepo.createPickupDelivery(
+        data
+      );
+
+      const products = data.products.map((product) => ({
+        ...product,
+        pickUpDeliveryId: pickUpDelivery.id,
+      }));
+
+      const products_for_delivery =
+        await productsPickupDeliveryRepo.bulkInsertProductsPurchased(products);
+      return {
+        pickUpDelivery,
+        products_for_delivery,
+      };
+    });
   }
 
-  static async getPickupDelivery(id: string): Promise<PickUpDelivery | null> {
-    return PickupDeliveryRepository.getPickupDelivery(id);
+  async getPickupDelivery(id: string): Promise<PickUpDelivery | null> {
+    return this.repositoryFactory
+      .getPickUpDeliveryRepository()
+      .getPickupDelivery(id);
   }
 
-  static async getPickupDeliveryList(
+  async getPickupDeliveryList(
     filters: GetPickupDeliveryFilterInterface,
     sortBy: "PONumber" | "createdAt" = "createdAt", // ✅ Fix here
     sortOrder: "asc" | "desc" = "desc",
@@ -31,20 +68,18 @@ class PickupDeliveryService {
     total: number;
     totalPages: number;
   }> {
-    return PickupDeliveryRepository.getPickupDeliveryList(
-      filters,
-      sortBy,
-      sortOrder,
-      page,
-      limit
-    );
+    return this.repositoryFactory
+      .getPickUpDeliveryRepository()
+      .getPickupDeliveryList(filters, sortBy, sortOrder, page, limit);
   }
 
-  static async getReceiptById(
+  async getReceiptById(
     id: string,
     organizationId: string
   ): Promise<(PickUpDelivery & { user: User; seller: Seller }) | null> {
-    return PickupDeliveryRepository.getReceiptByID(id, organizationId);
+    return this.repositoryFactory
+      .getPickUpDeliveryRepository()
+      .getReceiptByID(id, organizationId);
   }
 }
 

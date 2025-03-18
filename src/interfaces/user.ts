@@ -11,7 +11,7 @@ export interface CreateUserInternalInterface {
   email: string;
   password?: string;
   phone?: string;
-  organizationId?: string;
+  organizationId: string;
   name?: string;
 }
 

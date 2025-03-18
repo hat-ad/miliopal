@@ -1,19 +1,15 @@
-import PrismaService from "@/db/prisma-service";
 import { UpdateOrganization } from "@/interfaces/organization";
-import { Organization, PrismaClient, Seller, User } from "@prisma/client";
+import { Organization, Seller, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class OrganizationRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class OrganizationRepository extends BaseRepository {
   async createOrganization(data: {
     organizationNumber: string;
   }): Promise<Organization> {
     return this.db.organization.create({
       data: {
         organizationNumber: data.organizationNumber,
+        wallet: 0,
       },
     });
   }
@@ -57,4 +53,4 @@ class OrganizationRepository {
   }
 }
 
-export default new OrganizationRepository();
+export default OrganizationRepository;

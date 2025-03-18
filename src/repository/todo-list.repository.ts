@@ -1,4 +1,3 @@
-import PrismaService from "@/db/prisma-service";
 import {
   PaymentMethod,
   Prisma,
@@ -6,10 +5,11 @@ import {
   TodoListEvent,
   TodoListStatus,
 } from "@prisma/client";
-
+import BaseRepository from "./base.repository";
+type PrismaTransactionClient = PrismaClient | Prisma.TransactionClient;
 class CompanyCashBalanceEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
+  db: PrismaTransactionClient;
+  constructor(db: PrismaTransactionClient) {
     this.db = db;
   }
   private async getCompanyCashBalanceBelowThresholdMeta(
@@ -110,8 +110,8 @@ class CompanyCashBalanceEventsHandler {
 }
 
 class IndividualCashBalanceEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
+  db: PrismaTransactionClient;
+  constructor(db: PrismaTransactionClient) {
     this.db = db;
   }
   private async getIndividualCashBalanceBelowThresholdMeta(
@@ -283,8 +283,8 @@ class IndividualCashBalanceEventsHandler {
 }
 
 class OrderPickUpEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
+  db: PrismaTransactionClient;
+  constructor(db: PrismaTransactionClient) {
     this.db = db;
   }
 
@@ -324,8 +324,8 @@ class OrderPickUpEventsHandler {
 }
 
 class PurchaseWithBankTransferHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
+  db: PrismaTransactionClient;
+  constructor(db: PrismaTransactionClient) {
     this.db = db;
   }
 
@@ -413,19 +413,16 @@ class PurchaseWithBankTransferHandler {
     purchaseId: string,
     paymentDate: Date
   ) {
-    await this.db.$transaction(async (prisma) => {
-      await this.updatePaymentDate(prisma, purchaseId, paymentDate);
-      await this.completePurchaseWithBankTransferEvent(prisma, todoListId);
-    });
+    if (this.db instanceof PrismaClient) {
+      await this.db.$transaction(async (prisma) => {
+        await this.updatePaymentDate(prisma, purchaseId, paymentDate);
+        await this.completePurchaseWithBankTransferEvent(prisma, todoListId);
+      });
+    }
   }
 }
 
-class TodoListRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class TodoListRepository extends BaseRepository {
   registerEvent(
     event: TodoListEvent,
     payload: {
@@ -550,4 +547,4 @@ class TodoListRepository {
   }
 }
 
-export default new TodoListRepository();
+export default TodoListRepository;

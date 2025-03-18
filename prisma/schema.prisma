@@ -69,16 +69,16 @@ model Purchase {
   paymentMethod     PaymentMethod
   bankAccountNumber String?
   bankTransferDate  DateTime?
-  totalAmount       Int?
+  totalAmount       Int                 @default(0)
   notes             String?
   sellerId          String
   userId            String
   status            OrderStatus
   isArchived        Boolean             @default(false)
-  organizationId    String?
+  organizationId    String
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]

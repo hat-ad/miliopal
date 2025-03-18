@@ -1,35 +1,51 @@
+import { RepositoryFactory } from "@/factory/repository.factory";
 import { UpdateOrganization } from "@/interfaces/organization";
-import organizationRepository from "@/repository/organization.repository";
 import { Organization, Seller, User } from "@prisma/client";
 
 class OrganizationService {
-  static async createOrganization(data: {
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
+  }
+
+  async createOrganization(data: {
     organizationNumber: string;
   }): Promise<Organization> {
-    return organizationRepository.createOrganization(data);
+    return this.repositoryFactory
+      .getOrganizationRepository()
+      .createOrganization(data);
   }
 
-  static async getOrganizationByNumber(
+  async getOrganizationByNumber(
     organizationNumber: string
   ): Promise<Organization | null> {
-    return organizationRepository.getOrganizationByNumber(organizationNumber);
+    return this.repositoryFactory
+      .getOrganizationRepository()
+      .getOrganizationByNumber(organizationNumber);
   }
 
-  static async getOrganizationById(id: string): Promise<Organization | null> {
-    return organizationRepository.getOrganizationById(id);
+  async getOrganizationById(id: string): Promise<Organization | null> {
+    return this.repositoryFactory
+      .getOrganizationRepository()
+      .getOrganizationById(id);
   }
 
-  static async getOrganizationDetails(
+  async getOrganizationDetails(
     organizationId: string
   ): Promise<(Organization & { users: User[]; sellers: Seller[] }) | null> {
-    return organizationRepository.getOrganizationDetails(organizationId);
+    return this.repositoryFactory
+      .getOrganizationRepository()
+      .getOrganizationDetails(organizationId);
   }
 
-  static async updateOrganization(
+  async updateOrganization(
     organizationId: string,
     data: UpdateOrganization
   ): Promise<Organization | null> {
-    return organizationRepository.updateOrganization(organizationId, data);
+    return this.repositoryFactory
+      .getOrganizationRepository()
+      .updateOrganization(organizationId, data);
   }
 }
 

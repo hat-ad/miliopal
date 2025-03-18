@@ -1,16 +1,21 @@
-import PickupDeliveryService from "@/services/pickup-delivery.service";
-import ProductsPickupService from "@/services/product-pickup-delivery.service";
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 
 import { Request, Response } from "express";
 
 export default class PickupDeliveryController {
-  static async createPickupDelivery(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): PickupDeliveryController {
+    return new PickupDeliveryController(factory);
+  }
+
+  async createPickupDelivery(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
@@ -21,33 +26,24 @@ export default class PickupDeliveryController {
       if (!organizationId)
         return ERROR(res, null, "No Organization ID in token");
 
-      const sellerExists = await SellerService.getSeller(sellerId);
-
-      if (!sellerExists) {
-        throw new Error("Seller does not exist");
-      }
-
-      const pickUpDelivery = await PickupDeliveryService.createPickupDelivery({
-        userId,
-        organizationId,
-        sellerId,
-        PONumber,
-        comment,
-      });
+      const pickUpDelivery = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .createPickupDelivery({
+          userId,
+          organizationId,
+          sellerId,
+          PONumber,
+          comment,
+          products,
+        });
 
       if (!pickUpDelivery) {
         return ERROR(res, null, "Failed to create pickup delivery");
       }
 
-      const products_for_delivery =
-        await ProductsPickupService.addProductsToPickup(
-          pickUpDelivery.id,
-          products
-        );
-
       return OK(
         res,
-        { pickUpDelivery, products_for_delivery },
+        pickUpDelivery,
         "Pickup delivery created successfully with products"
       );
     } catch (error) {
@@ -55,10 +51,7 @@ export default class PickupDeliveryController {
     }
   }
 
-  static async getPickupDeliveryList(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  async getPickupDeliveryList(req: Request, res: Response): Promise<void> {
     try {
       const { userId, sellerId, PONumber, sortBy, sortOrder, page } = req.query;
       const organizationId = req.payload?.organizationId;
@@ -75,13 +68,9 @@ export default class PickupDeliveryController {
         sortBy === "PONumber" || sortBy === "createdAt" ? sortBy : "createdAt";
       const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
 
-      const { pickupDeliveries, total, totalPages } =
-        await PickupDeliveryService.getPickupDeliveryList(
-          filters,
-          sortedBy,
-          sortedOrder,
-          pageNumber
-        );
+      const { pickupDeliveries, total, totalPages } = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .getPickupDeliveryList(filters, sortedBy, sortedOrder, pageNumber);
 
       const decryptedPickupDelivery = pickupDeliveries.map((pickupDelivery) => {
         const decryptedUser = pickupDelivery.user
@@ -128,7 +117,7 @@ export default class PickupDeliveryController {
     }
   }
 
-  static async getReceiptByID(req: Request, res: Response) {
+  async getReceiptByID(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const organizationId = req.payload?.organizationId;
@@ -136,10 +125,9 @@ export default class PickupDeliveryController {
       if (!organizationId) {
         return ERROR(res, false, "No Organization ID in token");
       }
-      const pickUpDeliveryDetails = await PickupDeliveryService.getReceiptById(
-        id,
-        organizationId
-      );
+      const pickUpDeliveryDetails = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .getReceiptById(id, organizationId);
 
       const decryptedpickUpDeliveryDetails = {
         ...pickUpDeliveryDetails,

@@ -1,62 +1,59 @@
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import SellerRepository from "@/repository/seller.repository";
-import {
-  Organization,
-  Purchase,
-  Seller,
-  SellerType,
-  User,
-} from "@prisma/client";
+import { Seller } from "@prisma/client";
 
 class SellerService {
-  static async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    return SellerRepository.createSeller(data);
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
+  }
+  async createSeller(data: CreateSellerInterface): Promise<Seller> {
+    return this.repositoryFactory.getSellerRepository().createSeller(data);
   }
 
-  static async getSeller(id: string): Promise<Seller | null> {
-    return SellerRepository.getSeller(id);
+  async getSeller(id: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().getSeller(id);
   }
 
-  static async getSellerByEmail(email: string): Promise<Seller | null> {
-    return SellerRepository.getSellerByEmail(email);
+  async getSellerByEmail(email: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().getSellerByEmail(email);
   }
 
-  static async getSellersList(
+  async getSellersList(
     filters: GetSellersFilterInterface,
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
     limit: number = 10
   ): Promise<{ sellers: Seller[]; total: number; totalPages: number }> {
-    return SellerRepository.getSellersList(
-      filters,
-      sortBy,
-      sortOrder,
-      page,
-      limit
-    );
+    return this.repositoryFactory
+      .getSellerRepository()
+      .getSellersList(filters, sortBy, sortOrder, page, limit);
   }
 
-  static async updateSeller(
+  async updateSeller(
     id: string,
     data: UpdateSellerInterface
   ): Promise<Seller | null> {
-    return SellerRepository.updateSeller(id, data);
+    return this.repositoryFactory.getSellerRepository().updateSeller(id, data);
   }
 
-  static async deleteSeller(id: string): Promise<Seller | null> {
-    return SellerRepository.deleteSeller(id);
+  async deleteSeller(id: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().deleteSeller(id);
   }
 
-  static async getSellerSellingHistory(
+  async getSellerSellingHistory(
     id: string
   ): Promise<SellerSellingHistoryInterface | null> {
-    return SellerRepository.getSellerSellingHistory(id);
+    return this.repositoryFactory
+      .getSellerRepository()
+      .getSellerSellingHistory(id);
   }
 }
 

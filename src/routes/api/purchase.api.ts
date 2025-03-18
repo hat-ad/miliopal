@@ -10,24 +10,24 @@ router.post(
   "/create-purchase",
   isAuthenticated,
   validateCreatePurchase,
-  PurchaseController.createPurchase
+  PurchaseController.getInstance().createPurchase
 );
 
 router.get(
   "/get-purchase-list",
   isAuthenticated,
-  PurchaseController.getPurchaseList
+  PurchaseController.getInstance().getPurchaseList
 );
 router.get(
   "/get-receipt-by-orderno/:orderNo",
   isAuthenticated,
-  PurchaseController.getReceiptByOrderNo
+  PurchaseController.getInstance().getReceiptByOrderNo
 );
 
 router.post(
   "/credit-purchase-order/:purchaseId",
   isAuthenticated,
-  PurchaseController.creditPurchaseOrder
+  PurchaseController.getInstance().creditPurchaseOrder
 );
 
 export default router;

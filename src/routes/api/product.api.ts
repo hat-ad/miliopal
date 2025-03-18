@@ -1,7 +1,6 @@
-import express from "express";
 import ProductController from "@/controller/product.controller";
-import { validateCreateSeller } from "../validators/seller/createSeller.validator";
 import { isAuthenticated } from "@/middleware/checkAuth";
+import express from "express";
 import { validateCreateProduct } from "../validators/product/createProduct.validator";
 
 const router = express.Router();
@@ -10,25 +9,25 @@ router.post(
   "/create-product",
   isAuthenticated,
   validateCreateProduct,
-  ProductController.createProduct
+  ProductController.getInstance().createProduct
 );
 
 router.get(
   "/get-products-list",
   isAuthenticated,
-  ProductController.getProductsList
+  ProductController.getInstance().getProductsList
 );
 
 router.put(
   "/update-product/:id",
   isAuthenticated,
-  ProductController.updateProduct
+  ProductController.getInstance().updateProduct
 );
 
 router.put(
   "/delete-product/:id",
   isAuthenticated,
-  ProductController.deleteProduct
+  ProductController.getInstance().deleteProduct
 );
 
 export default router;

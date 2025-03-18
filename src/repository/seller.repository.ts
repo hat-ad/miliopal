@@ -1,18 +1,13 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { PrismaClient, Seller } from "@prisma/client";
+import { Seller } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class SellerRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class SellerRepository extends BaseRepository {
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
     if (data.type === "PRIVATE" && !data.name) {
       throw new Error("Private Seller must have a name.");
@@ -300,4 +295,4 @@ class SellerRepository {
   }
 }
 
-export default new SellerRepository();
+export default SellerRepository;

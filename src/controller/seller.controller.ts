@@ -1,10 +1,19 @@
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class SellerController {
-  static async createSeller(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): SellerController {
+    return new SellerController(factory);
+  }
+  async createSeller(req: Request, res: Response): Promise<void> {
     try {
       const { email, phone } = req.body;
       const organizationId = req.payload?.organizationId;
@@ -12,10 +21,12 @@ export default class SellerController {
       const encryptedEmail = encrypt(email);
       const encryptedPhone = phone ? encrypt(phone) : null;
 
-      let seller = await SellerService.getSellerByEmail(encryptedEmail);
+      let seller = await this.serviceFactory
+        .getSellerService()
+        .getSellerByEmail(encryptedEmail);
       if (seller) return ERROR(res, false, "Seller already exist");
 
-      seller = await SellerService.createSeller({
+      seller = await this.serviceFactory.getSellerService().createSeller({
         ...req.body,
         email: encryptedEmail,
         phone: encryptedPhone,
@@ -34,10 +45,10 @@ export default class SellerController {
     }
   }
 
-  static async getSeller(req: Request, res: Response): Promise<void> {
+  async getSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const seller = await SellerService.getSeller(id);
+      const seller = await this.serviceFactory.getSellerService().getSeller(id);
 
       const responseSeller = {
         ...seller,
@@ -50,7 +61,7 @@ export default class SellerController {
     }
   }
 
-  static async getSellersList(req: Request, res: Response): Promise<void> {
+  async getSellersList(req: Request, res: Response): Promise<void> {
     try {
       const {
         email,
@@ -100,12 +111,9 @@ export default class SellerController {
         ? parseInt(page as string, 10)
         : 1;
 
-      const { sellers, total, totalPages } = await SellerService.getSellersList(
-        filters,
-        sortedBy,
-        sortedOrder,
-        pageNumber
-      );
+      const { sellers, total, totalPages } = await this.serviceFactory
+        .getSellerService()
+        .getSellersList(filters, sortedBy, sortedOrder, pageNumber);
 
       const responseSellers = sellers.map((seller) => ({
         ...seller,
@@ -123,7 +131,7 @@ export default class SellerController {
     }
   }
 
-  static async updateSeller(req: Request, res: Response): Promise<void> {
+  async updateSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { email, phone } = req.body;
@@ -131,11 +139,13 @@ export default class SellerController {
       const encryptedEmail = email ? encrypt(email) : null;
       const encryptedPhone = phone ? encrypt(phone) : null;
 
-      const seller = await SellerService.updateSeller(id, {
-        ...req.body,
-        email: encryptedEmail,
-        phone: encryptedPhone,
-      });
+      const seller = await this.serviceFactory
+        .getSellerService()
+        .updateSeller(id, {
+          ...req.body,
+          email: encryptedEmail,
+          phone: encryptedPhone,
+        });
 
       const responseSeller = {
         ...seller,
@@ -148,10 +158,12 @@ export default class SellerController {
     }
   }
 
-  static async deleteSeller(req: Request, res: Response): Promise<void> {
+  async deleteSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const seller = await SellerService.deleteSeller(id);
+      const seller = await this.serviceFactory
+        .getSellerService()
+        .deleteSeller(id);
 
       const responseSeller = {
         ...seller,
@@ -164,13 +176,13 @@ export default class SellerController {
     }
   }
 
-  static async getSellerSellingHistory(req: Request, res: Response) {
+  async getSellerSellingHistory(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
-      const sellerSellingHistory = await SellerService.getSellerSellingHistory(
-        id
-      );
+      const sellerSellingHistory = await this.serviceFactory
+        .getSellerService()
+        .getSellerSellingHistory(id);
 
       const decryptedSeller = {
         ...sellerSellingHistory?.seller,

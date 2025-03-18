@@ -1,21 +1,34 @@
-import { OK, ERROR } from "@/utils/response-helper";
-import { Request, Response } from "express";
-import AuthService from "@/services/auth.service";
+import { ServiceFactory } from "@/factory/service.factory";
 import { generateToken } from "@/functions/function";
 import { decrypt, encrypt } from "@/utils/AES";
+import { ERROR, OK } from "@/utils/response-helper";
+import { Request, Response } from "express";
 
 export default class AuthController {
-  static async login(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): AuthController {
+    return new AuthController(factory);
+  }
+  async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
       const encryptedEmail = encrypt(email);
 
-      let user = await AuthService.login(encryptedEmail, password);
+      let user = await this.serviceFactory
+        .getAuthService()
+        .login(encryptedEmail, password);
       if (!user) return ERROR(res, false, "User not found");
 
       const token = generateToken(user?.id.toString());
 
-      user = await AuthService.updateUser(user.id, { token });
+      user = await this.serviceFactory
+        .getAuthService()
+        .updateUser(user.id, { token });
 
       const responseUser = {
         ...user,

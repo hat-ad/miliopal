@@ -1,33 +1,46 @@
+import { ServiceFactory } from "@/factory/service.factory";
 import { generateOTP } from "@/functions/function";
-import OrganizationService from "@/services/organization.service";
-import UserService from "@/services/user.service";
+
 import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class UserController {
-  static async createUserInternal(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): UserController {
+    return new UserController(factory);
+  }
+  async createUserInternal(req: Request, res: Response): Promise<void> {
     try {
       const { email, password, organizationNumber, phone, name } = req.body;
       const encryptedEmail = encrypt(email);
       const encryptedName = encrypt(name);
       const encryptedPhone = encrypt(phone);
 
-      let user = await UserService.getUserByEmail(encryptedEmail);
+      let user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail);
       if (user) return ERROR(res, false, "User already exist");
 
-      let org = await OrganizationService.getOrganizationByNumber(
-        organizationNumber
-      );
+      let org = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationByNumber(organizationNumber);
       if (org) {
         return ERROR(res, false, "Organization already exist");
       }
-      const newOrg = await OrganizationService.createOrganization({
-        organizationNumber,
-      });
+      const newOrg = await this.serviceFactory
+        .getOrganizationService()
+        .createOrganization({
+          organizationNumber,
+        });
 
-      user = await UserService.createUserInternal({
+      user = await this.serviceFactory.getUserService().createUserInternal({
         email: encryptedEmail,
         organizationId: newOrg.id,
         password,
@@ -48,7 +61,7 @@ export default class UserController {
     }
   }
 
-  static async inviteUser(req: Request, res: Response): Promise<void> {
+  async inviteUser(req: Request, res: Response): Promise<void> {
     try {
       const { email, name } = req.body;
       const organizationId = req.payload?.organizationId;
@@ -56,11 +69,13 @@ export default class UserController {
       const encryptedEmail = encrypt(email);
       const encryptedName = encrypt(name);
 
-      let user = await UserService.getUserByEmail(encryptedEmail);
+      let user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail);
       if (user && user.organizationId === organizationId)
         return ERROR(res, false, "User already exist");
 
-      user = await UserService.createUser({
+      user = await this.serviceFactory.getUserService().createUser({
         ...req.body,
         email: encryptedEmail,
         name: encryptedName,
@@ -84,11 +99,13 @@ export default class UserController {
     }
   }
 
-  static async activateUser(req: Request, res: Response): Promise<void> {
+  async activateUser(req: Request, res: Response): Promise<void> {
     try {
       const { userID, password } = req.body;
 
-      const existingUser = await UserService.getUser(userID);
+      const existingUser = await this.serviceFactory
+        .getUserService()
+        .getUser(userID);
 
       if (!existingUser) {
         throw new Error("User not found");
@@ -98,10 +115,12 @@ export default class UserController {
         throw new Error("User is already active");
       }
 
-      const user = await UserService.updateUser(existingUser.id, {
-        password,
-        isActive: true,
-      });
+      const user = await this.serviceFactory
+        .getUserService()
+        .updateUser(existingUser.id, {
+          password,
+          isActive: true,
+        });
       if (!user) return ERROR(res, false, "User not updated!");
 
       const responseUser = {
@@ -116,7 +135,7 @@ export default class UserController {
     }
   }
 
-  static async updateUser(req: Request, res: Response): Promise<void> {
+  async updateUser(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
       const { name, phone } = req.body;
@@ -130,15 +149,19 @@ export default class UserController {
 
       if (!userId) return ERROR(res, false, "Unauthorized: User ID is missing");
 
-      const existingUser = await UserService.getUser(userId);
+      const existingUser = await this.serviceFactory
+        .getUserService()
+        .getUser(userId);
 
       if (!existingUser) {
         throw new Error("User not found");
       }
 
-      const user = await UserService.updateUser(userId, {
-        ...req.body,
-      });
+      const user = await this.serviceFactory
+        .getUserService()
+        .updateUser(userId, {
+          ...req.body,
+        });
       if (!user) return ERROR(res, false, "User not updated!");
 
       const responseUser = {
@@ -153,15 +176,19 @@ export default class UserController {
     }
   }
 
-  static async getUser(req: Request, res: Response): Promise<void> {
+  async getUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.query;
       if (id) {
-        const user = await UserService.getUser(id as string);
+        const user = await this.serviceFactory
+          .getUserService()
+          .getUser(id as string);
         return OK(res, user, "User retrieved successfully");
       } else {
         const userID = req.payload?.id;
-        const user = await UserService.getUser(userID as string);
+        const user = await this.serviceFactory
+          .getUserService()
+          .getUser(userID as string);
         if (!user) return ERROR(res, false, "User not found!");
 
         const responseUser = {
@@ -178,7 +205,7 @@ export default class UserController {
     }
   }
 
-  static async getUsersList(req: Request, res: Response): Promise<void> {
+  async getUsersList(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, phone, isActive, isArchived, sortOrder, page } =
         req.query;
@@ -203,12 +230,9 @@ export default class UserController {
         ? parseInt(page as string, 10)
         : 1;
 
-      const { users, total, totalPages } = await UserService.getUsersList(
-        filters,
-        sortedBy,
-        sortedOrder,
-        pageNumber
-      );
+      const { users, total, totalPages } = await this.serviceFactory
+        .getUserService()
+        .getUsersList(filters, sortedBy, sortedOrder, pageNumber);
 
       const responseUsers = users.map((user) => ({
         ...user,
@@ -228,10 +252,10 @@ export default class UserController {
     }
   }
 
-  static async deleteUser(req: Request, res: Response): Promise<void> {
+  async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const user = await UserService.deleteUser(id);
+      const user = await this.serviceFactory.getUserService().deleteUser(id);
       if (!user) return ERROR(res, false, "User not deleted!");
 
       const responseUser = {
@@ -247,7 +271,7 @@ export default class UserController {
     }
   }
 
-  static async getUserSellingHistory(req: Request, res: Response) {
+  async getUserSellingHistory(req: Request, res: Response) {
     try {
       const userId = req.payload?.id;
 
@@ -255,9 +279,9 @@ export default class UserController {
         return ERROR(res, null, "Unauthorized: No user ID in token");
       }
 
-      const userSellingHistory = await UserService.getUserSellingHistory(
-        userId
-      );
+      const userSellingHistory = await this.serviceFactory
+        .getUserService()
+        .getUserSellingHistory(userId);
 
       const response = {
         buyer: {
@@ -281,7 +305,7 @@ export default class UserController {
     }
   }
 
-  static async sendResetPasswordEmail(req: Request, res: Response) {
+  async sendResetPasswordEmail(req: Request, res: Response) {
     try {
       const { email } = req.body;
       const organizationId = req.payload?.organizationId;
@@ -294,15 +318,16 @@ export default class UserController {
       const otp = generateOTP();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-      const user = await UserService.getUserByEmail(
-        encryptedEmail,
-        organizationId
-      );
+      const user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail, organizationId);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      await UserService.sendResetPasswordEmail(user.id, otp, otpExpiry);
+      await this.serviceFactory
+        .getUserService()
+        .sendResetPasswordEmail(user.id, otp, otpExpiry);
 
       await sendResetPasswordMail(user.id, email, otp);
       return OK(res, null, "Email sent successfully");
@@ -311,16 +336,18 @@ export default class UserController {
     }
   }
 
-  static async isOTPValid(req: Request, res: Response) {
+  async isOTPValid(req: Request, res: Response) {
     try {
       const { userID, otp } = req.body;
 
-      const user = await UserService.getUser(userID);
+      const user = await this.serviceFactory.getUserService().getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      const isOTPValid = await this.serviceFactory
+        .getUserService()
+        .isOTPValid(user.id, otp);
       if (!isOTPValid) {
         return ERROR(res, false, "Invalid OTP");
       }
@@ -331,21 +358,25 @@ export default class UserController {
     }
   }
 
-  static async resetPassword(req: Request, res: Response) {
+  async resetPassword(req: Request, res: Response) {
     try {
       const { userID, otp, password } = req.body;
 
-      const user = await UserService.getUser(userID);
+      const user = await this.serviceFactory.getUserService().getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      const isOTPValid = await this.serviceFactory
+        .getUserService()
+        .isOTPValid(user.id, otp);
       if (!isOTPValid) {
         return ERROR(res, false, "Invalid OTP");
       }
 
-      await UserService.resetPassword(user.id, password);
+      await this.serviceFactory
+        .getUserService()
+        .resetPassword(user.id, password);
 
       return OK(res, isOTPValid, "Password reset successful");
     } catch (error) {

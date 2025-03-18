@@ -1,32 +1,39 @@
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateReceiptInterface,
   UpdateReceiptInterface,
 } from "@/interfaces/receipt";
-import receiptRepository from "@/repository/receipt.repository";
 import { Receipt } from "@prisma/client";
 
 class ReceiptService {
-  static async createReceipt(
-    data: CreateReceiptInterface
-  ): Promise<Receipt | null> {
-    return receiptRepository.createReceipt(data);
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
+  }
+  async createReceipt(data: CreateReceiptInterface): Promise<Receipt | null> {
+    return this.repositoryFactory.getReceiptRepository().createReceipt(data);
   }
 
-  static async getSingleReceipt(id: string): Promise<Receipt | null> {
-    return receiptRepository.getSingleReceipt(id);
+  async getSingleReceipt(id: string): Promise<Receipt | null> {
+    return this.repositoryFactory.getReceiptRepository().getSingleReceipt(id);
   }
 
-  static async getReceiptByOrganizationId(
+  async getReceiptByOrganizationId(
     organizationId: string
   ): Promise<Receipt | null> {
-    return receiptRepository.getReceiptByOrganizationId(organizationId);
+    return this.repositoryFactory
+      .getReceiptRepository()
+      .getReceiptByOrganizationId(organizationId);
   }
 
-  static async updateReceipt(
+  async updateReceipt(
     id: string,
     data: UpdateReceiptInterface
   ): Promise<Receipt | null> {
-    return receiptRepository.updateReceipt(id, data);
+    return this.repositoryFactory
+      .getReceiptRepository()
+      .updateReceipt(id, data);
   }
 }
 

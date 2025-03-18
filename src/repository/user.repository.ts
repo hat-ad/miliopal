@@ -1,4 +1,3 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateUserInterface,
   CreateUserInternalInterface,
@@ -6,14 +5,10 @@ import {
   UserSellingHistoryInterface,
   UserUpdateData,
 } from "@/interfaces/user";
-import { Prisma, PrismaClient, Role, User } from "@prisma/client";
+import { Prisma, Role, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class UserRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class UserRepository extends BaseRepository {
   async createUserInternal(data: CreateUserInternalInterface): Promise<User> {
     return this.db.user.create({
       data: {
@@ -169,4 +164,4 @@ class UserRepository {
   }
 }
 
-export default new UserRepository();
+export default UserRepository;

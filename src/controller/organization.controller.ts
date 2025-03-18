@@ -1,13 +1,20 @@
-import { OK, ERROR, BAD } from "@/utils/response-helper";
-import { Request, Response } from "express";
-import OrganizationService from "@/services/organization.service";
+import { ServiceFactory } from "@/factory/service.factory";
 import { decrypt } from "@/utils/AES";
+import { ERROR, OK } from "@/utils/response-helper";
+import { Request, Response } from "express";
 
 export default class OrganizationController {
-  static async getOrganizationDetails(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): OrganizationController {
+    return new OrganizationController(factory);
+  }
+
+  async getOrganizationDetails(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
 
@@ -15,9 +22,9 @@ export default class OrganizationController {
         return ERROR(res, false, "Organization ID is required.");
       }
 
-      const organization = await OrganizationService.getOrganizationDetails(
-        organizationId
-      );
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationDetails(organizationId);
 
       if (!organization) {
         return ERROR(res, false, "Organization not found.");
@@ -52,17 +59,16 @@ export default class OrganizationController {
     }
   }
 
-  static async updateOrganization(req: Request, res: Response): Promise<void> {
+  async updateOrganization(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
 
       if (!organizationId) {
         return ERROR(res, false, "Organization ID is required.");
       }
-      const organization = await OrganizationService.updateOrganization(
-        organizationId,
-        { ...req.body }
-      );
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .updateOrganization(organizationId, { ...req.body });
       return OK(res, organization, "Organization updated successfully");
     } catch (error) {
       return ERROR(res, false, error);

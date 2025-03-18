@@ -1,12 +1,7 @@
-import PrismaService from "@/db/prisma-service";
-import { PrismaClient, ProductsPurchased } from "@prisma/client";
+import { ProductsPurchased } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class ProductsPurchasedRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class ProductsPurchasedRepository extends BaseRepository {
   async bulkInsertProductsPurchased(
     products: {
       productId: string;
@@ -33,4 +28,4 @@ class ProductsPurchasedRepository {
   }
 }
 
-export default new ProductsPurchasedRepository();
+export default ProductsPurchasedRepository;

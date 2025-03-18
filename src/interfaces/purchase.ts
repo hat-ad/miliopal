@@ -11,6 +11,24 @@ export interface CreatePurchaseInterface {
   orderNo: string;
   totalAmount: number;
   notes?: string;
+  products: {
+    productId: string;
+    price: number;
+    quantity: number;
+  }[];
+}
+
+export interface CreatePurchaseRepositoryInterface {
+  orderNo: string;
+  userId: string;
+  sellerId: string;
+  organizationId: string;
+  comment?: string | null;
+  paymentMethod: PaymentMethod;
+  bankAccountNumber?: string | null;
+  status: OrderStatus;
+  totalAmount: number;
+  notes?: string | null;
 }
 
 export interface GetPurchaseFilterInterface {

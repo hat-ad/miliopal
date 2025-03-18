@@ -1,23 +1,34 @@
-import { OK, ERROR } from "@/utils/response-helper";
+import { ServiceFactory } from "@/factory/service.factory";
+import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
-import ProductService from "@/services/product.service";
 
 export default class ProductController {
-  static async createProduct(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): ProductController {
+    return new ProductController(factory);
+  }
+  async createProduct(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
 
-      const product = await ProductService.createProduct({
-        ...req.body,
-        organizationId,
-      });
+      const product = await this.serviceFactory
+        .getProductService()
+        .createProduct({
+          ...req.body,
+          organizationId,
+        });
       return OK(res, product, "Product created successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
   }
 
-  static async getProductsList(req: Request, res: Response): Promise<void> {
+  async getProductsList(req: Request, res: Response): Promise<void> {
     try {
       const { name, price, isArchived, page } = req.query;
 
@@ -32,10 +43,9 @@ export default class ProductController {
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;
 
-      const products = await ProductService.getProductsList(
-        filters,
-        pageNumber
-      );
+      const products = await this.serviceFactory
+        .getProductService()
+        .getProductsList(filters, pageNumber);
 
       return OK(res, products, "Products retrieved successfully");
     } catch (error) {
@@ -43,20 +53,24 @@ export default class ProductController {
     }
   }
 
-  static async updateProduct(req: Request, res: Response): Promise<void> {
+  async updateProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const product = await ProductService.updateProduct(id, req.body);
+      const product = await this.serviceFactory
+        .getProductService()
+        .updateProduct(id, req.body);
       return OK(res, product, "Product updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
   }
 
-  static async deleteProduct(req: Request, res: Response): Promise<void> {
+  async deleteProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const product = await ProductService.deleteProduct(id);
+      const product = await this.serviceFactory
+        .getProductService()
+        .deleteProduct(id);
       return OK(res, product, "Product deleted successfully");
     } catch (error) {
       return ERROR(res, false, error);

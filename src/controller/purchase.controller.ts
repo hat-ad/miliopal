@@ -1,79 +1,49 @@
-import ProductsPurchasedService from "@/services/products-purchased.service";
-import PurchaseService from "@/services/purchase.service";
-import ReceiptService from "@/services/receipt.service";
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class PurchaseController {
-  static async createPurchase(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+  }
+
+  static getInstance(factory?: ServiceFactory): PurchaseController {
+    return new PurchaseController(factory);
+  }
+
+  async createPurchase(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
-      const { products, ...purchaseData } = req.body;
-      const { sellerId } = purchaseData;
 
       if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
 
       if (!organizationId)
         return ERROR(res, null, "No Organization ID in token");
 
-      const sellerExists = await SellerService.getSeller(sellerId);
-
-      if (!sellerExists) {
-        throw new Error("Seller does not exist");
-      }
-
-      const receipt = await ReceiptService.getReceiptByOrganizationId(
-        organizationId
-      );
-      if (!receipt?.startingOrderNumber || !receipt?.currentOrderNumber) {
-        return ERROR(
-          res,
-          false,
-          "Starting order number / Current order number is missing. Please set before purchasing."
-        );
-      }
-
-      const totalAmount = products
-        .map(
-          (product: { price: number; quantity: number }) =>
-            product.price * product.quantity
-        )
-        .reduce((sum: number, value: number) => sum + value, 0);
-
-      const orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
-      const purchase = await PurchaseService.createPurchase({
-        userId,
-        organizationId,
-        orderNo,
-        totalAmount,
-        ...purchaseData,
-      });
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .createPurchase({
+          userId,
+          organizationId,
+          ...req.body,
+        });
 
       if (!purchase) {
         return ERROR(res, null, "Failed to create purchase");
       }
 
-      const poducts_purchased =
-        await ProductsPurchasedService.addProductsToPurchase(
-          purchase.id,
-          products
-        );
-
-      return OK(
-        res,
-        { purchase, poducts_purchased },
-        "Purchase created successfully with products"
-      );
+      return OK(res, purchase, "Purchase created successfully with products");
     } catch (error) {
       return ERROR(res, null, error);
     }
   }
 
-  static async getPurchaseList(req: Request, res: Response): Promise<void> {
+  async getPurchaseList(req: Request, res: Response): Promise<void> {
     try {
       const {
         userId,
@@ -107,13 +77,9 @@ export default class PurchaseController {
         sortBy === "orderNo" || sortBy === "status" ? sortBy : "createdAt";
       const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
 
-      const { purchases, total, totalPages } =
-        await PurchaseService.getPurchaseList(
-          filters,
-          sortedBy,
-          sortedOrder,
-          pageNumber
-        );
+      const { purchases, total, totalPages } = await this.serviceFactory
+        .getPurchaseService()
+        .getPurchaseList(filters, sortedBy, sortedOrder, pageNumber);
 
       const decryptedPurchases = purchases.map((purchase) => {
         const decryptedUser = purchase.user
@@ -154,7 +120,7 @@ export default class PurchaseController {
     }
   }
 
-  static async getReceiptByOrderNo(req: Request, res: Response) {
+  async getReceiptByOrderNo(req: Request, res: Response) {
     try {
       const { orderNo } = req.params;
       const organizationId = req.payload?.organizationId;
@@ -162,10 +128,9 @@ export default class PurchaseController {
       if (!organizationId) {
         return ERROR(res, false, "No Organization ID in token");
       }
-      const purchaseDetails = await PurchaseService.getReceiptByOrderNo(
-        orderNo,
-        organizationId
-      );
+      const purchaseDetails = await this.serviceFactory
+        .getPurchaseService()
+        .getReceiptByOrderNo(orderNo, organizationId);
 
       const decryptedPurchaseDetails = {
         ...purchaseDetails,
@@ -208,32 +173,17 @@ export default class PurchaseController {
     }
   }
 
-  static async creditPurchaseOrder(req: Request, res: Response): Promise<void> {
+  async creditPurchaseOrder(req: Request, res: Response): Promise<void> {
     try {
       const { purchaseId } = req.params;
       const { creditNotes } = req.body;
 
-      const purchase = await PurchaseService.getPurchase(purchaseId.toString());
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .creditPurchaseOrder(purchaseId, creditNotes);
       if (!purchase) return ERROR(res, false, "purchase not found!");
 
-      const purchaseCredit = await PurchaseService.createPurchase({
-        userId: purchase.userId,
-        sellerId: purchase.sellerId,
-        organizationId: purchase.organizationId ?? "",
-        orderNo: purchase.orderNo,
-        paymentMethod: purchase.paymentMethod,
-        bankAccountNumber: purchase.bankAccountNumber ?? undefined,
-        status: purchase.status,
-        totalAmount: 0,
-        notes: creditNotes,
-        comment: purchase.comment ?? undefined,
-      });
-
-      return OK(
-        res,
-        purchaseCredit,
-        "Purchase created successfully with products"
-      );
+      return OK(res, purchase, "Purchase created successfully with products");
     } catch (error) {
       return ERROR(res, null, error);
     }

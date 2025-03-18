@@ -1,3 +1,4 @@
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateUserInterface,
   CreateUserInternalInterface,
@@ -5,80 +6,89 @@ import {
   UserSellingHistoryInterface,
   UserUpdateData,
 } from "@/interfaces/user";
-import UserRepository from "@/repository/user.repository";
 import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 class UserService {
-  static async createUser(data: CreateUserInterface): Promise<User> {
-    return UserRepository.createUser(data);
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
   }
-  static async createUserInternal(
-    data: CreateUserInternalInterface
-  ): Promise<User> {
+  async createUser(data: CreateUserInterface): Promise<User> {
+    return this.repositoryFactory.getUserRepository().createUser(data);
+  }
+  async createUserInternal(data: CreateUserInternalInterface): Promise<User> {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
-    return UserRepository.createUserInternal(data);
+    return this.repositoryFactory.getUserRepository().createUserInternal(data);
   }
 
-  static async updateUser(
-    id: string,
-    data: UserUpdateData
-  ): Promise<User | null> {
+  async updateUser(id: string, data: UserUpdateData): Promise<User | null> {
     let updateData = { ...data };
 
-    const user = await UserRepository.getUser(id);
+    const user = await this.repositoryFactory.getUserRepository().getUser(id);
     if (!user) return null;
 
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
     }
 
-    return UserRepository.updateUser(id, updateData);
+    return this.repositoryFactory
+      .getUserRepository()
+      .updateUser(id, updateData);
   }
 
-  static async getUser(id: string): Promise<User | null> {
-    return UserRepository.getUser(id);
+  async getUser(id: string): Promise<User | null> {
+    return this.repositoryFactory.getUserRepository().getUser(id);
   }
 
-  static async getUserByEmail(
+  async getUserByEmail(
     email: string,
     organizationId?: string
   ): Promise<User | null> {
-    return UserRepository.getUserByEmail(email, organizationId);
+    return this.repositoryFactory
+      .getUserRepository()
+      .getUserByEmail(email, organizationId);
   }
 
-  static async getUsersList(
+  async getUsersList(
     filters: GetUsersFilterInterface,
     sortBy: "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
     limit: number = 10
   ): Promise<{ users: User[]; total: number; totalPages: number }> {
-    return UserRepository.getUsersList(filters, sortBy, sortOrder, page, limit);
+    return this.repositoryFactory
+      .getUserRepository()
+      .getUsersList(filters, sortBy, sortOrder, page, limit);
   }
 
-  static async deleteUser(id: string): Promise<User | null> {
-    return UserRepository.deleteUser(id);
+  async deleteUser(id: string): Promise<User | null> {
+    return this.repositoryFactory.getUserRepository().deleteUser(id);
   }
 
-  static async getUserSellingHistory(
+  async getUserSellingHistory(
     id: string
   ): Promise<UserSellingHistoryInterface | null> {
-    return UserRepository.getUserSellingHistory(id);
+    return this.repositoryFactory.getUserRepository().getUserSellingHistory(id);
   }
 
-  static async sendResetPasswordEmail(
+  async sendResetPasswordEmail(
     userID: string,
     otp: string,
     otpExpiry: Date
   ): Promise<void> {
-    await UserRepository.updateUser(userID, { otp, otpExpiry });
+    await this.repositoryFactory
+      .getUserRepository()
+      .updateUser(userID, { otp, otpExpiry });
   }
 
-  static async isOTPValid(userID: string, otp: string): Promise<boolean> {
-    const user = await UserRepository.getUser(userID);
+  async isOTPValid(userID: string, otp: string): Promise<boolean> {
+    const user = await this.repositoryFactory
+      .getUserRepository()
+      .getUser(userID);
     if (!user) {
       return false;
     }
@@ -88,7 +98,7 @@ class UserService {
     if (user.otpExpiry && user.otpExpiry < new Date()) {
       return false;
     }
-    await UserRepository.updateUser(userID, {
+    await this.repositoryFactory.getUserRepository().updateUser(userID, {
       otp: null,
       otpExpiry: null,
     });
@@ -96,9 +106,9 @@ class UserService {
     return true;
   }
 
-  static async resetPassword(userID: string, password: string): Promise<void> {
+  async resetPassword(userID: string, password: string): Promise<void> {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await UserRepository.updateUser(userID, {
+    await this.repositoryFactory.getUserRepository().updateUser(userID, {
       otp: null,
       otpExpiry: null,
       password: hashedPassword,

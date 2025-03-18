@@ -4,6 +4,10 @@ export interface CreatePickupDelivery {
   sellerId: string;
   userId: string;
   organizationId: string;
+  products: {
+    productId: string;
+    quantity: number;
+  }[];
 }
 
 export interface GetPickupDeliveryFilterInterface {

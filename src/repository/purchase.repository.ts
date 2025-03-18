@@ -1,17 +1,15 @@
-import PrismaService from "@/db/prisma-service";
 import {
-  CreatePurchaseInterface,
+  CreatePurchaseRepositoryInterface,
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
-import { PrismaClient, Purchase, Seller, User } from "@prisma/client";
+import { Purchase, Seller, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class PurchaseRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-  async createPurchase(data: CreatePurchaseInterface): Promise<Purchase> {
-    return this.db.purchase.create({
+class PurchaseRepository extends BaseRepository {
+  async createPurchase(
+    data: CreatePurchaseRepositoryInterface
+  ): Promise<Purchase> {
+    const purchase = await this.db.purchase.create({
       data: {
         orderNo: data.orderNo,
         userId: data.userId,
@@ -25,6 +23,8 @@ class PurchaseRepository {
         notes: data.notes ?? null,
       },
     });
+
+    return purchase;
   }
 
   async getPurchase(id: string): Promise<Purchase | null> {
@@ -135,4 +135,4 @@ class PurchaseRepository {
   }
 }
 
-export default new PurchaseRepository();
+export default PurchaseRepository;

@@ -1,13 +1,8 @@
-import PrismaService from "@/db/prisma-service";
 import { UserUpdateData } from "@/interfaces/user";
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class AuthRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class AuthRepository extends BaseRepository {
   async getUserByEmail(email: string): Promise<User | null> {
     return this.db.user.findUnique({
       where: { email },
@@ -24,4 +19,4 @@ class AuthRepository {
   }
 }
 
-export default new AuthRepository();
+export default AuthRepository;

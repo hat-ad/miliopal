@@ -1,16 +1,11 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateReceiptInterface,
   UpdateReceiptInterface,
 } from "@/interfaces/receipt";
-import { PrismaClient, Receipt } from "@prisma/client";
+import { Receipt } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class ReceiptRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class ReceiptRepository extends BaseRepository {
   async createReceipt(data: CreateReceiptInterface): Promise<Receipt> {
     return this.db.receipt.create({
       data: {
@@ -52,4 +47,4 @@ class ReceiptRepository {
   }
 }
 
-export default new ReceiptRepository();
+export default ReceiptRepository;
