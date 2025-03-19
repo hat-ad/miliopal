@@ -46,3 +46,14 @@ export class ServiceFactory {
     return new UserService();
   }
 }
+
+export class ServiceFactorySingleton {
+  private static instance: ServiceFactory;
+  private constructor() {}
+  public static getInstance(): ServiceFactory {
+    if (!ServiceFactorySingleton.instance) {
+      ServiceFactorySingleton.instance = new ServiceFactory();
+    }
+    return ServiceFactorySingleton.instance;
+  }
+}

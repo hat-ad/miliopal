@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
-import { Role } from "@/types/enums";
-import UserService from "@/services/user.service";
+import { ServiceFactorySingleton } from "@/factory/service.factory";
 import { UserTokenPayload } from "@/types/common";
+import { Role } from "@/types/enums";
+import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 export const isAuthenticated = async (
   req: Request,
@@ -29,7 +29,9 @@ export const isAuthenticated = async (
       return ERROR(res, null, "Invalid token");
     }
 
-    const user = await UserService.getUser(payload.sub);
+    const factory = ServiceFactorySingleton.getInstance();
+
+    const user = await factory.getUserService().getUser(payload.sub);
     if (!user) return ERROR(res, null, "User does not exist");
 
     const userPayload: UserTokenPayload = {
