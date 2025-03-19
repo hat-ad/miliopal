@@ -1,18 +1,23 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import { generateToken } from "@/functions/function";
+import { bindMethods, generateToken } from "@/functions/function";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class AuthController {
+  private static instance: AuthController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): AuthController {
-    return new AuthController(factory);
+    if (!AuthController.instance) {
+      AuthController.instance = new AuthController(factory);
+    }
+    return AuthController.instance;
   }
   async login(req: Request, res: Response): Promise<void> {
     try {

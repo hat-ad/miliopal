@@ -1,5 +1,5 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import { generateOTP } from "@/functions/function";
+import { bindMethods, generateOTP } from "@/functions/function";
 
 import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
@@ -7,14 +7,19 @@ import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class UserController {
+  private static instance: UserController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): UserController {
-    return new UserController(factory);
+    if (!UserController.instance) {
+      UserController.instance = new UserController(factory);
+    }
+    return UserController.instance;
   }
   async createUserInternal(req: Request, res: Response): Promise<void> {
     try {

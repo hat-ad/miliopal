@@ -1,16 +1,22 @@
 import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class ReceiptController {
+  private static instance: ReceiptController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): ReceiptController {
-    return new ReceiptController(factory);
+    if (!ReceiptController.instance) {
+      ReceiptController.instance = new ReceiptController(factory);
+    }
+    return ReceiptController.instance;
   }
   async createReceipt(req: Request, res: Response): Promise<void> {
     try {

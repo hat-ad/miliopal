@@ -1,16 +1,22 @@
 import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class ProductController {
+  private static instance: ProductController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): ProductController {
-    return new ProductController(factory);
+    if (!ProductController.instance) {
+      ProductController.instance = new ProductController(factory);
+    }
+    return ProductController.instance;
   }
   async createProduct(req: Request, res: Response): Promise<void> {
     try {

@@ -1,19 +1,24 @@
 import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 
 export default class OrganizationController {
+  private static instance: OrganizationController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): OrganizationController {
-    return new OrganizationController(factory);
+    if (!OrganizationController.instance) {
+      OrganizationController.instance = new OrganizationController(factory);
+    }
+    return OrganizationController.instance;
   }
-
   async getOrganizationDetails(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;

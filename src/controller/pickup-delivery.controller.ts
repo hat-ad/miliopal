@@ -1,18 +1,24 @@
 import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 
 import { Request, Response } from "express";
 
 export default class PickupDeliveryController {
+  private static instance: PickupDeliveryController;
   private serviceFactory: ServiceFactory;
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): PickupDeliveryController {
-    return new PickupDeliveryController(factory);
+    if (!PickupDeliveryController.instance) {
+      PickupDeliveryController.instance = new PickupDeliveryController(factory);
+    }
+    return PickupDeliveryController.instance;
   }
 
   async createPickupDelivery(req: Request, res: Response): Promise<void> {

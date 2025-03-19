@@ -84,3 +84,14 @@ export const generateOTP = (): string => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   return otp;
 };
+
+export function bindMethods(instance: any) {
+  const proto = Object.getPrototypeOf(instance);
+  const methodNames = Object.getOwnPropertyNames(proto).filter(
+    (name) => typeof instance[name] === "function" && name !== "constructor"
+  );
+
+  for (const name of methodNames) {
+    instance[name] = instance[name].bind(instance);
+  }
+}

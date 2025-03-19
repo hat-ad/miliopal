@@ -1,4 +1,5 @@
 import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
@@ -8,6 +9,7 @@ export default class SellerController {
 
   private constructor(factory?: ServiceFactory) {
     this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
   }
 
   static getInstance(factory?: ServiceFactory): SellerController {

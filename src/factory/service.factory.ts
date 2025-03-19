@@ -9,6 +9,7 @@ import SellerService from "@/services/seller.service";
 import UserService from "@/services/user.service";
 
 export class ServiceFactory {
+  constructor() {}
   getAuthService(): AuthService {
     return new AuthService();
   }
