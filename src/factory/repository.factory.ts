@@ -1,5 +1,6 @@
 import PrismaService from "@/db/prisma-service";
 import AuthRepository from "@/repository/auth.repository";
+import CashHistoryRepository from "@/repository/cash-history.repository";
 import OrganizationRepository from "@/repository/organization.repository";
 import PickupDeliveryRepository from "@/repository/pickup-delivery.repository";
 import ProductRepository from "@/repository/product.repository";
@@ -61,5 +62,9 @@ export class RepositoryFactory {
 
   getUserRepository(): UserRepository {
     return new UserRepository(this.db);
+  }
+
+  getCashHistoryRepository(): CashHistoryRepository {
+    return new CashHistoryRepository(this.db);
   }
 }

@@ -74,4 +74,43 @@ export default class OrganizationController {
       return ERROR(res, false, error);
     }
   }
+
+  async createTransaction(req: Request, res: Response): Promise<void> {
+    try {
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, false, "Organization ID is required.");
+      }
+
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .createTransaction({ organizationId, ...req.body });
+
+      return OK(res, organization, "Cash transaction done.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async getOrgBalanceWithEmployeesWallet(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, false, "Organization ID is required.");
+      }
+
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrgBalanceWithEmployeesWallet(organizationId);
+
+      return OK(res, organization, "organization retrived successfully.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }
