@@ -1,5 +1,6 @@
 import {
   Organization,
+  PaymentMethod,
   Purchase,
   Seller,
   SellerType,
@@ -19,6 +20,7 @@ export interface CreateSellerInterface {
   contactPerson?: string;
   organizationNumber?: string;
   bankAccountNumber?: string;
+  paymentMethod?: PaymentMethod;
   isDeleted?: boolean;
 }
 

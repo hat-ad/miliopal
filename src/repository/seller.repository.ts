@@ -32,12 +32,12 @@ class SellerRepository extends BaseRepository {
         postalCode: data.postalCode,
         city: data.city,
         isDeleted: data.isDeleted ?? false,
-
+        bankAccountNumber: data.bankAccountNumber,
+        paymentMethod: data.paymentMethod,
         privateSeller:
           data.type === "PRIVATE"
             ? { create: { name: data.name! } }
             : undefined,
-
         businessSeller:
           data.type === "BUSINESS"
             ? {
@@ -45,7 +45,6 @@ class SellerRepository extends BaseRepository {
                   companyName: data.companyName!,
                   contactPerson: data.contactPerson!,
                   organizationNumber: data.organizationNumber!,
-                  bankAccountNumber: data.bankAccountNumber!,
                 },
               }
             : undefined,

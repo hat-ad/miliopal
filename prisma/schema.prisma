@@ -12,7 +12,6 @@ model BusinessSeller {
   companyName        String?
   contactPerson      String?
   organizationNumber String
-  bankAccountNumber  String?
   seller             Seller   @relation(fields: [id], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -90,23 +89,25 @@ enum SellerType {
 }
 
 model Seller {
-  id             String           @id @default(uuid())
-  email          String           @unique
-  type           SellerType
-  phone          String?
-  address        String?
-  postalCode     String?
-  city           String?
-  privateSeller  PrivateSeller?
-  businessSeller BusinessSeller?
-  isArchived     Boolean          @default(false)
-  isDeleted      Boolean          @default(false)
-  organizationId String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  purchases      Purchase[]
-  PickUpDelivery PickUpDelivery[]
+  id                String           @id @default(uuid())
+  email             String           @unique
+  type              SellerType
+  phone             String?
+  address           String?
+  postalCode        String?
+  city              String?
+  bankAccountNumber String?
+  paymentMethod     PaymentMethod    @default(CASH)
+  privateSeller     PrivateSeller?
+  businessSeller    BusinessSeller?
+  isArchived        Boolean          @default(false)
+  isDeleted         Boolean          @default(false)
+  organizationId    String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  organization      Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  purchases         Purchase[]
+  PickUpDelivery    PickUpDelivery[]
 }
 
 enum Role {
