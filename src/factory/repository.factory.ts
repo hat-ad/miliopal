@@ -8,6 +8,7 @@ import ProductsPickupRepository from "@/repository/products-pickup-delivery.repo
 import ProductsPurchasedRepository from "@/repository/products-purchased.repository";
 import PurchaseRepository from "@/repository/purchase.repository";
 import ReceiptRepository from "@/repository/receipt.repository";
+import ReconciliationHistoryRepository from "@/repository/reconciliation.repository";
 import SellerRepository from "@/repository/seller.repository";
 import TodoListRepository from "@/repository/todo-list.repository";
 import UserRepository from "@/repository/user.repository";
@@ -66,5 +67,9 @@ export class RepositoryFactory {
 
   getCashHistoryRepository(): CashHistoryRepository {
     return new CashHistoryRepository(this.db);
+  }
+
+  getReconciliationHistoryRepository(): ReconciliationHistoryRepository {
+    return new ReconciliationHistoryRepository(this.db);
   }
 }
