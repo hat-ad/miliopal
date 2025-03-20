@@ -80,24 +80,6 @@ export default class OrganizationController {
     }
   }
 
-  async createTransaction(req: Request, res: Response): Promise<void> {
-    try {
-      const organizationId = req.payload?.organizationId;
-
-      if (!organizationId) {
-        return ERROR(res, false, "Organization ID is required.");
-      }
-
-      const organization = await this.serviceFactory
-        .getOrganizationService()
-        .createTransaction({ organizationId, ...req.body });
-
-      return OK(res, organization, "Cash transaction done.");
-    } catch (error) {
-      return ERROR(res, false, error);
-    }
-  }
-
   async getOrgBalanceWithEmployeesWallet(
     req: Request,
     res: Response
@@ -114,6 +96,57 @@ export default class OrganizationController {
         .getOrgBalanceWithEmployeesWallet(organizationId);
 
       return OK(res, organization, "organization retrived successfully.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async createTransactionWithOrg(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.payload?.id;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, false, "Organization ID is required.");
+      }
+
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .createTransactionWithOrg({
+          ...req.body,
+          actionBy: userId,
+          organizationId,
+        });
+
+      return OK(res, organization, "Cash transaction done.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async createTransactionWithEmployees(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const userId = req.payload?.id;
+      const organizationId = req.payload?.organizationId;
+      const { actionTo } = req.params;
+
+      if (!organizationId) {
+        return ERROR(res, false, "Organization ID is required.");
+      }
+
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .createTransactionWithEmployees({
+          ...req.body,
+          actionBy: userId,
+          actionTo: actionTo,
+          organizationId,
+        });
+
+      return OK(res, organization, "Cash transaction done.");
     } catch (error) {
       return ERROR(res, false, error);
     }

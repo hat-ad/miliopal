@@ -25,6 +25,7 @@ export interface UserUpdateData {
   isDeleted?: boolean;
   otp?: string | null;
   otpExpiry?: Date | null;
+  wallet?: number;
 }
 
 export interface GetUsersFilterInterface {

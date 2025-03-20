@@ -137,9 +137,11 @@ model User {
   organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   purchases           Purchase[]
   PickUpDelivery      PickUpDelivery[]
-  CashHistory         CashHistory[]
+  actionByUser    CashHistory[] @relation("ActionByDetails")
+  actionToUsers    CashHistory[] @relation("ActionToDetails")
   reconciliations     ReconciliationHistory[] @relation("ReconciledHistory")
   reconciliationsMade ReconciliationHistory[] @relation("Reconciliator")
+  
 }
 
 model Organization {
@@ -211,20 +213,21 @@ enum AccountType {
   COMPANY
   INDIVIDUAL
 }
-
 model CashHistory {
-  id             String          @id @default(uuid())
+  id             String       @id @default(uuid())
   amount         Float
   note           String?
   type           CashHistoryType
   accountType    AccountType
   organizationId String
-  userId         String
-  date           DateTime        @default(now())
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionBy       String
+  actionTo       String?    
+  date           DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actionByDetails   User          @relation(fields: [actionBy], references: [id], onDelete: Cascade, name: "ActionByDetails")
+  actionToDetails   User?         @relation(fields: [actionTo], references: [id], onDelete: SetNull, name: "ActionToDetails")
 }
 
 model ReconciliationHistory {
