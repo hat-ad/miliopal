@@ -6,7 +6,7 @@ const CreateTransactionSchema = z.object({
   amount: z.number().min(1, "amount is required!"),
   note: z.string().optional(),
   date: z.string().min(4, "date is required!"),
-  type: z.enum(["DEPOSITE", "WITHDRAW"], {
+  type: z.enum(["DEPOSIT", "WITHDRAW"], {
     invalid_type_error: "Invalid type",
   }),
   accountType: z.enum(["COMPANY", "INDIVIDUAL"], {

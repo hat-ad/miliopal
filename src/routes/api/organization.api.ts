@@ -17,17 +17,24 @@ router.put(
   OrganizationController.getInstance().updateOrganization
 );
 
-router.post(
-  "/deposite-cash-in-organization",
-  isAuthenticated,
-  validateCreateTransaction,
-  OrganizationController.getInstance().createTransaction
-);
-
 router.get(
   "/get-balance-with-employees-wallet",
   isAuthenticated,
   OrganizationController.getInstance().getOrgBalanceWithEmployeesWallet
+);
+
+router.post(
+  "/create-transaction-with-organization",
+  isAuthenticated,
+  validateCreateTransaction,
+  OrganizationController.getInstance().createTransactionWithOrg
+);
+
+router.get(
+  "/create-transaction-with-employees/:actionTo",
+  isAuthenticated,
+  validateCreateTransaction,
+  OrganizationController.getInstance().createTransactionWithEmployees
 );
 
 export default router;

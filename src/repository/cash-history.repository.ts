@@ -6,13 +6,15 @@ class CashHistoryRepository extends BaseRepository {
   async createCashHistory(
     data: CreateCashHistoryInterface
   ): Promise<CashHistory> {
+    const formattedDate = new Date(data.date).toISOString();
     return this.db.cashHistory.create({
       data: {
         organizationId: data.organizationId,
-        userId: data.userId,
+        actionBy: data.actionBy,
+        actionTo: data.actionTo,
         amount: data.amount,
         note: data.note,
-        date: data.date,
+        date: formattedDate,
         type: data.type ?? CashHistoryType.DEPOSIT,
         accountType: data.accountType ?? AccountType.INDIVIDUAL,
       },

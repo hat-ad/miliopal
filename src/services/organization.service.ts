@@ -53,48 +53,6 @@ class OrganizationService {
       .updateOrganization(organizationId, data);
   }
 
-  async createTransaction(data: CreateCashHistoryInterface): Promise<{
-    organization: Organization;
-    cashHistory: CashHistory;
-  }> {
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
-      const organizationRepo = factory.getOrganizationRepository();
-      const cashHistoryRepo = factory.getCashHistoryRepository();
-
-      const organization = await organizationRepo.getOrganizationById(
-        data.organizationId
-      );
-
-      if (!organization) {
-        throw new Error("Organization not found.");
-      }
-
-      let updatedAmount = organization.wallet;
-
-      if (data.type === "DEPOSIT") {
-        updatedAmount += data.amount || 0;
-      } else if (data.type === "WITHDRAW") {
-        updatedAmount -= data.amount!;
-      } else {
-        throw new Error(
-          "Invalid transaction type. Use 'DEPOSIT' or 'WITHDRAW'."
-        );
-      }
-
-      const updatedOrganization = await organizationRepo.updateOrganization(
-        data.organizationId,
-        {
-          wallet: updatedAmount,
-        }
-      );
-
-      const cashHistory = await cashHistoryRepo.createCashHistory(data);
-
-      return { organization: updatedOrganization!, cashHistory };
-    });
-  }
-
   async getOrgBalanceWithEmployeesWallet(
     organizationId: string
   ): Promise<OrgBalanceWithEmployeesWalletInterface> {
@@ -121,6 +79,105 @@ class OrganizationService {
       return {
         companyBalance: organization.wallet,
         employees: employesWallet,
+      };
+    });
+  }
+
+  async createTransactionWithOrg(data: CreateCashHistoryInterface): Promise<{
+    organization: Organization;
+    cashHistory: CashHistory;
+  }> {
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const organizationRepo = factory.getOrganizationRepository();
+      const cashHistoryRepo = factory.getCashHistoryRepository();
+
+      const organization = await organizationRepo.getOrganizationById(
+        data.organizationId
+      );
+
+      if (!organization) {
+        throw new Error("Organization not found.");
+      }
+
+      let updatedAmount = organization.wallet;
+
+      if (data.type === "DEPOSIT") {
+        updatedAmount = updatedAmount + data.amount;
+      } else if (data.type === "WITHDRAW") {
+        updatedAmount = updatedAmount - data.amount!;
+      } else {
+        throw new Error(
+          "Invalid transaction type. Use 'DEPOSIT' or 'WITHDRAW'."
+        );
+      }
+
+      const updatedOrganization = await organizationRepo.updateOrganization(
+        data.organizationId,
+        {
+          wallet: updatedAmount,
+        }
+      );
+
+      const cashHistory = await cashHistoryRepo.createCashHistory(data);
+
+      return { organization: updatedOrganization!, cashHistory };
+    });
+  }
+
+  async createTransactionWithEmployees(
+    data: CreateCashHistoryInterface
+  ): Promise<{
+    user: User;
+    organization: Organization;
+    cashHistory: CashHistory;
+  }> {
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const userRepo = factory.getUserRepository();
+      const organizationRepo = factory.getOrganizationRepository();
+      const cashHistoryRepo = factory.getCashHistoryRepository();
+
+      const organization = await organizationRepo.getOrganizationById(
+        data.organizationId
+      );
+
+      if (!organization) throw new Error("Organization not found.");
+
+      const user = await userRepo.getUser(data.actionTo);
+      if (!user) throw new Error("user not found!");
+
+      let updatedUserAmount = user.wallet;
+      let updatedOrgAmount = organization.wallet;
+
+      if (data.type === "DEPOSIT") {
+        updatedUserAmount = updatedUserAmount + data.amount;
+        updatedOrgAmount = updatedOrgAmount - data.amount;
+      } else if (data.type === "WITHDRAW") {
+        updatedUserAmount = updatedUserAmount - data.amount;
+        updatedOrgAmount = updatedOrgAmount + data.amount;
+      } else {
+        throw new Error(
+          "Invalid transaction type. Use 'DEPOSIT' or 'WITHDRAW'."
+        );
+      }
+
+      const updatedUser = await userRepo.updateUser(data.actionTo, {
+        wallet: updatedUserAmount,
+      });
+
+      const updatedOrganization = await organizationRepo.updateOrganization(
+        data.organizationId,
+        {
+          wallet: updatedOrgAmount,
+        }
+      );
+      const cashHistory = await cashHistoryRepo.createCashHistory(data);
+
+      return {
+        user: updatedUser!,
+        organization: updatedOrganization!,
+        cashHistory,
       };
     });
   }
