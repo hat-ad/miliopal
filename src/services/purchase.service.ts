@@ -107,7 +107,7 @@ class PurchaseService {
       userId: purchase.userId,
       sellerId: purchase.sellerId,
       organizationId: purchase.organizationId,
-      orderNo: purchase.orderNo,
+      orderNo: newOrderNo,
       paymentMethod: purchase.paymentMethod,
       bankAccountNumber: purchase.bankAccountNumber,
       status: purchase.status,
