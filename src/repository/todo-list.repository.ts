@@ -1,3 +1,4 @@
+import { bindMethods } from "@/functions/function";
 import {
   PaymentMethod,
   Prisma,
@@ -423,6 +424,10 @@ class PurchaseWithBankTransferHandler {
 }
 
 class TodoListRepository extends BaseRepository {
+  constructor() {
+    super();
+    bindMethods(this);
+  }
   registerEvent(
     event: TodoListEvent,
     payload: {
