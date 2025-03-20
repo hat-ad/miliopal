@@ -77,8 +77,7 @@ export default class UserController {
       let user = await this.serviceFactory
         .getUserService()
         .getUserByEmail(encryptedEmail);
-      if (user && user.organizationId === organizationId)
-        return ERROR(res, false, "User already exist");
+      if (user) return ERROR(res, false, "User already exist");
 
       user = await this.serviceFactory.getUserService().createUser({
         ...req.body,
@@ -313,11 +312,6 @@ export default class UserController {
   async sendResetPasswordEmail(req: Request, res: Response) {
     try {
       const { email } = req.body;
-      const organizationId = req.payload?.organizationId;
-
-      if (!organizationId) {
-        return ERROR(res, false, "Unauthorized: Organization ID is missing");
-      }
 
       const encryptedEmail = encrypt(email);
       const otp = generateOTP();
@@ -325,7 +319,7 @@ export default class UserController {
 
       const user = await this.serviceFactory
         .getUserService()
-        .getUserByEmail(encryptedEmail, organizationId);
+        .getUserByEmail(encryptedEmail);
       if (!user) {
         return ERROR(res, false, "User not found");
       }

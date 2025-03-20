@@ -60,7 +60,6 @@ router.get(
 
 router.post(
   "/send-reset-password-link",
-  isAuthenticated,
   validateSendResetPassword,
   UserController.getInstance().sendResetPasswordEmail
 );
