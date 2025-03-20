@@ -362,7 +362,7 @@ class PurchaseWithBankTransferHandler {
     purchaseId: string,
     paymentDate: Date
   ) {
-    return prisma.purchase.update({
+    return await prisma.purchase.update({
       where: {
         id: purchaseId,
       },
@@ -376,7 +376,7 @@ class PurchaseWithBankTransferHandler {
     prisma: Prisma.TransactionClient,
     todoListId: string
   ) {
-    return prisma.todoList.update({
+    return await prisma.todoList.update({
       where: {
         id: todoListId,
       },
@@ -390,7 +390,7 @@ class PurchaseWithBankTransferHandler {
     organizationId: string,
     purchaseId: string
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
@@ -543,8 +543,8 @@ class TodoListRepository extends BaseRepository {
     }
   }
 
-  listTodoLists(organizationId: string) {
-    return this.db.todoList.findMany({
+  async listTodoLists(organizationId: string) {
+    return await this.db.todoList.findMany({
       where: {
         organizationId,
       },
