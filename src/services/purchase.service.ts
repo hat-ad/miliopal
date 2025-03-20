@@ -4,13 +4,7 @@ import {
   CreatePurchaseInterface,
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
-import {
-  ProductsPurchased,
-  Purchase,
-  Seller,
-  TodoListEvent,
-  User,
-} from "@prisma/client";
+import { ProductsPurchased, Purchase, Seller, User } from "@prisma/client";
 
 class PurchaseService {
   private repositoryFactory: RepositoryFactory;
@@ -62,10 +56,10 @@ class PurchaseService {
         productsData
       );
 
-      todoListRepo.registerEvent(
-        TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
-        { organizationId: data.organizationId, purchaseId: purchase.id }
-      );
+      // todoListRepo.registerEvent(
+      //   TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+      //   { organizationId: data.organizationId, purchaseId: purchase.id }
+      // );
 
       return { purchase, poducts_purchased: products };
     });
