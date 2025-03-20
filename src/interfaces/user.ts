@@ -26,6 +26,7 @@ export interface UserUpdateData {
   otp?: string | null;
   otpExpiry?: Date | null;
   wallet?: number;
+  lastReconciled?: Date | null;
 }
 
 export interface GetUsersFilterInterface {

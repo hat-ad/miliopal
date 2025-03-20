@@ -4,6 +4,7 @@ import PickupDeliveryService from "@/services/pickup-delivery.service";
 import ProductService from "@/services/product.service";
 import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
+import ReconciliationHistoryService from "@/services/reconciliation.service";
 import SellerService from "@/services/seller.service";
 // import TodoListService from "@/services/todo-list.service";
 import UserService from "@/services/user.service";
@@ -44,6 +45,10 @@ export class ServiceFactory {
 
   getUserService(): UserService {
     return new UserService();
+  }
+
+  getReconciliationHistoryService(): ReconciliationHistoryService {
+    return new ReconciliationHistoryService();
   }
 }
 
