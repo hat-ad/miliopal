@@ -96,12 +96,12 @@ class UserService {
       return false;
     }
     if (user.otpExpiry && user.otpExpiry < new Date()) {
+      await this.repositoryFactory.getUserRepository().updateUser(userID, {
+        otp: null,
+        otpExpiry: null,
+      });
       return false;
     }
-    await this.repositoryFactory.getUserRepository().updateUser(userID, {
-      otp: null,
-      otpExpiry: null,
-    });
 
     return true;
   }

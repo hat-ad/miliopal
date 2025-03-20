@@ -23,7 +23,6 @@ export const isAuthenticated = async (
     }
 
     const payload = jwt.verify(token, secretKey) as jwt.JwtPayload;
-    console.log("Decoded Token Payload:", payload);
 
     if (!payload.sub) {
       return ERROR(res, null, "Invalid token");
@@ -40,8 +39,6 @@ export const isAuthenticated = async (
       email: user.email,
       organizationId: user.organizationId,
     };
-
-    console.log("Authenticated User:", userPayload);
 
     req.payload = userPayload;
     next();

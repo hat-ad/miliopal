@@ -251,7 +251,6 @@ export default class UserController {
         "Users retrieved successfully"
       );
     } catch (error) {
-      console.error("Error retrieving users list:", error);
       return ERROR(res, false, "An error occurred while retrieving users");
     }
   }
