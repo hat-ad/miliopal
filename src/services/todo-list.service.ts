@@ -41,14 +41,11 @@ class TodoListService {
     }
   }
   private async getCompanyCashBalanceMetaDetails(todoList: TodoList) {
-    if (todoList.meta) {
-      const meta = todoList.meta as Record<string, string>;
-      const purchase = await this.repositoryFactory
-        .getPurchaseRepository()
-        .getPurchase(meta.purchaseId);
+    const organization = await this.repositoryFactory
+      .getOrganizationRepository()
+      .getOrganizationById(todoList.organizationId);
 
-      return purchase;
-    }
+    return organization;
   }
 
   async getTodoList(organizationId: string) {
@@ -66,14 +63,20 @@ class TodoListService {
             todoList
           );
           if (metaDetails) {
-            listWithData.push({ ...todoList, details: metaDetails });
+            listWithData.push({
+              ...todoList,
+              details: { pickUpDelivery: metaDetails },
+            });
           }
         } else if (
           todoList.event === TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER
         ) {
           const metaDetails = await this.getPurchaseMetaDetails(todoList);
           if (metaDetails) {
-            listWithData.push({ ...todoList, details: metaDetails });
+            listWithData.push({
+              ...todoList,
+              details: { purchase: metaDetails },
+            });
           }
         } else if (
           todoList.event === TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD
@@ -82,7 +85,10 @@ class TodoListService {
             todoList
           );
           if (metaDetails) {
-            listWithData.push({ ...todoList, details: metaDetails });
+            listWithData.push({
+              ...todoList,
+              details: { organization: metaDetails },
+            });
           }
         } else if (
           todoList.event ===
@@ -92,8 +98,17 @@ class TodoListService {
             todoList
           );
           if (metaDetails) {
-            listWithData.push({ ...todoList, details: metaDetails });
+            listWithData.push({ ...todoList, details: { user: metaDetails } });
           }
+        }
+      } else if (
+        todoList.event === TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD
+      ) {
+        const metaDetails = await this.getIndividualCashBalanceMetaDetails(
+          todoList
+        );
+        if (metaDetails) {
+          listWithData.push({ ...todoList, details: { user: metaDetails } });
         }
       }
     }
@@ -135,6 +150,20 @@ class TodoListService {
     return await this.repositoryFactory
       .getTodoListRepository()
       .updateTodoListSettings(organizationId, payload);
+  }
+
+  async completeTodoListTask(
+    todoListId: string,
+    event: TodoListEvent,
+    payload: { paymentDate?: string; purchaseId?: string }
+  ) {
+    return await this.repositoryFactory
+      .getTodoListRepository()
+      .completeEvent(event, {
+        todoListId,
+        paymentDate: payload.paymentDate,
+        purchaseId: payload.purchaseId,
+      });
   }
 
   async getTodoListSettings(organizationId: string) {

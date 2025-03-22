@@ -29,6 +29,7 @@ export interface CreatePurchaseRepositoryInterface {
   status: OrderStatus;
   totalAmount: number;
   notes?: string | null;
+  transactionDate?: Date | null;
 }
 
 export interface GetPurchaseFilterInterface {

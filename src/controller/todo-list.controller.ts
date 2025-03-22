@@ -62,4 +62,17 @@ export default class TodoListController {
       return ERROR(res, false, error);
     }
   }
+
+  async completeTodoListEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const { todoListId, event } = req.body;
+      if (!todoListId) return ERROR(res, false, "Todo list not found");
+      const todoList = await this.serviceFactory
+        .getTodoListService()
+        .completeTodoListTask(todoListId, event, { ...req.body });
+      return OK(res, todoList, "Todo list event completed successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }

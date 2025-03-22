@@ -5,6 +5,8 @@ import {
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
 import {
+  OrderStatus,
+  PaymentMethod,
   ProductsPurchased,
   Purchase,
   Seller,
@@ -65,7 +67,17 @@ class PurchaseService {
       data.orderNo = orderNo;
       data.totalAmount = totalAmount;
 
-      const purchase = await purchaseRepo.createPurchase(data);
+      const payload: CreatePurchaseInterface & {
+        transactionDate: Date | null;
+      } = { ...data, transactionDate: null };
+      if (
+        data.paymentMethod === PaymentMethod.CASH &&
+        data.status === OrderStatus.PAID
+      ) {
+        payload.transactionDate = new Date();
+      }
+
+      const purchase = await purchaseRepo.createPurchase(payload);
 
       const productsData = data.products.map((product) => ({
         ...product,

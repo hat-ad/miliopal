@@ -1,3 +1,4 @@
+import PrismaService from "@/db/prisma-service";
 import { bindMethods } from "@/functions/function";
 import {
   PaymentMethod,
@@ -105,15 +106,9 @@ class CompanyCashBalanceEventsHandler {
   }
 
   async handleCompanyCashBalanceBelowThresholdEventCompletion(
-    todoListId: string,
-    organizationId: string
+    todoListId: string
   ) {
-    const { isThresholdCrossed } = await this.isEventCreationAllowed(
-      organizationId
-    );
-    if (!isThresholdCrossed) {
-      await this.completeCompanyCashBalanceBelowThresholdEvent(todoListId);
-    }
+    await this.completeCompanyCashBalanceBelowThresholdEvent(todoListId);
   }
 }
 
@@ -271,27 +266,15 @@ class IndividualCashBalanceEventsHandler {
   }
 
   async handleIndividualCashBalanceBelowThresholdEventCompletion(
-    todoListId: string,
-    userId: string
+    todoListId: string
   ) {
-    const { isWalletBalanceBelowThreshold } = await this.isEventCreationAllowed(
-      userId
-    );
-    if (!isWalletBalanceBelowThreshold) {
-      await this.completeIndividualCashBalanceThresholdEvent(todoListId);
-    }
+    await this.completeIndividualCashBalanceThresholdEvent(todoListId);
   }
 
   async handleIndividualCashBalanceAboveThresholdEventCompletion(
-    todoListId: string,
-    userId: string
+    todoListId: string
   ) {
-    const { isWalletBalanceAboveThreshold } = await this.isEventCreationAllowed(
-      userId
-    );
-    if (!isWalletBalanceAboveThreshold) {
-      await this.completeIndividualCashBalanceThresholdEvent(todoListId);
-    }
+    await this.completeIndividualCashBalanceThresholdEvent(todoListId);
   }
 }
 
@@ -369,7 +352,7 @@ class PurchaseWithBankTransferHandler {
     };
   }
 
-  private async updatePaymentDate(purchaseId: string, paymentDate: Date) {
+  private async updatePaymentDate(purchaseId: string, paymentDate: string) {
     return await this.db.purchase.update({
       where: {
         id: purchaseId,
@@ -417,7 +400,7 @@ class PurchaseWithBankTransferHandler {
   async handleCompletePurchaseWithBankTransferEvent(
     todoListId: string,
     purchaseId: string,
-    paymentDate: Date
+    paymentDate: string
   ) {
     await this.updatePaymentDate(purchaseId, paymentDate);
     await this.completePurchaseWithBankTransferEvent(todoListId);
@@ -487,22 +470,19 @@ class TodoListRepository extends BaseRepository {
     }
   }
 
-  completeEvent(
+  async completeEvent(
     event: TodoListEvent,
     payload: {
-      userId?: string;
       todoListId: string;
-      organizationId?: string;
-      paymentDate?: Date;
+      paymentDate?: string;
       purchaseId?: string;
     }
   ) {
     switch (event) {
       case TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD:
         const eventHandler = new CompanyCashBalanceEventsHandler(this.db);
-        eventHandler.handleCompanyCashBalanceBelowThresholdEventCompletion(
-          payload.todoListId,
-          payload.organizationId || ""
+        await eventHandler.handleCompanyCashBalanceBelowThresholdEventCompletion(
+          payload.todoListId
         );
         break;
 
@@ -510,9 +490,8 @@ class TodoListRepository extends BaseRepository {
         const eventHandlerIndividual1 = new IndividualCashBalanceEventsHandler(
           this.db
         );
-        eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEventCompletion(
-          payload.todoListId,
-          payload.userId || ""
+        await eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEventCompletion(
+          payload.todoListId
         );
         break;
 
@@ -520,24 +499,29 @@ class TodoListRepository extends BaseRepository {
         const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
           this.db
         );
-        eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEventCompletion(
-          payload.todoListId,
-          payload.userId || ""
+        await eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEventCompletion(
+          payload.todoListId
         );
         break;
       case TodoListEvent.ORDER_PICKUP_INITIATED:
         const orderPickupHandler = new OrderPickUpEventsHandler(this.db);
-        orderPickupHandler.handleCompleteOrderPickupEvent(payload.todoListId);
+        await orderPickupHandler.handleCompleteOrderPickupEvent(
+          payload.todoListId
+        );
         break;
       case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
-        if (!payload.paymentDate || !payload.purchaseId) return;
-        const purchaseWithBankTransferHandler =
-          new PurchaseWithBankTransferHandler(this.db);
-        purchaseWithBankTransferHandler.handleCompletePurchaseWithBankTransferEvent(
-          payload.todoListId,
-          payload.purchaseId,
-          payload.paymentDate
-        );
+        PrismaService.getInstance().$transaction(async (tx) => {
+          if (!payload.paymentDate || !payload.purchaseId) {
+            throw new Error("Payment date and purchase id are required");
+          }
+          const purchaseWithBankTransferHandler =
+            new PurchaseWithBankTransferHandler(tx);
+          await purchaseWithBankTransferHandler.handleCompletePurchaseWithBankTransferEvent(
+            payload.todoListId,
+            payload.purchaseId,
+            payload.paymentDate
+          );
+        });
         break;
       default:
         break;

@@ -21,6 +21,7 @@ class PurchaseRepository extends BaseRepository {
         status: data.status,
         totalAmount: data.totalAmount,
         notes: data.notes ?? null,
+        transactionDate: data.transactionDate ?? null,
       },
     });
 
