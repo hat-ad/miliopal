@@ -4,7 +4,7 @@ import {
   CreateReconciliationHistoryInterface,
   FilterReconciliationListInterface,
 } from "@/interfaces/reconciliation";
-import { ReconciliationHistory, User } from "@prisma/client";
+import { ReconciliationHistory, TodoListEvent, User } from "@prisma/client";
 
 class ReconciliationHistoryService {
   private repositoryFactory: RepositoryFactory;
@@ -18,6 +18,7 @@ class ReconciliationHistoryService {
     return PrismaService.getInstance().$transaction(async (tx) => {
       const factory = new RepositoryFactory(tx);
       const userRepo = factory.getUserRepository();
+      const todoListRepo = factory.getTodoListRepository();
       const reconciliationHistoryRepo =
         factory.getReconciliationHistoryRepository();
 
@@ -32,6 +33,14 @@ class ReconciliationHistoryService {
         lastReconciled: new Date(),
       });
 
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
+        { organizationId: user.organizationId, userId: user.id }
+      );
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
+        { organizationId: user.organizationId, userId: user.id }
+      );
       return { reconciliationHistory: reconciliation, user: updatedUser! };
     });
   }

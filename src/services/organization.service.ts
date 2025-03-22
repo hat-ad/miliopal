@@ -5,7 +5,14 @@ import {
   OrgBalanceWithEmployeesWalletInterface,
   UpdateOrganization,
 } from "@/interfaces/organization";
-import { CashHistory, Organization, Seller, User } from "@prisma/client";
+import {
+  CashHistory,
+  CashHistoryType,
+  Organization,
+  Seller,
+  TodoListEvent,
+  User,
+} from "@prisma/client";
 
 class OrganizationService {
   private repositoryFactory: RepositoryFactory;
@@ -91,6 +98,7 @@ class OrganizationService {
       const factory = new RepositoryFactory(tx);
       const organizationRepo = factory.getOrganizationRepository();
       const cashHistoryRepo = factory.getCashHistoryRepository();
+      const todoListRepo = factory.getTodoListRepository();
 
       const organization = await organizationRepo.getOrganizationById(
         data.organizationId
@@ -102,9 +110,9 @@ class OrganizationService {
 
       let updatedAmount = organization.wallet;
 
-      if (data.type === "DEPOSIT") {
+      if (data.type === CashHistoryType.DEPOSIT) {
         updatedAmount = updatedAmount + data.amount;
-      } else if (data.type === "WITHDRAW") {
+      } else if (data.type === CashHistoryType.WITHDRAW) {
         updatedAmount = updatedAmount - data.amount!;
       } else {
         throw new Error(
@@ -120,6 +128,10 @@ class OrganizationService {
       );
 
       const cashHistory = await cashHistoryRepo.createCashHistory(data);
+      todoListRepo.registerEvent(
+        TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD,
+        { organizationId: data.organizationId }
+      );
 
       return { organization: updatedOrganization!, cashHistory };
     });
@@ -137,6 +149,7 @@ class OrganizationService {
       const userRepo = factory.getUserRepository();
       const organizationRepo = factory.getOrganizationRepository();
       const cashHistoryRepo = factory.getCashHistoryRepository();
+      const todoListRepo = factory.getTodoListRepository();
 
       const organization = await organizationRepo.getOrganizationById(
         data.organizationId
@@ -150,10 +163,10 @@ class OrganizationService {
       let updatedUserAmount = user.wallet;
       let updatedOrgAmount = organization.wallet;
 
-      if (data.type === "DEPOSIT") {
+      if (data.type === CashHistoryType.DEPOSIT) {
         updatedUserAmount = updatedUserAmount + data.amount;
         updatedOrgAmount = updatedOrgAmount - data.amount;
-      } else if (data.type === "WITHDRAW") {
+      } else if (data.type === CashHistoryType.WITHDRAW) {
         updatedUserAmount = updatedUserAmount - data.amount;
         updatedOrgAmount = updatedOrgAmount + data.amount;
       } else {
@@ -174,6 +187,14 @@ class OrganizationService {
       );
       const cashHistory = await cashHistoryRepo.createCashHistory(data);
 
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
+        { organizationId: user.organizationId, userId: user.id }
+      );
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
+        { organizationId: user.organizationId, userId: user.id }
+      );
       return {
         user: updatedUser!,
         organization: updatedOrganization!,

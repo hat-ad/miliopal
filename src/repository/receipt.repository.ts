@@ -45,6 +45,20 @@ class ReceiptRepository extends BaseRepository {
       },
     });
   }
+
+  async updateReceiptInternal(
+    id: string,
+    data: Partial<
+      Omit<Receipt, "id" | "createdAt" | "updatedAt" | "organizationId">
+    >
+  ): Promise<Receipt> {
+    return this.db.receipt.update({
+      where: { id },
+      data: {
+        ...data,
+      },
+    });
+  }
 }
 
 export default ReceiptRepository;

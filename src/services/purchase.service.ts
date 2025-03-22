@@ -46,7 +46,21 @@ class PurchaseService {
             product.price * product.quantity
         )
         .reduce((sum: number, value: number) => sum + value, 0);
-      const orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
+
+      let orderNo = "";
+
+      // it means the order hasnt' been initiated
+      if (receipt.currentOrderNumber === -1) {
+        orderNo = `ORD-${receipt.startingOrderNumber}`;
+        await receiptRepo.updateReceiptInternal(receipt.id, {
+          currentOrderNumber: receipt.startingOrderNumber,
+        });
+      } else {
+        orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
+        await receiptRepo.updateReceiptInternal(receipt.id, {
+          currentOrderNumber: receipt.currentOrderNumber + 1,
+        });
+      }
 
       data.orderNo = orderNo;
       data.totalAmount = totalAmount;
@@ -65,6 +79,14 @@ class PurchaseService {
       todoListRepo.registerEvent(
         TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
         { organizationId: data.organizationId, purchaseId: purchase.id }
+      );
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
+        { organizationId: data.organizationId, userId: data.userId }
+      );
+      todoListRepo.registerEvent(
+        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
+        { organizationId: data.organizationId, userId: data.userId }
       );
 
       return { purchase, poducts_purchased: products };

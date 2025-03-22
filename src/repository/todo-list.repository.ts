@@ -4,6 +4,7 @@ import {
   Prisma,
   PrismaClient,
   TodoListEvent,
+  TodoListSettings,
   TodoListStatus,
 } from "@prisma/client";
 import BaseRepository from "./base.repository";
@@ -357,12 +358,8 @@ class PurchaseWithBankTransferHandler {
     };
   }
 
-  private async updatePaymentDate(
-    prisma: Prisma.TransactionClient,
-    purchaseId: string,
-    paymentDate: Date
-  ) {
-    return await prisma.purchase.update({
+  private async updatePaymentDate(purchaseId: string, paymentDate: Date) {
+    return await this.db.purchase.update({
       where: {
         id: purchaseId,
       },
@@ -372,11 +369,8 @@ class PurchaseWithBankTransferHandler {
     });
   }
 
-  private async completePurchaseWithBankTransferEvent(
-    prisma: Prisma.TransactionClient,
-    todoListId: string
-  ) {
-    return await prisma.todoList.update({
+  private async completePurchaseWithBankTransferEvent(todoListId: string) {
+    return await this.db.todoList.update({
       where: {
         id: todoListId,
       },
@@ -414,12 +408,8 @@ class PurchaseWithBankTransferHandler {
     purchaseId: string,
     paymentDate: Date
   ) {
-    if (this.db instanceof PrismaClient) {
-      await this.db.$transaction(async (prisma) => {
-        await this.updatePaymentDate(prisma, purchaseId, paymentDate);
-        await this.completePurchaseWithBankTransferEvent(prisma, todoListId);
-      });
-    }
+    await this.updatePaymentDate(purchaseId, paymentDate);
+    await this.completePurchaseWithBankTransferEvent(todoListId);
   }
 }
 
@@ -547,6 +537,37 @@ class TodoListRepository extends BaseRepository {
     return await this.db.todoList.findMany({
       where: {
         organizationId,
+      },
+    });
+  }
+
+  async createTodoListSettings(organizationId: string) {
+    return await this.db.todoListSettings.create({
+      data: { organizationId },
+    });
+  }
+
+  async updateTodoListSettings(
+    organizationId: string,
+    data: Partial<
+      Omit<
+        TodoListSettings,
+        "organizationId" | "id" | "createdAt" | "updatedAt"
+      >
+    >
+  ) {
+    return await this.db.todoListSettings.update({
+      where: {
+        organizationId: organizationId,
+      },
+      data: data,
+    });
+  }
+
+  async getTodoListSettings(organizationId: string) {
+    return await this.db.todoListSettings.findUnique({
+      where: {
+        organizationId: organizationId,
       },
     });
   }

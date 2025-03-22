@@ -16,8 +16,8 @@ export const validateCreateReceipt = (
   next: NextFunction
 ) => {
   try {
-    const { startingOrderNumber, currentOrderNumber, logo } = req.body;
-    const payload = { startingOrderNumber, currentOrderNumber, logo };
+    const { startingOrderNumber, logo } = req.body;
+    const payload = { startingOrderNumber, logo };
     req.body = payload;
 
     CreateReceiptSchema.parse(req.body);

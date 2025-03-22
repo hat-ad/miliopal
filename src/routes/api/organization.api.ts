@@ -30,7 +30,7 @@ router.post(
   OrganizationController.getInstance().createTransactionWithOrg
 );
 
-router.get(
+router.post(
   "/create-transaction-with-employees/:actionTo",
   isAuthenticated,
   validateCreateTransaction,

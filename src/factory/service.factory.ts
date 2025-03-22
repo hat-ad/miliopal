@@ -6,7 +6,7 @@ import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
 import ReconciliationHistoryService from "@/services/reconciliation.service";
 import SellerService from "@/services/seller.service";
-// import TodoListService from "@/services/todo-list.service";
+import TodoListService from "@/services/todo-list.service";
 import UserService from "@/services/user.service";
 
 export class ServiceFactory {
@@ -39,9 +39,9 @@ export class ServiceFactory {
     return new SellerService();
   }
 
-  //   getTodoListService(): TodoListService {
-  //     return new TodoListService();
-  //   }
+  getTodoListService(): TodoListService {
+    return new TodoListService();
+  }
 
   getUserService(): UserService {
     return new UserService();

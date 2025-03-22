@@ -1,3 +1,4 @@
+import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateUserInterface,
@@ -18,11 +19,31 @@ class UserService {
   async createUser(data: CreateUserInterface): Promise<User> {
     return this.repositoryFactory.getUserRepository().createUser(data);
   }
-  async createUserInternal(data: CreateUserInternalInterface): Promise<User> {
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
+  async createUserInternal(
+    data: Omit<CreateUserInternalInterface, "organizationId"> & {
+      organizationNumber: string;
     }
-    return this.repositoryFactory.getUserRepository().createUserInternal(data);
+  ): Promise<User> {
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 10);
+      }
+      const newOrg = await factory
+        .getOrganizationRepository()
+        .createOrganization({
+          organizationNumber: data.organizationNumber,
+        });
+      await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
+      return factory.getUserRepository().createUserInternal({
+        email: data.email,
+        organizationId: newOrg.id,
+        password: data.password,
+        phone: data.phone,
+        name: data.name,
+      });
+    });
   }
 
   async updateUser(id: string, data: UserUpdateData): Promise<User | null> {

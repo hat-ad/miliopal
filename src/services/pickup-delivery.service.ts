@@ -9,6 +9,7 @@ import {
   PickUpDelivery,
   ProductForDelivery,
   Seller,
+  TodoListEvent,
   User,
 } from "@prisma/client";
 
@@ -19,9 +20,7 @@ class PickupDeliveryService {
     this.repositoryFactory = factory ?? new RepositoryFactory();
   }
 
-  async createPickupDelivery(
-    data: CreatePickupDelivery
-  ): Promise<{
+  async createPickupDelivery(data: CreatePickupDelivery): Promise<{
     pickUpDelivery: PickUpDelivery;
     products_for_delivery: ProductForDelivery[];
   } | null> {
@@ -41,6 +40,12 @@ class PickupDeliveryService {
 
       const products_for_delivery =
         await productsPickupDeliveryRepo.bulkInsertProductsPurchased(products);
+
+      todoListRepo.registerEvent(TodoListEvent.ORDER_PICKUP_INITIATED, {
+        organizationId: pickUpDelivery.organizationId,
+        pickUpOrderId: pickUpDelivery.id,
+      });
+
       return {
         pickUpDelivery,
         products_for_delivery,

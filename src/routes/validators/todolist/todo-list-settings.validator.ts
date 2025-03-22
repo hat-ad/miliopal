@@ -1,0 +1,54 @@
+import { ERROR } from "@/utils/response-helper";
+import { NextFunction, Request, Response } from "express";
+import { z, ZodError } from "zod";
+
+const UpdateTodoListSettingsSchema = z.object({
+  companyCashBalanceLowerThreshold: z
+    .number()
+    .min(1, "amount is required!")
+    .optional(),
+  individualCashBalanceLowerThreshold: z
+    .number()
+    .min(1, "amount is required!")
+    .optional(),
+  individualCashBalanceUpperThreshold: z
+    .number()
+    .min(1, "amount is required!")
+    .optional(),
+});
+
+export type updateTodoListSettingsSchema = z.infer<
+  typeof UpdateTodoListSettingsSchema
+>;
+
+export const validateUpdateTodoListSettings = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const payload = {
+      companyCashBalanceLowerThreshold:
+        req.body.companyCashBalanceLowerThreshold,
+      individualCashBalanceLowerThreshold:
+        req.body.individualCashBalanceLowerThreshold,
+      individualCashBalanceUpperThreshold:
+        req.body.individualCashBalanceUpperThreshold,
+    };
+    req.body = payload;
+    UpdateTodoListSettingsSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return ERROR(
+        res,
+        error.errors.map((err) => ({
+          message: err.message,
+          path: err.path,
+        })),
+        "Validation error"
+      );
+    }
+    return ERROR(res, [], "Internal Server Error");
+  }
+};

@@ -33,6 +33,7 @@ export default class ReceiptController {
         .getReceiptService()
         .createReceipt({
           ...req.body,
+          currentOrderNumber: -1, // set currentOrderNumber to -1
           organizationId,
         });
       return OK(res, receipt, "Receipt created successfully");

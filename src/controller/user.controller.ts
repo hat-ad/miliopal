@@ -39,15 +39,10 @@ export default class UserController {
       if (org) {
         return ERROR(res, false, "Organization already exist");
       }
-      const newOrg = await this.serviceFactory
-        .getOrganizationService()
-        .createOrganization({
-          organizationNumber,
-        });
 
       user = await this.serviceFactory.getUserService().createUserInternal({
         email: encryptedEmail,
-        organizationId: newOrg.id,
+        organizationNumber: organizationNumber,
         password,
         phone: encryptedPhone,
         name: encryptedName,

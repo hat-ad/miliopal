@@ -137,11 +137,10 @@ model User {
   organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   purchases           Purchase[]
   PickUpDelivery      PickUpDelivery[]
-  actionByUser    CashHistory[] @relation("ActionByDetails")
-  actionToUsers    CashHistory[] @relation("ActionToDetails")
+  actionByUser        CashHistory[]           @relation("ActionByDetails")
+  actionToUsers       CashHistory[]           @relation("ActionToDetails")
   reconciliations     ReconciliationHistory[] @relation("ReconciledHistory")
   reconciliationsMade ReconciliationHistory[] @relation("Reconciliator")
-  
 }
 
 model Organization {
@@ -213,21 +212,22 @@ enum AccountType {
   COMPANY
   INDIVIDUAL
 }
+
 model CashHistory {
-  id             String       @id @default(uuid())
-  amount         Float
-  note           String?
-  type           CashHistoryType
-  accountType    AccountType
-  organizationId String
-  actionBy       String
-  actionTo       String?    
-  date           DateTime      @default(now())
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actionByDetails   User          @relation(fields: [actionBy], references: [id], onDelete: Cascade, name: "ActionByDetails")
-  actionToDetails   User?         @relation(fields: [actionTo], references: [id], onDelete: SetNull, name: "ActionToDetails")
+  id              String          @id @default(uuid())
+  amount          Float
+  note            String?
+  type            CashHistoryType
+  accountType     AccountType
+  organizationId  String
+  actionBy        String
+  actionTo        String?
+  date            DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actionByDetails User            @relation(fields: [actionBy], references: [id], onDelete: Cascade, name: "ActionByDetails")
+  actionToDetails User?           @relation(fields: [actionTo], references: [id], onDelete: SetNull, name: "ActionToDetails")
 }
 
 model ReconciliationHistory {
@@ -237,7 +237,7 @@ model ReconciliationHistory {
   organizationId          String
   expectedAmount          Float
   amountCounted           Float
-  comment                 String
+  comment                 String?
   reconciliationStartTime DateTime
   reconciliationEndTime   DateTime
   createdAt               DateTime     @default(now())
@@ -273,9 +273,9 @@ model TodoList {
 model TodoListSettings {
   id                                  String       @id @default(uuid())
   organizationId                      String       @unique
-  companyCashBalanceLowerThreshold    Float
-  individualCashBalanceLowerThreshold Float
-  individualCashBalanceUpperThreshold Float
+  companyCashBalanceLowerThreshold    Float        @default(0)
+  individualCashBalanceLowerThreshold Float        @default(0)
+  individualCashBalanceUpperThreshold Float        @default(0)
   createdAt                           DateTime     @default(now())
   updatedAt                           DateTime     @updatedAt
   organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

@@ -1,9 +1,7 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import { bindMethods, generateOTP } from "@/functions/function";
+import { bindMethods } from "@/functions/function";
 import { FilterReconciliationListInterface } from "@/interfaces/reconciliation";
 
-import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
-import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
 

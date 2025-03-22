@@ -1,9 +1,9 @@
-import { ReconciliationHistory } from "@prisma/client";
-import BaseRepository from "./base.repository";
 import {
   CreateReconciliationHistoryInterface,
   FilterReconciliationListInterface,
 } from "@/interfaces/reconciliation";
+import { ReconciliationHistory } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
 class ReconciliationHistoryRepository extends BaseRepository {
   async createReconciliation(
@@ -64,6 +64,10 @@ class ReconciliationHistoryRepository extends BaseRepository {
       where: whereCondition,
       take: limit,
       skip: offset,
+      include: {
+        organization: true,
+        user: true,
+      },
     });
 
     const totalPages = Math.ceil(total / limit);
