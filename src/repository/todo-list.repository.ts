@@ -80,6 +80,12 @@ class CompanyCashBalanceEventsHandler {
         thresholdBalance: 0,
       };
 
+    if (settings.companyCashBalanceLowerThreshold === null) {
+      return {
+        isThresholdCrossed: false,
+        thresholdBalance: 0,
+      };
+    }
     return {
       isThresholdCrossed:
         organization?.wallet < settings?.companyCashBalanceLowerThreshold,
@@ -220,12 +226,17 @@ class IndividualCashBalanceEventsHandler {
 
     if (!settings || !user) return payload;
 
-    payload.isWalletBalanceAboveThreshold =
-      user?.wallet >= settings?.individualCashBalanceUpperThreshold;
-    payload.isWalletBalanceBelowThreshold =
-      user?.wallet < settings?.individualCashBalanceLowerThreshold;
-    payload.userWalletBalance = user?.wallet;
-    payload.thresholdBalance = settings?.individualCashBalanceLowerThreshold;
+    if (settings.individualCashBalanceLowerThreshold !== null) {
+      payload.isWalletBalanceBelowThreshold =
+        user?.wallet < settings?.individualCashBalanceLowerThreshold;
+      payload.thresholdBalance = settings?.individualCashBalanceLowerThreshold;
+    }
+
+    if (settings.individualCashBalanceUpperThreshold !== null) {
+      payload.isWalletBalanceAboveThreshold =
+        user?.wallet >= settings?.individualCashBalanceUpperThreshold;
+      payload.userWalletBalance = user?.wallet;
+    }
 
     return payload;
   }
