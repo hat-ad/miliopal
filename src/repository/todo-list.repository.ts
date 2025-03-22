@@ -375,7 +375,7 @@ class PurchaseWithBankTransferHandler {
         id: purchaseId,
       },
       data: {
-        bankTransferDate: paymentDate,
+        transactionDate: paymentDate,
       },
     });
   }

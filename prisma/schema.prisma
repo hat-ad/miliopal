@@ -67,7 +67,7 @@ model Purchase {
   comment           String?
   paymentMethod     PaymentMethod
   bankAccountNumber String?
-  bankTransferDate  DateTime?
+  transactionDate   DateTime?
   totalAmount       Int                 @default(0)
   notes             String?
   sellerId          String
