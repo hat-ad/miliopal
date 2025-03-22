@@ -8,7 +8,7 @@ import BaseRepository from "./base.repository";
 
 class PickupDeliveryRepository extends BaseRepository {
   async createPickupDelivery(
-    data: CreatePickupDelivery
+    data: Omit<CreatePickupDelivery, "products">
   ): Promise<PickUpDelivery> {
     return this.db.pickUpDelivery.create({
       data: data,

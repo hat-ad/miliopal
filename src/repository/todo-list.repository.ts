@@ -33,7 +33,7 @@ class CompanyCashBalanceEventsHandler {
     organizationId: string,
     thresholdBalance: number
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD,
@@ -48,7 +48,7 @@ class CompanyCashBalanceEventsHandler {
   private async completeCompanyCashBalanceBelowThresholdEvent(
     todoListId: string
   ) {
-    this.db.todoList.update({
+    await this.db.todoList.update({
       where: {
         id: todoListId,
       },
@@ -158,7 +158,7 @@ class IndividualCashBalanceEventsHandler {
     organizationId: string,
     thresholdBalance: number
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
@@ -175,7 +175,7 @@ class IndividualCashBalanceEventsHandler {
     organizationId: string,
     thresholdBalance: number
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
@@ -190,7 +190,7 @@ class IndividualCashBalanceEventsHandler {
   private async completeIndividualCashBalanceThresholdEvent(
     todoListId: string
   ) {
-    this.db.todoList.update({
+    await this.db.todoList.update({
       where: {
         id: todoListId,
       },
@@ -311,7 +311,7 @@ class OrderPickUpEventsHandler {
     organizationId: string,
     pickUpOrderId: string
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.ORDER_PICKUP_INITIATED,
@@ -321,7 +321,7 @@ class OrderPickUpEventsHandler {
   }
 
   private async completeOrderPickupEvent(todoListId: string) {
-    this.db.todoList.update({
+    await this.db.todoList.update({
       where: {
         id: todoListId,
       },

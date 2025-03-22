@@ -22,16 +22,20 @@ class PickupDeliveryService {
 
   async createPickupDelivery(data: CreatePickupDelivery): Promise<{
     pickUpDelivery: PickUpDelivery;
-    products_for_delivery: ProductForDelivery[];
+    productsForDelivery: ProductForDelivery[];
   } | null> {
     return PrismaService.getInstance().$transaction(async (tx) => {
       const factory = new RepositoryFactory(tx);
       const pickupDeliveryRepo = factory.getPickUpDeliveryRepository();
       const productsPickupDeliveryRepo = factory.getProductsPickupRepository();
       const todoListRepo = factory.getTodoListRepository();
-      const pickUpDelivery = await pickupDeliveryRepo.createPickupDelivery(
-        data
-      );
+      const pickUpDelivery = await pickupDeliveryRepo.createPickupDelivery({
+        organizationId: data.organizationId,
+        userId: data.userId,
+        sellerId: data.sellerId,
+        PONumber: data.PONumber,
+        comment: data.comment,
+      });
 
       const products = data.products.map((product) => ({
         ...product,
@@ -48,7 +52,7 @@ class PickupDeliveryService {
 
       return {
         pickUpDelivery,
-        products_for_delivery,
+        productsForDelivery: products_for_delivery,
       };
     });
   }
