@@ -37,7 +37,7 @@ class PickupDeliveryService {
         comment: data.comment,
       });
 
-      const products = data.products.map((product) => ({
+      const products = data.productsForDelivery.map((product) => ({
         ...product,
         pickUpDeliveryId: pickUpDelivery.id,
       }));

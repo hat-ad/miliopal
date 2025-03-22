@@ -4,7 +4,7 @@ export interface CreatePickupDelivery {
   sellerId: string;
   userId: string;
   organizationId: string;
-  products: {
+  productsForDelivery: {
     productId: string;
     quantity: number;
   }[];
