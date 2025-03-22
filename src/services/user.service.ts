@@ -24,25 +24,28 @@ class UserService {
       organizationNumber: string;
     }
   ): Promise<User> {
+    const newOrg = await this.repositoryFactory
+      .getOrganizationRepository()
+      .createOrganization({
+        organizationNumber: data.organizationNumber,
+      });
     return PrismaService.getInstance().$transaction(async (tx) => {
       const factory = new RepositoryFactory(tx);
 
       if (data.password) {
         data.password = await bcrypt.hash(data.password, 10);
       }
-      const newOrg = await factory
-        .getOrganizationRepository()
-        .createOrganization({
-          organizationNumber: data.organizationNumber,
-        });
-      await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
-      return factory.getUserRepository().createUserInternal({
+
+      const user = await factory.getUserRepository().createUserInternal({
         email: data.email,
         organizationId: newOrg.id,
         password: data.password,
         phone: data.phone,
         name: data.name,
       });
+      await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
+
+      return user;
     });
   }
 
