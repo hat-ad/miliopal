@@ -108,11 +108,33 @@ class TodoListService {
         TodoListSettings,
         "organizationId" | "id" | "createdAt" | "updatedAt"
       >
-    >
+    > & {
+      isCompanyCashBalanceLowerThresholdEnabled: boolean;
+      isIndividualCashBalanceLowerThresholdEnabled: boolean;
+      isIndividualCashBalanceUpperThresholdEnabled: boolean;
+    }
   ) {
+    const payload = {
+      companyCashBalanceLowerThreshold: data.companyCashBalanceLowerThreshold,
+      individualCashBalanceLowerThreshold:
+        data.individualCashBalanceLowerThreshold,
+      individualCashBalanceUpperThreshold:
+        data.individualCashBalanceUpperThreshold,
+    };
+
+    if (!data.isCompanyCashBalanceLowerThresholdEnabled) {
+      payload.companyCashBalanceLowerThreshold = null;
+    }
+    if (!data.isIndividualCashBalanceLowerThresholdEnabled) {
+      payload.individualCashBalanceLowerThreshold = null;
+    }
+    if (!data.isIndividualCashBalanceUpperThresholdEnabled) {
+      payload.individualCashBalanceUpperThreshold = null;
+    }
+
     return await this.repositoryFactory
       .getTodoListRepository()
-      .updateTodoListSettings(organizationId, data);
+      .updateTodoListSettings(organizationId, payload);
   }
 
   async getTodoListSettings(organizationId: string) {

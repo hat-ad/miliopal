@@ -3,6 +3,9 @@ import { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
 const UpdateTodoListSettingsSchema = z.object({
+  isCompanyCashBalanceLowerThresholdEnabled: z.boolean(),
+  isIndividualCashBalanceLowerThresholdEnabled: z.boolean(),
+  isIndividualCashBalanceUpperThresholdEnabled: z.boolean(),
   companyCashBalanceLowerThreshold: z
     .number()
     .min(1, "amount is required!")
