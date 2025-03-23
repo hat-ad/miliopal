@@ -8,15 +8,15 @@ const UpdateTodoListSettingsSchema = z.object({
   isIndividualCashBalanceUpperThresholdEnabled: z.boolean(),
   companyCashBalanceLowerThreshold: z
     .number()
-    .min(1, "amount is required!")
+    .min(0, "company cash balance lower threshold is required!")
     .optional(),
   individualCashBalanceLowerThreshold: z
     .number()
-    .min(1, "amount is required!")
+    .min(0, "individual cash balance lower threshold is required!")
     .optional(),
   individualCashBalanceUpperThreshold: z
     .number()
-    .min(1, "amount is required!")
+    .min(0, "individual cash balance upper threshold is required!")
     .optional(),
 });
 
@@ -37,6 +37,12 @@ export const validateUpdateTodoListSettings = (
         req.body.individualCashBalanceLowerThreshold,
       individualCashBalanceUpperThreshold:
         req.body.individualCashBalanceUpperThreshold,
+      isCompanyCashBalanceLowerThresholdEnabled:
+        req.body.isCompanyCashBalanceLowerThresholdEnabled,
+      isIndividualCashBalanceLowerThresholdEnabled:
+        req.body.isIndividualCashBalanceLowerThresholdEnabled,
+      isIndividualCashBalanceUpperThresholdEnabled:
+        req.body.isIndividualCashBalanceUpperThresholdEnabled,
     };
     req.body = payload;
     UpdateTodoListSettingsSchema.parse(req.body);

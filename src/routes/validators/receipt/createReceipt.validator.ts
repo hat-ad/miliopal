@@ -4,7 +4,6 @@ import { z, ZodError } from "zod";
 
 const CreateReceiptSchema = z.object({
   startingOrderNumber: z.number().min(1, "startingOrderNumber is required!"),
-  currentOrderNumber: z.number().min(1, "currentOrderNumber is required!"),
   logo: z.string().min(1, "logo is required!"),
 });
 
