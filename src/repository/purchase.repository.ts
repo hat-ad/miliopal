@@ -134,6 +134,32 @@ class PurchaseRepository extends BaseRepository {
 
     return purchase as Purchase & { user: User; seller: Seller };
   }
+
+  async getPurchaseIds(filters: {
+    userId?: string;
+    sellerId?: string;
+    organizationId?: string;
+  }): Promise<string[]> {
+    const whereClause: any = {};
+    if (filters.userId) {
+      whereClause.userId = filters.userId;
+    }
+    if (filters.sellerId) {
+      whereClause.sellerId = filters.sellerId;
+    }
+
+    if (filters.organizationId) {
+      whereClause.organizationId = filters.organizationId;
+    }
+
+    const purchases = await this.db.purchase.findMany({
+      where: whereClause,
+      select: { id: true },
+    });
+
+    const purchaseIds = purchases.map((purchase) => purchase.id);
+    return purchaseIds;
+  }
 }
 
 export default PurchaseRepository;

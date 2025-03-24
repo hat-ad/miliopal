@@ -41,3 +41,10 @@ export interface GetPurchaseFilterInterface {
   orderNo?: string;
   organizationId?: string;
 }
+
+export interface GetMonthlyPurchaseFilterInterface {
+  productId: string;
+  userId?: string;
+  sellerId?: string;
+  organizationId?: string;
+}

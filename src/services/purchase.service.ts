@@ -2,8 +2,10 @@ import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreatePurchaseInterface,
+  GetMonthlyPurchaseFilterInterface,
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
+import { MonthNames } from "@/types/common";
 import {
   OrderStatus,
   PaymentMethod,
@@ -155,6 +157,85 @@ class PurchaseService {
       notes: creditNotes,
       comment: purchase.comment,
     });
+  }
+
+  async getMonthlyPurchaseStats(
+    filters: GetMonthlyPurchaseFilterInterface,
+    sortBy: "createdAt" | "status" = "createdAt",
+    sortOrder: "asc" | "desc" = "asc",
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    stats: { year: string; month: string; unit: number; expence: number }[];
+    total: number;
+    totalPages: number;
+  }> {
+    try {
+      // Get purchase IDs
+      const purchaseIds = await this.repositoryFactory
+        .getPurchaseRepository()
+        .getPurchaseIds({
+          userId: filters.userId,
+          sellerId: filters.sellerId,
+          organizationId: filters.organizationId,
+        });
+
+      if (!purchaseIds.length) {
+        throw new Error("No purchase IDs found!");
+      }
+
+      // Fetch products purchased for each purchase ID
+      const productsPurchased = await this.repositoryFactory
+        .getProductsPurchasedRepository()
+        .getPurchasesByProductId({ productId: filters.productId, purchaseIds });
+
+      //grouped data monthwise
+      const groupedData: Record<
+        string,
+        { unit: number; expence: number; monthIndex: number }
+      > = {};
+
+      productsPurchased.forEach((product) => {
+        const date = new Date(product.createdAt);
+        const year = date.getFullYear().toString();
+        const monthIndex = date.getMonth();
+        const month = MonthNames[monthIndex];
+
+        const key = `${year}-${month}`;
+
+        if (!groupedData[key]) {
+          groupedData[key] = { unit: 0, expence: 0, monthIndex };
+        }
+
+        groupedData[key].unit += product.quantity;
+        groupedData[key].expence += product.price * product.quantity;
+      });
+
+      const purchases = Object.entries(groupedData)
+        .map(([key, value]) => {
+          const [year, month] = key.split("-");
+          return {
+            year,
+            month,
+            unit: value.unit,
+            expence: value.expence,
+            monthIndex: value.monthIndex,
+          };
+        })
+        .sort((a, b) => {
+          return a.year === b.year
+            ? a.monthIndex - b.monthIndex
+            : parseInt(a.year) - parseInt(b.year);
+        })
+        .map(({ monthIndex, ...rest }) => rest);
+
+      const total = purchases.length;
+      const totalPages = Math.ceil(total / limit);
+
+      return { stats: purchases, total, totalPages };
+    } catch (error) {
+      throw new Error("Failed to fetch purchase stats");
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 import { ServiceFactory } from "@/factory/service.factory";
 import { bindMethods } from "@/functions/function";
+import { GetMonthlyPurchaseFilterInterface } from "@/interfaces/purchase";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
@@ -192,6 +193,45 @@ export default class PurchaseController {
       return OK(res, purchase, "Purchase created successfully with products");
     } catch (error) {
       return ERROR(res, null, error);
+    }
+  }
+
+  async getMonthlyPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { productId } = req.params;
+      const { id, type } = req.query;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, null, "No Organization ID in token");
+      }
+
+      const filter: GetMonthlyPurchaseFilterInterface = {
+        productId: productId as string,
+      };
+
+      if (type === "BUYER") {
+        filter.userId = id as string;
+      } else if (type === "SELLER") {
+        filter.sellerId = id as string;
+      } else if (type === "ORGANIZATION") {
+        filter.organizationId = organizationId;
+      } else {
+        return ERROR(res, null, "Invalid type. Allowed: BUYER, SELLER, ORG");
+      }
+
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getMonthlyPurchaseStats(filter);
+
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+
+      return OK(res, purchase, "Monthly purchase stats retrieved successfully");
+    } catch (error) {
+      console.error("Error fetching purchase stats:", error);
+      return ERROR(res, null, "Internal Server Error");
     }
   }
 }

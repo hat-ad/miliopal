@@ -30,4 +30,10 @@ router.post(
   PurchaseController.getInstance().creditPurchaseOrder
 );
 
+router.get(
+  "/get-monthly-purchase-stats/:productId",
+  isAuthenticated,
+  PurchaseController.getInstance().getMonthlyPurchaseStats
+);
+
 export default router;

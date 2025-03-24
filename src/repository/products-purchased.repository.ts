@@ -26,6 +26,17 @@ class ProductsPurchasedRepository extends BaseRepository {
       },
     });
   }
+  async getPurchasesByProductId(filter: {
+    productId: string;
+    purchaseIds: string[];
+  }): Promise<ProductsPurchased[]> {
+    return this.db.productsPurchased.findMany({
+      where: {
+        purchaseId: { in: filter.purchaseIds }, // Filter by purchase IDs
+        productId: filter.productId,
+      },
+    });
+  }
 }
 
 export default ProductsPurchasedRepository;
