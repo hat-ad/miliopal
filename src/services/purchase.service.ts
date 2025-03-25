@@ -162,7 +162,7 @@ class PurchaseService {
 
   async getMonthlyPurchaseStats(
     filters: GetMonthlyPurchaseFilterInterface
-  ): Promise<{ year: string; month: string; unit: number; expence: number }[]> {
+  ): Promise<{ year: string; month: string; unit: number; expense: number }[]> {
     try {
       // Get purchase IDs
       const purchaseIds = await this.repositoryFactory
@@ -183,7 +183,7 @@ class PurchaseService {
         .getPurchasesByProductId({ productId: filters.productId, purchaseIds });
 
       //Group data by month & year
-      const groupedData: Record<string, { unit: number; expence: number }> = {};
+      const groupedData: Record<string, { unit: number; expense: number }> = {};
 
       productsPurchased.forEach((product) => {
         const date = new Date(product.createdAt);
@@ -194,11 +194,11 @@ class PurchaseService {
         const key = `${year}-${month}`;
 
         if (!groupedData[key]) {
-          groupedData[key] = { unit: 0, expence: 0 };
+          groupedData[key] = { unit: 0, expense: 0 };
         }
 
         groupedData[key].unit += product.quantity;
-        groupedData[key].expence += product.price * product.quantity;
+        groupedData[key].expense += product.price * product.quantity;
       });
 
       // Step 4: Fill missing between the earliest and latest
@@ -206,7 +206,7 @@ class PurchaseService {
         year: string;
         month: string;
         unit: number;
-        expence: number;
+        expense: number;
       }[] = [];
 
       const allKeys = Object.keys(groupedData);
@@ -231,7 +231,7 @@ class PurchaseService {
             year,
             month,
             unit: groupedData[key]?.unit || 0,
-            expence: groupedData[key]?.expence || 0,
+            expense: groupedData[key]?.expense || 0,
           });
 
           startDate.setMonth(startDate.getMonth() + 1);
