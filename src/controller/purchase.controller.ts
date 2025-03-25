@@ -2,6 +2,7 @@ import { ServiceFactory } from "@/factory/service.factory";
 import { bindMethods } from "@/functions/function";
 import { GetMonthlyPurchaseFilterInterface } from "@/interfaces/purchase";
 import { decrypt } from "@/utils/AES";
+import { getError } from "@/utils/common";
 import { ERROR, OK } from "@/utils/response-helper";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { Request, Response } from "express";
@@ -234,8 +235,7 @@ export default class PurchaseController {
 
       return OK(res, purchase, "Monthly purchase stats retrieved successfully");
     } catch (error) {
-      console.error("Error fetching purchase stats:", error);
-      return ERROR(res, null, "Internal Server Error");
+      return ERROR(res, getError(error), "Internal Server Error");
     }
   }
 }

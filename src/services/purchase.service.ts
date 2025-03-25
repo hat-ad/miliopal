@@ -6,6 +6,7 @@ import {
   GetPurchaseFilterInterface,
 } from "@/interfaces/purchase";
 import { MonthNames } from "@/types/common";
+import { getError } from "@/utils/common";
 import {
   OrderStatus,
   PaymentMethod,
@@ -173,7 +174,7 @@ class PurchaseService {
         });
 
       if (!purchaseIds.length) {
-        throw new Error("No purchase IDs found!");
+        return [];
       }
 
       //Fetch purchased products
@@ -239,7 +240,7 @@ class PurchaseService {
 
       return allStats;
     } catch (error) {
-      throw new Error("Failed to fetch purchase stats");
+      throw new Error(getError(error));
     }
   }
 }
