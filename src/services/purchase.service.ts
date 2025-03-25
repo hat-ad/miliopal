@@ -161,9 +161,6 @@ class PurchaseService {
 
   async getMonthlyPurchaseStats(
     filters: GetMonthlyPurchaseFilterInterface,
-    sortBy: "createdAt" | "status" = "createdAt",
-    sortOrder: "asc" | "desc" = "asc",
-    page: number = 1,
     limit: number = 10
   ): Promise<{
     stats: { year: string; month: string; unit: number; expence: number }[];
@@ -184,16 +181,13 @@ class PurchaseService {
         throw new Error("No purchase IDs found!");
       }
 
-      // Fetch products purchased for each purchase ID
+      //Fetch purchased products
       const productsPurchased = await this.repositoryFactory
         .getProductsPurchasedRepository()
         .getPurchasesByProductId({ productId: filters.productId, purchaseIds });
 
-      //grouped data monthwise
-      const groupedData: Record<
-        string,
-        { unit: number; expence: number; monthIndex: number }
-      > = {};
+      //Group data by month & year
+      const groupedData: Record<string, { unit: number; expence: number }> = {};
 
       productsPurchased.forEach((product) => {
         const date = new Date(product.createdAt);
@@ -204,35 +198,55 @@ class PurchaseService {
         const key = `${year}-${month}`;
 
         if (!groupedData[key]) {
-          groupedData[key] = { unit: 0, expence: 0, monthIndex };
+          groupedData[key] = { unit: 0, expence: 0 };
         }
 
         groupedData[key].unit += product.quantity;
         groupedData[key].expence += product.price * product.quantity;
       });
 
-      const purchases = Object.entries(groupedData)
-        .map(([key, value]) => {
-          const [year, month] = key.split("-");
-          return {
+      // Step 4: Fill missing between the earliest and latest
+      const allStats: {
+        year: string;
+        month: string;
+        unit: number;
+        expence: number;
+      }[] = [];
+
+      const allKeys = Object.keys(groupedData);
+      if (allKeys.length > 0) {
+        const sortedKeys = allKeys.sort();
+        const [startYear, startMonth] = sortedKeys[0].split("-");
+        const [endYear, endMonth] =
+          sortedKeys[sortedKeys.length - 1].split("-");
+
+        let startDate = new Date(
+          parseInt(startYear),
+          MonthNames.indexOf(startMonth)
+        );
+        let endDate = new Date(parseInt(endYear), MonthNames.indexOf(endMonth));
+
+        while (startDate <= endDate) {
+          const year = startDate.getFullYear().toString();
+          const month = MonthNames[startDate.getMonth()];
+          const key = `${year}-${month}`;
+
+          allStats.push({
             year,
             month,
-            unit: value.unit,
-            expence: value.expence,
-            monthIndex: value.monthIndex,
-          };
-        })
-        .sort((a, b) => {
-          return a.year === b.year
-            ? a.monthIndex - b.monthIndex
-            : parseInt(a.year) - parseInt(b.year);
-        })
-        .map(({ monthIndex, ...rest }) => rest);
+            unit: groupedData[key]?.unit || 0,
+            expence: groupedData[key]?.expence || 0,
+          });
 
-      const total = purchases.length;
+          startDate.setMonth(startDate.getMonth() + 1);
+        }
+      }
+
+      //Calculate total pages
+      const total = allStats.length;
       const totalPages = Math.ceil(total / limit);
 
-      return { stats: purchases, total, totalPages };
+      return { stats: allStats, total, totalPages };
     } catch (error) {
       throw new Error("Failed to fetch purchase stats");
     }
