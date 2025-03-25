@@ -143,9 +143,17 @@ export default class PurchaseController {
       const purchaseDetails = await this.serviceFactory
         .getPurchaseService()
         .getReceiptByOrderNo(orderNo, organizationId);
+      const receiptSettings = await this.serviceFactory
+        .getReceiptService()
+        .getReceiptByOrganizationId(organizationId);
+
+      if (!receiptSettings) {
+        return ERROR(res, false, "Receipt not found");
+      }
 
       const decryptedPurchaseDetails = {
         ...purchaseDetails,
+        receiptSettings,
         user: purchaseDetails?.user
           ? {
               ...purchaseDetails.user,

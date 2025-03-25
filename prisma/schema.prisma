@@ -27,14 +27,14 @@ model PrivateSeller {
 
 model Product {
   id                 String               @id @default(uuid())
-  name               String?
+  name               String
   price              Float
   isDeleted          Boolean              @default(false)
   isArchived         Boolean              @default(false)
-  organizationId     String?
+  organizationId     String
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  organization       Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   productsPurchased  ProductsPurchased[]
   ProductForDelivery ProductForDelivery[]
 }
@@ -151,6 +151,8 @@ model Organization {
   city                  String?
   organizationNumber    String                  @unique // Ensure it's unique
   wallet                Float
+  phone                 String?
+  email                 String?
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   users                 User[]
@@ -165,15 +167,15 @@ model Organization {
 }
 
 model Receipt {
-  id                  String        @id @default(uuid())
+  id                  String       @id @default(uuid())
   organizationId      String
   startingOrderNumber Int
   currentOrderNumber  Int
   logo                String?
   receiptText         String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model ProductForDelivery {

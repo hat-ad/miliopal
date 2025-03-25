@@ -1,6 +1,7 @@
 import { ServiceFactory } from "@/factory/service.factory";
 import { bindMethods } from "@/functions/function";
 import { ERROR, OK } from "@/utils/response-helper";
+import { TodoListStatus } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class TodoListController {
@@ -21,12 +22,13 @@ export default class TodoListController {
   async listTodoLists(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
+      const { status } = req.query;
 
       if (!organizationId) return ERROR(res, false, "Organization not found");
 
       let todoList = await this.serviceFactory
         .getTodoListService()
-        .getTodoList(organizationId);
+        .getTodoList(organizationId, status as TodoListStatus);
 
       if (!todoList) return ERROR(res, false, "User not found");
 

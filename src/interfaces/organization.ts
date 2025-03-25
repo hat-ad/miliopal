@@ -5,6 +5,8 @@ export interface UpdateOrganization {
   city?: string;
   address?: string;
   wallet?: number;
+  email?: string;
+  phone?: string;
 }
 
 export interface OrgBalanceWithEmployeesWalletInterface {

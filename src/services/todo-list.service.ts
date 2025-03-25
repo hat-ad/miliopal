@@ -1,5 +1,10 @@
 import { RepositoryFactory } from "@/factory/repository.factory";
-import { TodoList, TodoListEvent, TodoListSettings } from "@prisma/client";
+import {
+  TodoList,
+  TodoListEvent,
+  TodoListSettings,
+  TodoListStatus,
+} from "@prisma/client";
 
 class TodoListService {
   private repositoryFactory: RepositoryFactory;
@@ -48,10 +53,10 @@ class TodoListService {
     return organization;
   }
 
-  async getTodoList(organizationId: string) {
+  async getTodoList(organizationId: string, status?: TodoListStatus) {
     const todoLists = await this.repositoryFactory
       .getTodoListRepository()
-      .listTodoLists(organizationId);
+      .listTodoLists(organizationId, status);
 
     const listWithData: (TodoList & { details: Record<string, unknown> })[] =
       [];

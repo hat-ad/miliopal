@@ -34,6 +34,7 @@ class PurchaseService {
       const purchaseRepo = factory.getPurchaseRepository();
       const todoListRepo = factory.getTodoListRepository();
       const productPurchasedRepo = factory.getProductsPurchasedRepository();
+      const userRepo = factory.getUserRepository();
 
       const receipt = await receiptRepo.getReceiptByOrganizationId(
         data.organizationId
@@ -79,6 +80,13 @@ class PurchaseService {
       ) {
         payload.transactionDate = new Date();
       }
+
+      const user = await userRepo.getUser(data.userId);
+      if (!user) throw new Error("User not found");
+      const newWalletAmount = user.wallet - totalAmount;
+      await userRepo.updateUser(data.userId, {
+        wallet: newWalletAmount,
+      });
 
       const purchase = await purchaseRepo.createPurchase(payload);
 
