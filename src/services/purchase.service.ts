@@ -160,13 +160,8 @@ class PurchaseService {
   }
 
   async getMonthlyPurchaseStats(
-    filters: GetMonthlyPurchaseFilterInterface,
-    limit: number = 10
-  ): Promise<{
-    stats: { year: string; month: string; unit: number; expence: number }[];
-    total: number;
-    totalPages: number;
-  }> {
+    filters: GetMonthlyPurchaseFilterInterface
+  ): Promise<{ year: string; month: string; unit: number; expence: number }[]> {
     try {
       // Get purchase IDs
       const purchaseIds = await this.repositoryFactory
@@ -242,11 +237,7 @@ class PurchaseService {
         }
       }
 
-      //Calculate total pages
-      const total = allStats.length;
-      const totalPages = Math.ceil(total / limit);
-
-      return { stats: allStats, total, totalPages };
+      return allStats;
     } catch (error) {
       throw new Error("Failed to fetch purchase stats");
     }
