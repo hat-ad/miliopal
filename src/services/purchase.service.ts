@@ -113,7 +113,7 @@ class PurchaseService {
 
   async getPurchaseList(
     filters: GetPurchaseFilterInterface,
-    sortBy: "orderNo" | "createdAt" | "status" = "createdAt", // ✅ Fix here
+    sortBy: "orderNo" | "createdAt" | "status" = "createdAt",
     sortOrder: "asc" | "desc" = "desc",
     page: number = 1,
     limit: number = 10

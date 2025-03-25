@@ -40,6 +40,8 @@ export interface GetPurchaseFilterInterface {
   status?: OrderStatus;
   orderNo?: string;
   organizationId?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface GetMonthlyPurchaseFilterInterface {

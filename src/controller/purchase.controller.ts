@@ -62,10 +62,13 @@ export default class PurchaseController {
         sortBy,
         sortOrder,
         page,
+        from,
+        to,
       } = req.query;
       const organizationId = req.payload?.organizationId;
 
       const filters = {
+        organizationId: organizationId as string,
         userId: userId ? (userId as string) : undefined,
         sellerId: sellerId ? (sellerId as string) : undefined,
         paymentMethod: paymentMethod
@@ -76,7 +79,8 @@ export default class PurchaseController {
           : undefined,
         status: status ? (status as OrderStatus) : undefined,
         orderNo: orderNo ? (orderNo as string) : undefined,
-        organizationId: organizationId as string,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

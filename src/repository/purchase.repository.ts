@@ -54,6 +54,10 @@ class PurchaseRepository extends BaseRepository {
       bankAccountNumber: filters.bankAccountNumber || undefined,
       status: filters.status || undefined,
       orderNo: filters.orderNo ? { contains: filters.orderNo } : undefined,
+      createdAt: {
+        ...(filters.from ? { gte: new Date(filters.from) } : {}),
+        ...(filters.to ? { lte: new Date(filters.to) } : {}),
+      },
       organizationId: filters.organizationId
         ? {
             contains: filters.organizationId,
