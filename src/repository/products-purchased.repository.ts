@@ -26,6 +26,15 @@ class ProductsPurchasedRepository extends BaseRepository {
       },
     });
   }
+
+  async getPurchasedProductByPurchaseId(id: string) {
+    return this.db.productsPurchased.findMany({
+      where: {
+        purchaseId: id,
+      },
+    });
+  }
+
   async getPurchasesByProductId(filter: {
     productId: string;
     purchaseIds: string[];
@@ -36,6 +45,20 @@ class ProductsPurchasedRepository extends BaseRepository {
         productId: filter.productId,
       },
     });
+  }
+
+  async getProductsPurchaseStatsByPurchaseIds(
+    purchaseID: string[]
+  ): Promise<{ units: number; expense: number }> {
+    const result = await this.db.productsPurchased.aggregate({
+      _sum: { price: true, quantity: true },
+      where: { purchaseId: { in: purchaseID } },
+    });
+
+    return {
+      units: result._sum.quantity || 0,
+      expense: result._sum.price || 0,
+    };
   }
 }
 

@@ -246,4 +246,34 @@ export default class PurchaseController {
       return ERROR(res, getError(error), "Internal Server Error");
     }
   }
+
+  async getSellerPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getSellerPurchaseStats(id);
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+      return OK(res, purchase, "purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
+
+  async getBuyerPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getBuyerPurchaseStats(id);
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+      return OK(res, purchase, "purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
 }

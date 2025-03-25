@@ -36,4 +36,15 @@ router.get(
   PurchaseController.getInstance().getMonthlyPurchaseStats
 );
 
+router.get(
+  "/get-buyer-purchase-stats/:id",
+  isAuthenticated,
+  PurchaseController.getInstance().getBuyerPurchaseStats
+);
+router.get(
+  "/get-seller-purchase-stats/:id",
+  isAuthenticated,
+  PurchaseController.getInstance().getSellerPurchaseStats
+);
+
 export default router;

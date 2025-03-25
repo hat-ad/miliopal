@@ -32,8 +32,8 @@ class PurchaseService {
       const factory = new RepositoryFactory(tx);
       const receiptRepo = factory.getReceiptRepository();
       const purchaseRepo = factory.getPurchaseRepository();
-      const todoListRepo = factory.getTodoListRepository();
       const productPurchasedRepo = factory.getProductsPurchasedRepository();
+      const todoListRepo = factory.getTodoListRepository();
       const userRepo = factory.getUserRepository();
 
       const receipt = await receiptRepo.getReceiptByOrganizationId(
@@ -149,22 +149,40 @@ class PurchaseService {
     purchaseId: string,
     creditNotes: string
   ): Promise<Purchase | null> {
-    const purchase = await this.getPurchase(purchaseId);
-    if (!purchase) return null;
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const purchaseRepo = factory.getPurchaseRepository();
+      const productPurchasedRepo = factory.getProductsPurchasedRepository();
+      const purchase = await purchaseRepo.getPurchase(purchaseId);
+      if (!purchase) return null;
+      const productsPurchased =
+        await productPurchasedRepo.getPurchasedProductByPurchaseId(purchaseId);
 
-    const newOrderNo = `CD-${purchase.orderNo.split("-")[1]}`;
+      const newOrderNo = `CD-${purchase.orderNo.split("-")[1]}`;
 
-    return this.repositoryFactory.getPurchaseRepository().createPurchase({
-      userId: purchase.userId,
-      sellerId: purchase.sellerId,
-      organizationId: purchase.organizationId,
-      orderNo: newOrderNo,
-      paymentMethod: purchase.paymentMethod,
-      bankAccountNumber: purchase.bankAccountNumber,
-      status: purchase.status,
-      totalAmount: -purchase.totalAmount,
-      notes: creditNotes,
-      comment: purchase.comment,
+      const newPurchase = await purchaseRepo.createPurchase({
+        userId: purchase.userId,
+        sellerId: purchase.sellerId,
+        organizationId: purchase.organizationId,
+        orderNo: newOrderNo,
+        paymentMethod: purchase.paymentMethod,
+        bankAccountNumber: purchase.bankAccountNumber,
+        status: purchase.status,
+        totalAmount: -purchase.totalAmount,
+        notes: creditNotes,
+        comment: purchase.comment,
+      });
+
+      const products = productsPurchased.map((item) => ({
+        productId: item.productId,
+        price: item.price,
+        quantity: item.quantity,
+        purchaseId: newPurchase.id,
+      }));
+
+      await productPurchasedRepo.bulkInsertProductsPurchased(products);
+
+      return newPurchase;
     });
   }
 
@@ -250,6 +268,32 @@ class PurchaseService {
     } catch (error) {
       throw new Error(getError(error));
     }
+  }
+
+  async getBuyerPurchaseStats(id: string): Promise<{
+    units: number;
+    expense: number;
+  }> {
+    const purchaseIds = await this.repositoryFactory
+      .getPurchaseRepository()
+      .getPurchaseIds({ userId: id });
+
+    return this.repositoryFactory
+      .getProductsPurchasedRepository()
+      .getProductsPurchaseStatsByPurchaseIds(purchaseIds);
+  }
+
+  async getSellerPurchaseStats(id: string): Promise<{
+    units: number;
+    expense: number;
+  }> {
+    const purchaseIds = await this.repositoryFactory
+      .getPurchaseRepository()
+      .getPurchaseIds({ sellerId: id });
+
+    return this.repositoryFactory
+      .getProductsPurchasedRepository()
+      .getProductsPurchaseStatsByPurchaseIds(purchaseIds);
   }
 }
 

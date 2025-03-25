@@ -4,6 +4,7 @@ import { bindMethods, generateOTP } from "@/functions/function";
 import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
+import { Role } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class UserController {
@@ -136,8 +137,13 @@ export default class UserController {
 
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.payload?.id;
+      let userId = req.payload?.id;
+      const { id } = req.query;
       const { name, phone } = req.body;
+
+      if (id) {
+        userId = id as string;
+      }
 
       if (name) {
         req.body.name = encrypt(name);
@@ -154,6 +160,13 @@ export default class UserController {
 
       if (!existingUser) {
         throw new Error("User not found");
+      }
+
+      if (
+        existingUser?.role !== Role.ADMIN &&
+        existingUser?.role !== Role.SUPERADMIN
+      ) {
+        throw new Error("You are not authorized to update this user");
       }
 
       const user = await this.serviceFactory

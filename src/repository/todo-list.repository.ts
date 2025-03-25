@@ -408,8 +408,8 @@ class PurchaseWithBankTransferHandler {
 }
 
 class TodoListRepository extends BaseRepository {
-  constructor() {
-    super();
+  constructor(db?: Prisma.TransactionClient) {
+    super(db);
     bindMethods(this);
   }
   registerEvent(
