@@ -28,9 +28,18 @@ class PurchaseRepository extends BaseRepository {
     return purchase;
   }
 
-  async getPurchase(id: string): Promise<Purchase | null> {
+  async getPurchase(
+    id: string,
+    options?: { include: { user?: boolean; seller?: boolean } }
+  ): Promise<
+    (Purchase & { user?: User | null; seller?: Seller | null }) | null
+  > {
     return this.db.purchase.findUnique({
       where: { id },
+      include: {
+        user: options?.include?.user || false,
+        seller: options?.include?.seller || false,
+      },
     });
   }
 

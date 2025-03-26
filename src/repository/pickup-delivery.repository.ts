@@ -15,9 +15,22 @@ class PickupDeliveryRepository extends BaseRepository {
     });
   }
 
-  async getPickupDelivery(id: string): Promise<PickUpDelivery | null> {
+  async getPickupDelivery(
+    id: string,
+    options?: { include: { user?: boolean; seller?: boolean } }
+  ): Promise<
+    | (PickUpDelivery & {
+        user?: User | null;
+        seller?: Seller | null;
+      })
+    | null
+  > {
     return this.db.pickUpDelivery.findUnique({
       where: { id },
+      include: {
+        user: options?.include?.user || false,
+        seller: options?.include?.seller || false,
+      },
     });
   }
 

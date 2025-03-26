@@ -50,7 +50,7 @@ class ReconciliationHistoryService {
     page: number = 1,
     limit: number = 10
   ): Promise<{
-    reconciliations: ReconciliationHistory[];
+    reconciliations: (ReconciliationHistory & { user?: User | null })[];
     total: number;
     totalPages: number;
   }> {

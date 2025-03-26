@@ -1,4 +1,5 @@
 import { RepositoryFactory } from "@/factory/repository.factory";
+import { decrypt } from "@/utils/AES";
 import {
   TodoList,
   TodoListEvent,
@@ -18,9 +19,44 @@ class TodoListService {
       const meta = todoList.meta as Record<string, string>;
       const pickupOrder = await this.repositoryFactory
         .getPickUpDeliveryRepository()
-        .getPickupDelivery(meta.pickUpOrderId);
+        .getPickupDelivery(meta.pickUpOrderId, {
+          include: { user: true, seller: true },
+        });
 
-      return pickupOrder;
+      if (!pickupOrder) {
+        return null;
+      }
+
+      const decryptedUser = pickupOrder.user
+        ? {
+            ...pickupOrder.user,
+            email: pickupOrder.user.email
+              ? decrypt(pickupOrder.user.email)
+              : null,
+            name: pickupOrder.user.name ? decrypt(pickupOrder.user.name) : null,
+            phone: pickupOrder.user.phone
+              ? decrypt(pickupOrder.user.phone)
+              : null,
+          }
+        : null;
+
+      const decryptedSeller = pickupOrder.seller
+        ? {
+            ...pickupOrder.seller,
+            email: pickupOrder.seller.email
+              ? decrypt(pickupOrder.seller.email)
+              : null,
+            phone: pickupOrder.seller.phone
+              ? decrypt(pickupOrder.seller.phone)
+              : null,
+          }
+        : null;
+
+      return {
+        ...pickupOrder,
+        user: decryptedUser,
+        seller: decryptedSeller,
+      };
     }
   }
 
@@ -31,7 +67,18 @@ class TodoListService {
         .getUserRepository()
         .getUser(meta.userId);
 
-      return user;
+      if (!user) {
+        return null;
+      }
+
+      const decryptedUser = {
+        ...user,
+        email: user.email ? decrypt(user.email) : null,
+        name: user.name ? decrypt(user.name) : null,
+        phone: user.phone ? decrypt(user.phone) : null,
+      };
+
+      return decryptedUser;
     }
   }
 
@@ -42,7 +89,36 @@ class TodoListService {
         .getPurchaseRepository()
         .getPurchase(meta.purchaseId);
 
-      return purchase;
+      if (!purchase) {
+        return null;
+      }
+
+      const decryptedPurchaseDetails = {
+        ...purchase,
+        user: purchase?.user
+          ? {
+              ...purchase.user,
+              email: purchase.user.email ? decrypt(purchase.user.email) : null,
+
+              name: purchase.user.name ? decrypt(purchase.user.name) : null,
+
+              phone: purchase.user.phone ? decrypt(purchase.user.phone) : null,
+            }
+          : null,
+        seller: purchase?.seller
+          ? {
+              ...purchase.seller,
+              email: purchase.seller.email
+                ? decrypt(purchase.seller.email)
+                : null,
+              phone: purchase.seller.phone
+                ? decrypt(purchase.seller.phone)
+                : null,
+            }
+          : null,
+      };
+
+      return decryptedPurchaseDetails;
     }
   }
   private async getCompanyCashBalanceMetaDetails(todoList: TodoList) {

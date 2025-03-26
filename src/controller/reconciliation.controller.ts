@@ -1,6 +1,7 @@
 import { ServiceFactory } from "@/factory/service.factory";
 import { bindMethods } from "@/functions/function";
 import { FilterReconciliationListInterface } from "@/interfaces/reconciliation";
+import { decrypt } from "@/utils/AES";
 
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
@@ -63,7 +64,35 @@ export default class ReconciliationHistoryController {
         .getReconciliationHistoryService()
         .getReconciliationList(filters, pageNumber);
 
-      return OK(res, reconciliation, "Reconciliation fetched successfully");
+      const decryptedReconciliations = reconciliation.reconciliations.map(
+        (reconciliation) => {
+          if (reconciliation.user) {
+            const user = {
+              ...reconciliation.user,
+              email: reconciliation.user.email
+                ? decrypt(reconciliation.user.email)
+                : null,
+              name: reconciliation.user.name
+                ? decrypt(reconciliation.user.name)
+                : null,
+              phone: reconciliation.user.phone
+                ? decrypt(reconciliation.user.phone)
+                : null,
+            };
+            return {
+              ...reconciliation,
+              user,
+            };
+          }
+          return reconciliation;
+        }
+      );
+
+      return OK(
+        res,
+        { ...reconciliation, reconciliations: decryptedReconciliations },
+        "Reconciliation fetched successfully"
+      );
     } catch (error) {
       return ERROR(res, false, error);
     }
