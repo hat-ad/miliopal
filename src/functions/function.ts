@@ -104,6 +104,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   const doc = new PDFDocument({ size: "A4", margin: 50 });
   const stream = fs.createWriteStream(outputPath);
   doc.pipe(stream);
+  const logo = orderData?.receiptSettings?.logo || "";
 
   // Extract necessary data
   const {
@@ -119,10 +120,11 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
 
   // Header Section
   doc.fontSize(20).font("Helvetica-Bold").text("Order Confirmation", 50, 50);
-  doc
-    .fontSize(16)
-    .font("Helvetica-Bold")
-    .text("Miljøpall", 450, 50, { align: "right" });
+  doc.image(logo, 450, 40, { width: 100 });
+  // doc
+  //   .fontSize(16)
+  //   .font("Helvetica-Bold")
+  //   .text("Miljøpall", 450, 50, { align: "right" });
 
   // Order details
   doc.fontSize(10).font("Helvetica-Bold").text("Order No:", 50, 90);

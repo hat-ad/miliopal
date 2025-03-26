@@ -300,7 +300,7 @@ export default class PurchaseController {
         return ERROR(res, null, "No purchase data found");
       }
 
-      if (purchaseDetails.seller.type === SellerType.PRIVATE) {
+      if (purchaseDetails.seller.type === SellerType.BUSINESS) {
         const receiptSettings = await this.serviceFactory
           .getReceiptService()
           .getReceiptByOrganizationId(organizationId);
