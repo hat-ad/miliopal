@@ -10,7 +10,6 @@ import { getError } from "@/utils/common";
 import {
   OrderStatus,
   PaymentMethod,
-  ProductsPurchased,
   Purchase,
   Seller,
   TodoListEvent,
@@ -25,8 +24,9 @@ class PurchaseService {
   }
 
   async createPurchase(data: CreatePurchaseInterface): Promise<{
-    purchase: Purchase;
-    poducts_purchased: ProductsPurchased[];
+    purchase:
+      | (Purchase & { user?: User | null; seller?: Seller | null })
+      | null;
   } | null> {
     return PrismaService.getInstance().$transaction(
       async (tx) => {
@@ -96,9 +96,7 @@ class PurchaseService {
           purchaseId: purchase.id,
         }));
 
-        const products = await productPurchasedRepo.bulkInsertProductsPurchased(
-          productsData
-        );
+        await productPurchasedRepo.bulkInsertProductsPurchased(productsData);
 
         todoListRepo.registerEvent(
           TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
