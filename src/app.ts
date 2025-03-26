@@ -11,7 +11,6 @@ config(); // Loads environment variables from .env file
 const app: Express = express();
 
 // DATABASE CONNECTION
-// import "./src/NOSQL/database";
 
 app.use(helmet());
 app.use(cors());

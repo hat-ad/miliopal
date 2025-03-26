@@ -67,6 +67,9 @@ export default class UserController {
       const { email, name } = req.body;
       const organizationId = req.payload?.organizationId;
 
+      if (!organizationId)
+        return ERROR(res, false, "Unauthorized: Organization ID is missing");
+
       const encryptedEmail = encrypt(email);
       const encryptedName = encrypt(name);
 
@@ -83,6 +86,11 @@ export default class UserController {
       });
 
       if (!user) return ERROR(res, false, "user not created");
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationById(organizationId);
+
+      if (!organization) return ERROR(res, false, "Organization not found");
 
       const responseUser = {
         ...user,
@@ -91,7 +99,12 @@ export default class UserController {
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
-      await sendWelcomeMail(user.id, email, responseUser.name || "");
+      await sendWelcomeMail(
+        user.id,
+        email,
+        responseUser.name || "",
+        organization
+      );
 
       return OK(res, responseUser, "User invited successfully");
     } catch (error) {
@@ -331,11 +344,19 @@ export default class UserController {
         return ERROR(res, false, "User not found");
       }
 
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationById(user.organizationId);
+
+      if (!organization) {
+        return ERROR(res, false, "Organization not found");
+      }
+
       await this.serviceFactory
         .getUserService()
         .sendResetPasswordEmail(user.id, otp, otpExpiry);
 
-      await sendResetPasswordMail(user.id, email, otp);
+      await sendResetPasswordMail(user.id, email, otp, organization);
       return OK(res, null, "Email sent successfully");
     } catch (error) {
       return ERROR(res, false, error);

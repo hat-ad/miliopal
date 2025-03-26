@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ordrebekreftelse</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+        color: #000;
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff;
+      }
+      .container {
+        max-width: 600px;
+        background-color: #eef1f5;
+        margin: 40px auto;
+        padding: 20px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      p {
+        font-size: 14px;
+        margin: 10px 0;
+      }
+      .company-info {
+        margin-top: 20px;
+        font-size: 16px;
+      }
+      .company-info a {
+        color: #0066cc;
+        text-decoration: none;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 14px;
+        color: #444;
+      }
+      .footer strong {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Ordrebekreftelse</h1>
+      <p>Hei,</p>
+      <p>
+        Vedlagt finner du ordrebekreftelse for kjøp av paller. Vennligst
+        fakturer oss i henhold til vedlegget.
+      </p>
+      <p>Ta gjerne kontakt dersom du har spørsmål.</p>
+      <p>Mvh,</p>
+      <div class="company-info">
+        <p><strong><%= companyName %></strong></p>
+        <p><%= organizationNumber %></p>
+        <p><a href="mailto:<%= companyEmail %>"><%= companyEmail %></a></p>
+        <p><a href="tel:<%= companyPhone %>"><%= companyPhone %></a></p>
+      </div>
+      <div class="footer">
+        <p>
+          Dette er en automatisk e-post fra <%= companyName %>.
+          <strong
+            >Denne innboksen blir ikke sjekket, vennligst ikke svar på denne
+            e-posten.</strong
+          >
+          Hvis du trenger hjelp, ta kontakt med <%= companyEmail %> direkte.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

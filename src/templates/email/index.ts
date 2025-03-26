@@ -1,10 +1,12 @@
 import { sendMail, stringToHex } from "@/functions/function";
+import { Organization } from "@prisma/client";
 import ejs from "ejs";
 
 export const sendWelcomeMail = async (
   userID: string,
   email: string,
-  name: string
+  name: string,
+  organization: Organization
 ) => {
   const body = {
     userID,
@@ -19,6 +21,11 @@ export const sendWelcomeMail = async (
   const templateBody = {
     name,
     link,
+
+    companyName: organization.companyName,
+    companyPhone: organization.phone,
+    companyEmail: organization.email,
+    organizationNumber: organization.organizationNumber,
   };
 
   const data = await ejs.renderFile(
@@ -37,7 +44,8 @@ export const sendWelcomeMail = async (
 export const sendResetPasswordMail = async (
   userID: string,
   email: string,
-  otp: string
+  otp: string,
+  organization: Organization
 ) => {
   const body = {
     userID,
@@ -51,6 +59,10 @@ export const sendResetPasswordMail = async (
 
   const templateBody = {
     link,
+    companyName: organization.companyName,
+    companyPhone: organization.phone,
+    companyEmail: organization.email,
+    organizationNumber: organization.organizationNumber,
   };
 
   const data = await ejs.renderFile(
@@ -65,4 +77,38 @@ export const sendResetPasswordMail = async (
   };
 
   await sendMail(response.to, response.subject, "", response.body);
+};
+
+export const sendPurchaseMail = async (
+  sellerEmail: string,
+  organization: Organization,
+  orderConfirmationPdfPath: string
+) => {
+  const templateBody = {
+    companyName: organization.companyName,
+    companyPhone: organization.phone,
+    companyEmail: organization.email,
+    organizationNumber: organization.organizationNumber,
+  };
+
+  const data = await ejs.renderFile(
+    `${__dirname}/ejs/order-confirmation.ejs`,
+    templateBody
+  );
+
+  const response = {
+    to: sellerEmail,
+    body: data,
+    subject: `Order Confirmation!`,
+  };
+
+  const attachments = [
+    {
+      filename: "order_confirmation.pdf",
+      path: orderConfirmationPdfPath,
+      contentType: "application/pdf",
+    },
+  ];
+
+  await sendMail(response.to, response.subject, "", response.body, attachments);
 };

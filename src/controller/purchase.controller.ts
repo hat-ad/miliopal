@@ -1,10 +1,16 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import { bindMethods } from "@/functions/function";
+import {
+  bindMethods,
+  generatePurchasePDFForB2B,
+  removeFile,
+} from "@/functions/function";
 import { GetMonthlyPurchaseFilterInterface } from "@/interfaces/purchase";
+import { sendPurchaseMail } from "@/templates/email";
+import { IPurchase } from "@/types/purchase";
 import { decrypt } from "@/utils/AES";
 import { getError } from "@/utils/common";
 import { ERROR, OK } from "@/utils/response-helper";
-import { OrderStatus, PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod, SellerType } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class PurchaseController {
@@ -272,6 +278,81 @@ export default class PurchaseController {
         return ERROR(res, null, "No purchase data found");
       }
       return OK(res, purchase, "purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
+
+  async sendReceipt(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderNo } = req.params;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, null, "No Organization ID found");
+      }
+
+      const purchaseDetails = await this.serviceFactory
+        .getPurchaseService()
+        .getReceiptByOrderNo(orderNo, organizationId);
+
+      if (!purchaseDetails) {
+        return ERROR(res, null, "No purchase data found");
+      }
+
+      if (purchaseDetails.seller.type === SellerType.PRIVATE) {
+        const receiptSettings = await this.serviceFactory
+          .getReceiptService()
+          .getReceiptByOrganizationId(organizationId);
+
+        if (!receiptSettings) {
+          return ERROR(res, false, "Receipt not found");
+        }
+
+        const decryptedPurchaseDetails = {
+          ...purchaseDetails,
+          receiptSettings,
+          user: purchaseDetails?.user
+            ? {
+                ...purchaseDetails.user,
+                email: purchaseDetails.user.email
+                  ? decrypt(purchaseDetails.user.email)
+                  : null,
+
+                name: purchaseDetails.user.name
+                  ? decrypt(purchaseDetails.user.name)
+                  : null,
+
+                phone: purchaseDetails.user.phone
+                  ? decrypt(purchaseDetails.user.phone)
+                  : null,
+              }
+            : null,
+          seller: purchaseDetails?.seller
+            ? {
+                ...purchaseDetails.seller,
+                email: purchaseDetails.seller.email
+                  ? decrypt(purchaseDetails.seller.email)
+                  : null,
+                phone: purchaseDetails.seller.phone
+                  ? decrypt(purchaseDetails.seller.phone)
+                  : null,
+              }
+            : null,
+        } as IPurchase;
+        const pathStored = await generatePurchasePDFForB2B(
+          decryptedPurchaseDetails
+        );
+
+        await sendPurchaseMail(
+          decryptedPurchaseDetails.seller?.email || "",
+          decryptedPurchaseDetails.organization,
+          pathStored
+        );
+        removeFile(pathStored);
+      }
+
+      return OK(res, true, "Receipt sent successfully");
     } catch (error) {
       return ERROR(res, getError(error), "Internal Server Error");
     }

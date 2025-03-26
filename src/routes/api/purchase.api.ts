@@ -46,5 +46,10 @@ router.get(
   isAuthenticated,
   PurchaseController.getInstance().getSellerPurchaseStats
 );
+router.get(
+  "/send-purchase-receipt/:orderNo",
+  isAuthenticated,
+  PurchaseController.getInstance().sendReceipt
+);
 
 export default router;

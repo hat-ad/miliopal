@@ -28,92 +28,97 @@ class PurchaseService {
     purchase: Purchase;
     poducts_purchased: ProductsPurchased[];
   } | null> {
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
-      const receiptRepo = factory.getReceiptRepository();
-      const purchaseRepo = factory.getPurchaseRepository();
-      const productPurchasedRepo = factory.getProductsPurchasedRepository();
-      const todoListRepo = factory.getTodoListRepository();
-      const userRepo = factory.getUserRepository();
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const receiptRepo = factory.getReceiptRepository();
+        const purchaseRepo = factory.getPurchaseRepository();
+        const productPurchasedRepo = factory.getProductsPurchasedRepository();
+        const todoListRepo = factory.getTodoListRepository();
+        const userRepo = factory.getUserRepository();
 
-      const receipt = await receiptRepo.getReceiptByOrganizationId(
-        data.organizationId
-      );
-
-      if (!receipt?.startingOrderNumber || !receipt?.currentOrderNumber) {
-        throw new Error(
-          "Starting order number / Current order number is missing. Please set before purchasing."
+        const receipt = await receiptRepo.getReceiptByOrganizationId(
+          data.organizationId
         );
-      }
 
-      const totalAmount = data.products
-        .map(
-          (product: { price: number; quantity: number }) =>
-            product.price * product.quantity
-        )
-        .reduce((sum: number, value: number) => sum + value, 0);
+        if (!receipt?.startingOrderNumber || !receipt?.currentOrderNumber) {
+          throw new Error(
+            "Starting order number / Current order number is missing. Please set before purchasing."
+          );
+        }
 
-      let orderNo = "";
+        const totalAmount = data.products
+          .map(
+            (product: { price: number; quantity: number }) =>
+              product.price * product.quantity
+          )
+          .reduce((sum: number, value: number) => sum + value, 0);
 
-      // it means the order hasnt' been initiated
-      if (receipt.currentOrderNumber === -1) {
-        orderNo = `ORD-${receipt.startingOrderNumber}`;
-        await receiptRepo.updateReceiptInternal(receipt.id, {
-          currentOrderNumber: receipt.startingOrderNumber,
+        let orderNo = "";
+
+        // it means the order hasnt' been initiated
+        if (receipt.currentOrderNumber === -1) {
+          orderNo = `ORD-${receipt.startingOrderNumber}`;
+          await receiptRepo.updateReceiptInternal(receipt.id, {
+            currentOrderNumber: receipt.startingOrderNumber,
+          });
+        } else {
+          orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
+          await receiptRepo.updateReceiptInternal(receipt.id, {
+            currentOrderNumber: receipt.currentOrderNumber + 1,
+          });
+        }
+
+        data.orderNo = orderNo;
+        data.totalAmount = totalAmount;
+
+        const payload: CreatePurchaseInterface & {
+          transactionDate: Date | null;
+        } = { ...data, transactionDate: null };
+        if (
+          data.paymentMethod === PaymentMethod.CASH &&
+          data.status === OrderStatus.PAID
+        ) {
+          payload.transactionDate = new Date();
+        }
+
+        const user = await userRepo.getUser(data.userId);
+        if (!user) throw new Error("User not found");
+        const newWalletAmount = user.wallet - totalAmount;
+        await userRepo.updateUser(data.userId, {
+          wallet: newWalletAmount,
         });
-      } else {
-        orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
-        await receiptRepo.updateReceiptInternal(receipt.id, {
-          currentOrderNumber: receipt.currentOrderNumber + 1,
-        });
+
+        const purchase = await purchaseRepo.createPurchase(payload);
+
+        const productsData = data.products.map((product) => ({
+          ...product,
+          purchaseId: purchase.id,
+        }));
+
+        const products = await productPurchasedRepo.bulkInsertProductsPurchased(
+          productsData
+        );
+
+        todoListRepo.registerEvent(
+          TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+          { organizationId: data.organizationId, purchaseId: purchase.id }
+        );
+        todoListRepo.registerEvent(
+          TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
+          { organizationId: data.organizationId, userId: data.userId }
+        );
+        todoListRepo.registerEvent(
+          TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
+          { organizationId: data.organizationId, userId: data.userId }
+        );
+
+        return { purchase, poducts_purchased: products };
+      },
+      {
+        timeout: 30000,
       }
-
-      data.orderNo = orderNo;
-      data.totalAmount = totalAmount;
-
-      const payload: CreatePurchaseInterface & {
-        transactionDate: Date | null;
-      } = { ...data, transactionDate: null };
-      if (
-        data.paymentMethod === PaymentMethod.CASH &&
-        data.status === OrderStatus.PAID
-      ) {
-        payload.transactionDate = new Date();
-      }
-
-      const user = await userRepo.getUser(data.userId);
-      if (!user) throw new Error("User not found");
-      const newWalletAmount = user.wallet - totalAmount;
-      await userRepo.updateUser(data.userId, {
-        wallet: newWalletAmount,
-      });
-
-      const purchase = await purchaseRepo.createPurchase(payload);
-
-      const productsData = data.products.map((product) => ({
-        ...product,
-        purchaseId: purchase.id,
-      }));
-
-      const products = await productPurchasedRepo.bulkInsertProductsPurchased(
-        productsData
-      );
-
-      todoListRepo.registerEvent(
-        TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
-        { organizationId: data.organizationId, purchaseId: purchase.id }
-      );
-      todoListRepo.registerEvent(
-        TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
-        { organizationId: data.organizationId, userId: data.userId }
-      );
-      todoListRepo.registerEvent(
-        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
-        { organizationId: data.organizationId, userId: data.userId }
-      );
-
-      return { purchase, poducts_purchased: products };
-    });
+    );
   }
 
   async getPurchase(id: string): Promise<Purchase | null> {

@@ -4,9 +4,7 @@ import { z, ZodError } from "zod";
 
 const CreateReconciliationSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
-  expectedAmount: z
-    .number()
-    .min(0, "Expected amount must be a positive number"),
+  expectedAmount: z.number(),
   amountCounted: z.number().min(0, "Amount counted must be a positive number"),
   comment: z.string().optional(),
   reconciliationStartTime: z.string().min(6, "Invalid date format"),
