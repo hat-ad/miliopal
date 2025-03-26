@@ -71,6 +71,7 @@ export default class PurchaseController {
         page,
         from,
         to,
+        sellerType,
       } = req.query;
       const organizationId = req.payload?.organizationId;
 
@@ -88,6 +89,7 @@ export default class PurchaseController {
         orderNo: orderNo ? (orderNo as string) : undefined,
         from: from ? new Date(from as string).toISOString() : undefined,
         to: to ? new Date(to as string).toISOString() : undefined,
+        sellerType: sellerType ? (sellerType as SellerType) : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod, SellerType } from "@prisma/client";
 
 export interface CreatePurchaseInterface {
   userId: string;
@@ -42,6 +42,7 @@ export interface GetPurchaseFilterInterface {
   organizationId?: string;
   from?: string;
   to?: string;
+  sellerType?: SellerType;
 }
 
 export interface GetMonthlyPurchaseFilterInterface {

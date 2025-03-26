@@ -65,6 +65,11 @@ class PurchaseRepository extends BaseRepository {
           }
         : undefined,
     };
+    if (filters.sellerType) {
+      whereCondition.seller = {
+        type: filters.sellerType,
+      };
+    }
 
     const total = await this.db.purchase.count({ where: whereCondition });
 
@@ -76,6 +81,7 @@ class PurchaseRepository extends BaseRepository {
       include: {
         user: true,
         seller: {
+          // where:{},
           include: {
             privateSeller: true,
             businessSeller: true,
