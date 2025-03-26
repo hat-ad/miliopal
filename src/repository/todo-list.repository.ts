@@ -1,7 +1,5 @@
-import PrismaService from "@/db/prisma-service";
 import { bindMethods } from "@/functions/function";
 import {
-  PaymentMethod,
   Prisma,
   PrismaClient,
   TodoListEvent,
@@ -331,27 +329,6 @@ class PurchaseWithBankTransferHandler {
     };
   }
 
-  private async isEventCreationAllowed(purchaseId: string) {
-    const purchase = await this.db.purchase.findUnique({
-      where: {
-        id: purchaseId,
-      },
-      select: {
-        paymentMethod: true,
-      },
-    });
-
-    if (!purchase) {
-      return {
-        isAllowed: false,
-      };
-    }
-
-    return {
-      isAllowed: purchase.paymentMethod === PaymentMethod.BANK_TRANSFER,
-    };
-  }
-
   private async updatePaymentDate(purchaseId: string, paymentDate: string) {
     return await this.db.purchase.update({
       where: {
@@ -378,23 +355,24 @@ class PurchaseWithBankTransferHandler {
     organizationId: string,
     purchaseId: string
   ) {
-    await this.db.todoList.create({
-      data: {
-        organizationId,
-        event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
-        meta: await this.getPurchaseWithBankTransferEventMeta(purchaseId),
-      },
-    });
+    try {
+      await this.db.todoList.create({
+        data: {
+          organizationId,
+          event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+          meta: await this.getPurchaseWithBankTransferEventMeta(purchaseId),
+        },
+      });
+    } catch (error) {
+      console.log("🚀 ~ PurchaseWithBankTransferHandler ~ error:", error);
+    }
   }
 
   async handleCreatePurchaseWithBankTransferEvent(
     organizationId: string,
     purchaseId: string
   ) {
-    const { isAllowed } = await this.isEventCreationAllowed(purchaseId);
-    if (isAllowed) {
-      this.createPurchaseWithBankTransferEvent(organizationId, purchaseId);
-    }
+    this.createPurchaseWithBankTransferEvent(organizationId, purchaseId);
   }
 
   async handleCompletePurchaseWithBankTransferEvent(
@@ -412,7 +390,7 @@ class TodoListRepository extends BaseRepository {
     super();
     bindMethods(this);
   }
-  registerEvent(
+  async registerEvent(
     event: TodoListEvent,
     payload: {
       userId?: string;
@@ -426,7 +404,7 @@ class TodoListRepository extends BaseRepository {
         const eventHandlerCompany = new CompanyCashBalanceEventsHandler(
           this.db
         );
-        eventHandlerCompany.handleCompanyCashBalanceBelowThresholdEvent(
+        await eventHandlerCompany.handleCompanyCashBalanceBelowThresholdEvent(
           payload.organizationId
         );
         break;
@@ -435,7 +413,7 @@ class TodoListRepository extends BaseRepository {
         const eventHandlerIndividual1 = new IndividualCashBalanceEventsHandler(
           this.db
         );
-        eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEvent(
+        await eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEvent(
           payload.userId || "",
           payload.organizationId
         );
@@ -445,14 +423,14 @@ class TodoListRepository extends BaseRepository {
         const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
           this.db
         );
-        eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEvent(
+        await eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEvent(
           payload.userId || "",
           payload.organizationId
         );
         break;
       case TodoListEvent.ORDER_PICKUP_INITIATED:
         const orderPickupHandler = new OrderPickUpEventsHandler(this.db);
-        orderPickupHandler.handleCreateOrderPickupEvent(
+        await orderPickupHandler.handleCreateOrderPickupEvent(
           payload.organizationId,
           payload.pickUpOrderId || ""
         );
@@ -460,7 +438,7 @@ class TodoListRepository extends BaseRepository {
       case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
         const purchaseWithBankTransferHandler =
           new PurchaseWithBankTransferHandler(this.db);
-        purchaseWithBankTransferHandler.handleCreatePurchaseWithBankTransferEvent(
+        await purchaseWithBankTransferHandler.handleCreatePurchaseWithBankTransferEvent(
           payload.organizationId,
           payload.purchaseId || ""
         );
@@ -510,18 +488,16 @@ class TodoListRepository extends BaseRepository {
         );
         break;
       case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
-        PrismaService.getInstance().$transaction(async (tx) => {
-          if (!payload.paymentDate || !payload.purchaseId) {
-            throw new Error("Payment date and purchase id are required");
-          }
-          const purchaseWithBankTransferHandler =
-            new PurchaseWithBankTransferHandler(tx);
-          await purchaseWithBankTransferHandler.handleCompletePurchaseWithBankTransferEvent(
-            payload.todoListId,
-            payload.purchaseId,
-            payload.paymentDate
-          );
-        });
+        if (!payload.paymentDate || !payload.purchaseId) {
+          throw new Error("Payment date and purchase id are required");
+        }
+        const purchaseWithBankTransferHandler =
+          new PurchaseWithBankTransferHandler(this.db);
+        await purchaseWithBankTransferHandler.handleCompletePurchaseWithBankTransferEvent(
+          payload.todoListId,
+          payload.purchaseId,
+          payload.paymentDate
+        );
         break;
       default:
         break;

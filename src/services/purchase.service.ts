@@ -80,14 +80,13 @@ class PurchaseService {
           data.status === OrderStatus.PAID
         ) {
           payload.transactionDate = new Date();
+          const user = await userRepo.getUser(data.userId);
+          if (!user) throw new Error("User not found");
+          const newWalletAmount = user.wallet - totalAmount;
+          await userRepo.updateUser(data.userId, {
+            wallet: newWalletAmount,
+          });
         }
-
-        const user = await userRepo.getUser(data.userId);
-        if (!user) throw new Error("User not found");
-        const newWalletAmount = user.wallet - totalAmount;
-        await userRepo.updateUser(data.userId, {
-          wallet: newWalletAmount,
-        });
 
         const purchase = await purchaseRepo.createPurchase(payload);
 
@@ -98,20 +97,23 @@ class PurchaseService {
 
         await productPurchasedRepo.bulkInsertProductsPurchased(productsData);
 
-        todoListRepo.registerEvent(
-          TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
-          { organizationId: data.organizationId, purchaseId: purchase.id }
-        );
-        todoListRepo.registerEvent(
+        await todoListRepo.registerEvent(
           TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
           { organizationId: data.organizationId, userId: data.userId }
         );
-        todoListRepo.registerEvent(
+        await todoListRepo.registerEvent(
           TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
           { organizationId: data.organizationId, userId: data.userId }
         );
 
         const purchasedItem = await purchaseRepo.getPurchase(purchase.id);
+
+        if (purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER) {
+          await todoListRepo.registerEvent(
+            TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+            { organizationId: data.organizationId, purchaseId: purchase.id }
+          );
+        }
 
         return { purchase: purchasedItem };
       },
