@@ -24,8 +24,8 @@ export const validateCompleteTodoListSchema = (
       event: req.body.event,
     };
 
-    if (payload.paymentDate) payload.paymentDate = req.body.paymentDate;
-    if (payload.purchaseId) payload.purchaseId = req.body.purchaseId;
+    if (req.body.paymentDate) payload.paymentDate = req.body.paymentDate;
+    if (req.body.purchaseId) payload.purchaseId = req.body.purchaseId;
 
     req.body = payload;
     CompleteTodoListSchema.parse(req.body);
