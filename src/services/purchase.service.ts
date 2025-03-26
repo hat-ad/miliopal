@@ -113,7 +113,9 @@ class PurchaseService {
           { organizationId: data.organizationId, userId: data.userId }
         );
 
-        return { purchase, poducts_purchased: products };
+        const purchasedItem = await purchaseRepo.getPurchase(purchase.id);
+
+        return { purchase: purchasedItem };
       },
       {
         timeout: 30000,
