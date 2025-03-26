@@ -208,7 +208,13 @@ export default class UserController {
         const user = await this.serviceFactory
           .getUserService()
           .getUser(id as string);
-        return OK(res, user, "User retrieved successfully");
+        const responseUser = {
+          ...user,
+          email: user?.email ? decrypt(user.email) : null,
+          name: user?.name ? decrypt(user.name) : null,
+          phone: user?.phone ? decrypt(user.phone) : null,
+        };
+        return OK(res, responseUser, "User retrieved successfully");
       } else {
         const userID = req.payload?.id;
         const user = await this.serviceFactory
