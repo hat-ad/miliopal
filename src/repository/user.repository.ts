@@ -42,12 +42,15 @@ class UserRepository extends BaseRepository {
     });
   }
 
-  async getUser(id: string): Promise<User | null> {
+  async getUser(
+    id: string,
+    options?: { include: { purchases?: boolean; organization?: boolean } }
+  ): Promise<User | null> {
     return this.db.user.findUnique({
       where: { id },
       include: {
-        purchases: true,
-        organization: true,
+        purchases: options?.include.purchases || false,
+        organization: options?.include.organization || false,
       },
     });
   }

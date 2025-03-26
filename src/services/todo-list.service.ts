@@ -87,12 +87,13 @@ class TodoListService {
       const meta = todoList.meta as Record<string, string>;
       const purchase = await this.repositoryFactory
         .getPurchaseRepository()
-        .getPurchase(meta.purchaseId);
+        .getPurchase(meta.purchaseId, {
+          include: { user: true, seller: true },
+        });
 
       if (!purchase) {
         return null;
       }
-
       const decryptedPurchaseDetails = {
         ...purchase,
         user: purchase?.user
