@@ -175,9 +175,17 @@ export default class UserController {
         throw new Error("User not found");
       }
 
+      const actionByUser = await this.serviceFactory
+        .getUserService()
+        .getUser(req.payload?.id as string);
+
+      if (!actionByUser) {
+        throw new Error("User not found");
+      }
+
       if (
-        existingUser?.role !== Role.ADMIN &&
-        existingUser?.role !== Role.SUPERADMIN
+        actionByUser?.role !== Role.ADMIN &&
+        actionByUser?.role !== Role.SUPERADMIN
       ) {
         throw new Error("You are not authorized to update this user");
       }
