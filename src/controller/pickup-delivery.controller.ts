@@ -135,6 +135,13 @@ export default class PickupDeliveryController {
         .getPickUpDeliveryService()
         .getReceiptById(id, organizationId);
 
+      const receiptSettings = await this.serviceFactory
+        .getReceiptService()
+        .getReceiptByOrganizationId(organizationId);
+
+      if (!receiptSettings) {
+        return ERROR(res, false, "Receipt not found");
+      }
       const decryptedpickUpDeliveryDetails = {
         ...pickUpDeliveryDetails,
         user: pickUpDeliveryDetails?.user
@@ -164,6 +171,7 @@ export default class PickupDeliveryController {
                 : null,
             }
           : null,
+        receiptSettings,
       };
 
       return OK(
