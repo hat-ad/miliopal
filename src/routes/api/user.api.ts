@@ -53,7 +53,7 @@ router.put(
 );
 
 router.get(
-  "/get-user-selling-history",
+  "/get-user-selling-history/:userId",
   isAuthenticated,
   UserController.getInstance().getUserSellingHistory
 );

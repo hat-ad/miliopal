@@ -1,4 +1,4 @@
-import { Organization, Purchase, Role, User } from "@prisma/client";
+import { Purchase, Role, Seller, User } from "@prisma/client";
 
 export interface CreateUserInterface {
   email: string;
@@ -39,7 +39,11 @@ export interface GetUsersFilterInterface {
 }
 
 export interface UserSellingHistoryInterface {
-  buyer: User;
-  purchase: Purchase[];
-  organization: Organization | null;
+  buyer: User | null;
+  purchase: (Purchase & {
+    user?: User | null;
+    seller?: Seller | null;
+  })[];
+  total: number;
+  totalPages: number;
 }

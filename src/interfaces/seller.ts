@@ -1,5 +1,4 @@
 import {
-  Organization,
   PaymentMethod,
   Purchase,
   Seller,
@@ -56,7 +55,11 @@ export interface UpdateSellerInterface {
 }
 
 export interface SellerSellingHistoryInterface {
-  seller: Seller;
-  purchase: (Purchase & { user?: User | null })[];
-  organization: Organization | null;
+  seller: Seller | null;
+  purchase: (Purchase & {
+    user?: User | null;
+    seller?: Seller | null;
+  })[];
+  total: number;
+  totalPages: number;
 }

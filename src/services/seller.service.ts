@@ -49,11 +49,26 @@ class SellerService {
   }
 
   async getSellerSellingHistory(
-    id: string
+    id: string,
+    page: number = 1,
+    limit: number = 10
   ): Promise<SellerSellingHistoryInterface | null> {
-    return this.repositoryFactory
+    const filters = {
+      sellerId: id,
+    };
+    const seller = await this.repositoryFactory
       .getSellerRepository()
-      .getSellerSellingHistory(id);
+      .getSeller(id);
+    const purchasePaginated = await this.repositoryFactory
+      .getPurchaseRepository()
+      .getPurchaseList(filters, "createdAt", "asc", page, limit);
+
+    return {
+      purchase: purchasePaginated.purchases,
+      total: purchasePaginated.total,
+      totalPages: purchasePaginated.totalPages,
+      seller: seller,
+    };
   }
 }
 

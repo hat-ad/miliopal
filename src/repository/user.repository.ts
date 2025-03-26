@@ -2,8 +2,7 @@ import {
   CreateUserInterface,
   CreateUserInternalInterface,
   GetUsersFilterInterface,
-  UserSellingHistoryInterface,
-  UserUpdateData,
+  UserUpdateData
 } from "@/interfaces/user";
 import { Prisma, Role, User } from "@prisma/client";
 import BaseRepository from "./base.repository";
@@ -123,48 +122,7 @@ class UserRepository extends BaseRepository {
     });
   }
 
-  async getUserSellingHistory(
-    id: string
-  ): Promise<UserSellingHistoryInterface | null> {
-    const userSellingHistory = await this.db.user.findUnique({
-      where: { id },
-      include: {
-        purchases: {
-          include: {
-            seller: {
-              include: {
-                privateSeller: true,
-                businessSeller: true,
-                organization: true,
-              },
-            },
-            productsPurchased: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        },
-        organization: true,
-      },
-    });
 
-    if (!userSellingHistory) {
-      return null;
-    }
-
-    const { purchases, organization, ...userDetails } = userSellingHistory;
-
-    const response = {
-      buyer: {
-        ...userDetails,
-      },
-      purchase: purchases,
-      organization: organization ?? null,
-    };
-
-    return response;
-  }
 }
 
 export default UserRepository;

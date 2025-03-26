@@ -303,31 +303,48 @@ export default class UserController {
 
   async getUserSellingHistory(req: Request, res: Response) {
     try {
-      const userId = req.payload?.id;
-
-      if (!userId) {
-        return ERROR(res, null, "Unauthorized: No user ID in token");
-      }
+      const { userId } = req.params;
+      const { page } = req.query;
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
 
       const userSellingHistory = await this.serviceFactory
         .getUserService()
-        .getUserSellingHistory(userId);
+        .getUserSellingHistory(userId, pageNumber);
+
+      const decryptedPurchase = userSellingHistory?.purchase.map(
+        (purchase) => ({
+          ...purchase,
+          user: purchase?.user
+            ? {
+                ...purchase?.user,
+                email: purchase?.user.email
+                  ? decrypt(purchase.user.email)
+                  : null,
+                name: purchase?.user.name ? decrypt(purchase.user.name) : null,
+                phone: purchase?.user.phone
+                  ? decrypt(purchase.user.phone)
+                  : null,
+              }
+            : null,
+        })
+      );
 
       const response = {
         buyer: {
           ...userSellingHistory?.buyer,
-          email: userSellingHistory?.buyer.email
+          email: userSellingHistory?.buyer?.email
             ? decrypt(userSellingHistory.buyer.email)
             : null,
-          name: userSellingHistory?.buyer.name
+          name: userSellingHistory?.buyer?.name
             ? decrypt(userSellingHistory.buyer.name)
             : null,
-          phone: userSellingHistory?.buyer.phone
+          phone: userSellingHistory?.buyer?.phone
             ? decrypt(userSellingHistory.buyer.phone)
             : null,
         },
-        purchase: userSellingHistory?.purchase,
-        organization: userSellingHistory?.organization,
+        purchase: decryptedPurchase,
+        total: userSellingHistory?.total,
+        totalPages: userSellingHistory?.totalPages,
       };
       return OK(res, response, "User selling history retrived successfully");
     } catch (error) {

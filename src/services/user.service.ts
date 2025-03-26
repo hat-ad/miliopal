@@ -94,9 +94,24 @@ class UserService {
   }
 
   async getUserSellingHistory(
-    id: string
+    id: string,
+    page: number = 1,
+    limit: number = 10
   ): Promise<UserSellingHistoryInterface | null> {
-    return this.repositoryFactory.getUserRepository().getUserSellingHistory(id);
+    const filters = {
+      userId: id,
+    };
+    const purchasePaginated = await this.repositoryFactory
+      .getPurchaseRepository()
+      .getPurchaseList(filters, "createdAt", "asc", page, limit);
+    const user = await this.repositoryFactory.getUserRepository().getUser(id);
+
+    return {
+      purchase: purchasePaginated.purchases,
+      total: purchasePaginated.total,
+      totalPages: purchasePaginated.totalPages,
+      buyer: user,
+    };
   }
 
   async sendResetPasswordEmail(

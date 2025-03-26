@@ -1,7 +1,6 @@
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
-  SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
 import { Seller } from "@prisma/client";
@@ -237,60 +236,6 @@ class SellerRepository extends BaseRepository {
         isDeleted: true,
       },
     });
-  }
-
-  async getSellerSellingHistory(
-    id: string
-  ): Promise<SellerSellingHistoryInterface | null> {
-    const sellerSellingHistory = await this.db.seller.findUnique({
-      where: { id },
-      include: {
-        privateSeller: true,
-        businessSeller: true,
-        organization: true,
-        purchases: {
-          include: {
-            user: true,
-            productsPurchased: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!sellerSellingHistory) {
-      return null;
-    }
-
-    const {
-      privateSeller,
-      businessSeller,
-      purchases,
-      organization,
-      ...sellerDetails
-    } = sellerSellingHistory;
-
-    return {
-      seller: {
-        ...sellerDetails,
-        ...(privateSeller || null),
-        ...(businessSeller || null),
-      },
-      purchase: purchases.map((purchase) => ({
-        ...purchase,
-        user: purchase.user
-          ? {
-              ...purchase.user,
-              email: purchase.user.email ?? null,
-              phone: purchase.user.phone ?? null,
-            }
-          : null,
-      })),
-      organization: organization ?? null,
-    };
   }
 }
 
