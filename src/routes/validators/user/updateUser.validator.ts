@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 const UpdateUserSchema = z.object({
   phone: z.string().min(10, "Phone number is required!").optional(),
   name: z.string().min(1, "Name is required!").optional(),
+  role:z.string().min(4,"Role is required!").optional(),
   isActive: z.boolean().optional(),
   isArchived: z.boolean().optional(),
   isDeleted: z.boolean().optional(),
@@ -18,8 +19,8 @@ export const validateUpdateUser = (
   next: NextFunction
 ) => {
   try {
-    const { phone, name, isArchived, isDeleted, isActive } = req.body;
-    const payload = { isArchived, isDeleted, isActive, phone, name };
+    const { phone, name, isArchived, isDeleted, isActive,role } = req.body;
+    const payload = { isArchived, isDeleted, isActive, phone, name,role };
     req.body = payload;
 
     UpdateUserSchema.parse(req.body);

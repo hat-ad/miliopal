@@ -18,6 +18,7 @@ export interface CreateUserInternalInterface {
 export interface UserUpdateData {
   name?: string;
   phone?: string;
+  role?: Role;
   password?: string;
   token?: string;
   isActive?: boolean;
