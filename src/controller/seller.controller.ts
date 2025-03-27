@@ -181,12 +181,13 @@ export default class SellerController {
   async getSellerSellingHistory(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { page } = req.query;
+      const { page, limit } = req.query;
       const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
       const sellerSellingHistory = await this.serviceFactory
         .getSellerService()
-        .getSellerSellingHistory(id, pageNumber);
+        .getSellerSellingHistory(id, pageNumber, pageSize);
 
       const decryptedSeller = {
         ...sellerSellingHistory?.seller,

@@ -69,6 +69,7 @@ export default class PurchaseController {
         sortBy,
         sortOrder,
         page,
+        limit,
         from,
         to,
         sellerType,
@@ -93,13 +94,14 @@ export default class PurchaseController {
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
       const sortedBy: "orderNo" | "createdAt" | "status" =
         sortBy === "orderNo" || sortBy === "status" ? sortBy : "createdAt";
       const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
 
       const { purchases, total, totalPages } = await this.serviceFactory
         .getPurchaseService()
-        .getPurchaseList(filters, sortedBy, sortedOrder, pageNumber);
+        .getPurchaseList(filters, sortedBy, sortedOrder, pageNumber, pageSize);
 
       const decryptedPurchases = purchases.map((purchase) => {
         const decryptedUser = purchase.user

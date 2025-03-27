@@ -46,12 +46,20 @@ export default class ReconciliationHistoryController {
   async getReconciliationList(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
-      const { reconciliationStartTime, reconciliationEndTime, userId, page } =
-        req.query;
+      const {
+        reconciliationStartTime,
+        reconciliationEndTime,
+        userId,
+        page,
+        limit,
+      } = req.query;
 
       const pageNumber = !isNaN(Number(page))
         ? parseInt(page as string, 10)
         : 1;
+      const pageSize = !isNaN(Number(limit))
+        ? parseInt(limit as string, 10)
+        : 10;
 
       const filters: FilterReconciliationListInterface = {
         reconciliationStartTime: reconciliationStartTime as string | undefined,
@@ -62,7 +70,7 @@ export default class ReconciliationHistoryController {
 
       let reconciliation = await this.serviceFactory
         .getReconciliationHistoryService()
-        .getReconciliationList(filters, pageNumber);
+        .getReconciliationList(filters, pageNumber, pageSize);
 
       const decryptedReconciliations = reconciliation.reconciliations.map(
         (reconciliation) => {

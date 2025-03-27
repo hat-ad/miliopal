@@ -312,12 +312,13 @@ export default class UserController {
   async getUserSellingHistory(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-      const { page } = req.query;
+      const { page, limit } = req.query;
       const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
       const userSellingHistory = await this.serviceFactory
         .getUserService()
-        .getUserSellingHistory(userId, pageNumber);
+        .getUserSellingHistory(userId, pageNumber, pageSize);
 
       const decryptedPurchase = userSellingHistory?.purchase.map(
         (purchase) => ({
