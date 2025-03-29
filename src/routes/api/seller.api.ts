@@ -42,4 +42,10 @@ router.get(
   SellerController.getInstance().getSellerSellingHistory
 );
 
+router.post(
+  "/invite-seller",
+  isAuthenticated,
+  SellerController.getInstance().inviteSeller
+);
+
 export default router;

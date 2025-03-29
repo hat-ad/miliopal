@@ -23,6 +23,11 @@ export interface CreateSellerInterface {
   isDeleted?: boolean;
 }
 
+export interface InviteSellerInterface {
+  email?: string;
+  inviteExpiry?: Date | null;
+}
+
 export interface GetSellersFilterInterface {
   email?: string;
   organizationId?: string;

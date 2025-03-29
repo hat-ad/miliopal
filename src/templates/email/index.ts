@@ -1,6 +1,8 @@
 import { sendMail, stringToHex } from "@/functions/function";
 import { Organization } from "@prisma/client";
 import ejs from "ejs";
+import path from "path";
+import fs from "fs";
 
 export const sendWelcomeMail = async (
   userID: string,
@@ -74,6 +76,39 @@ export const sendResetPasswordMail = async (
     to: email,
     body: data,
     subject: `Reset Password!`,
+  };
+
+  await sendMail(response.to, response.subject, "", response.body);
+};
+
+export const sendSellerInvitationMail = async (
+  id: string,
+  email: string,
+  inviteExpiry: Date
+) => {
+  const body = {
+    id,
+    email,
+    inviteExpiry,
+  };
+
+  const link = `${process.env.CLIENT_URL}/seller/invite?code=${stringToHex(
+    JSON.stringify(body)
+  )}`;
+
+  const templateBody = {
+    link,
+  };
+
+  const data = await ejs.renderFile(
+    `${__dirname}/ejs/invite-seller.ejs`,
+    templateBody
+  );
+
+  const response = {
+    to: email,
+    body: data,
+    subject: `Seller Invitation!`,
   };
 
   await sendMail(response.to, response.subject, "", response.body);

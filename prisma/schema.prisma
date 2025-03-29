@@ -282,3 +282,12 @@ model TodoListSettings {
   updatedAt                           DateTime     @updatedAt
   organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
+
+
+model SellerInvite {
+  id            String       @id @default(uuid())
+  email         String?      @unique
+  inviteExpiry    DateTime?
+  createdAt                           DateTime     @default(now())
+  updatedAt                           DateTime     @updatedAt
+}

@@ -1,9 +1,10 @@
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
+  InviteSellerInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { Seller } from "@prisma/client";
+import { Seller, SellerInvite } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class SellerRepository extends BaseRepository {
@@ -52,6 +53,15 @@ class SellerRepository extends BaseRepository {
         privateSeller: true,
         businessSeller: true,
         organization: true,
+      },
+    });
+  }
+
+  async inviteSeller(data: InviteSellerInterface): Promise<SellerInvite> {
+    return this.db.sellerInvite.create({
+      data: {
+        email: data.email!,
+        inviteExpiry: data.inviteExpiry,
       },
     });
   }

@@ -1,5 +1,7 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import { bindMethods } from "@/functions/function";
+import { bindMethods, stringToHex } from "@/functions/function";
+import { sendSellerInvitationMail } from "@/templates/email";
+import { Method } from "@/types/enums";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
@@ -15,6 +17,7 @@ export default class SellerController {
   static getInstance(factory?: ServiceFactory): SellerController {
     return new SellerController(factory);
   }
+
   async createSeller(req: Request, res: Response): Promise<void> {
     try {
       const { email, phone } = req.body;
@@ -42,6 +45,51 @@ export default class SellerController {
       };
 
       return OK(res, responseSeller, "Seller created successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async inviteSeller(req: Request, res: Response): Promise<void> {
+    try {
+      const { method, email } = req.body;
+      const inviteExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+      if (method === "INVITE" && !email) {
+        return ERROR(res, false, "Email is required for invitation.");
+      }
+
+      if (email) {
+        const existingSeller = await this.serviceFactory
+          .getSellerService()
+          .getSellerByEmail(email);
+        if (existingSeller) {
+          return ERROR(res, false, "Seller already exists.");
+        }
+      }
+
+      const sellerInvite = await this.serviceFactory
+        .getSellerService()
+        .inviteSeller({ email, inviteExpiry });
+
+      if (!sellerInvite) {
+        return ERROR(res, false, "Seller invitation not created.");
+      }
+
+      const inviteData = {
+        id: sellerInvite.id,
+        email,
+        inviteExpiry,
+      };
+
+      const inviteCode = `${stringToHex(JSON.stringify(inviteData))}`;
+
+      if (method === "INVITE") {
+        await sendSellerInvitationMail(sellerInvite.id, email, inviteExpiry);
+        return OK(res, inviteCode, "Seller invited successfully via email.");
+      } else {
+        return OK(res, inviteCode, "Invite link generated successfully.");
+      }
     } catch (error) {
       return ERROR(res, false, error);
     }
