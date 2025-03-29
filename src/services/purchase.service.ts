@@ -207,15 +207,30 @@ class PurchaseService {
         });
 
       if (!purchaseIds.length) {
-        return [];
+        // If no purchases exist, return last 12 months with zero values
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 11); // Ensure minimum 12 months
+
+        const fallbackStats = [];
+        while (startDate <= endDate) {
+          fallbackStats.push({
+            year: startDate.getFullYear().toString(),
+            month: MonthNames[startDate.getMonth()],
+            unit: 0,
+            expense: 0,
+          });
+          startDate.setMonth(startDate.getMonth() + 1);
+        }
+        return fallbackStats;
       }
 
-      //Fetch purchased products
+      // Fetch purchased products
       const productsPurchased = await this.repositoryFactory
         .getProductsPurchasedRepository()
         .getPurchasesByProductId({ productId: filters.productId, purchaseIds });
 
-      //Group data by month & year
+      // Group data by month & year
       const groupedData: Record<string, { unit: number; expense: number }> = {};
 
       productsPurchased.forEach((product) => {
@@ -234,7 +249,7 @@ class PurchaseService {
         groupedData[key].expense += product.price * product.quantity;
       });
 
-      // Step 4: Fill missing between the earliest and latest
+      // Step 4: Ensure at least 12 months of data
       const allStats: {
         year: string;
         month: string;
@@ -243,17 +258,27 @@ class PurchaseService {
       }[] = [];
 
       const allKeys = Object.keys(groupedData);
+      let startDate: Date;
+      let endDate: Date;
+
       if (allKeys.length > 0) {
         const sortedKeys = allKeys.sort();
         const [startYear, startMonth] = sortedKeys[0].split("-");
         const [endYear, endMonth] =
           sortedKeys[sortedKeys.length - 1].split("-");
 
-        let startDate = new Date(
+        startDate = new Date(
           parseInt(startYear),
           MonthNames.indexOf(startMonth)
         );
-        let endDate = new Date(parseInt(endYear), MonthNames.indexOf(endMonth));
+        endDate = new Date(parseInt(endYear), MonthNames.indexOf(endMonth));
+
+        // Ensure at least 12 months from the latest available month
+        const minStartDate = new Date(endDate);
+        minStartDate.setMonth(minStartDate.getMonth() - 11);
+        if (startDate > minStartDate) {
+          startDate = minStartDate;
+        }
 
         while (startDate <= endDate) {
           const year = startDate.getFullYear().toString();
@@ -267,6 +292,21 @@ class PurchaseService {
             expense: groupedData[key]?.expense || 0,
           });
 
+          startDate.setMonth(startDate.getMonth() + 1);
+        }
+      } else {
+        // No existing data
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 11);
+
+        while (startDate <= endDate) {
+          allStats.push({
+            year: startDate.getFullYear().toString(),
+            month: MonthNames[startDate.getMonth()],
+            unit: 0,
+            expense: 0,
+          });
           startDate.setMonth(startDate.getMonth() + 1);
         }
       }
