@@ -69,7 +69,7 @@ export default class SellerController {
       }
 
       const sellerInvite = await this.serviceFactory
-        .getSellerService()
+        .getSellerInviteService()
         .inviteSeller({ email, inviteExpiry });
 
       if (!sellerInvite) {
@@ -90,6 +90,34 @@ export default class SellerController {
       }
 
       return OK(res, inviteCode, "Invite link generated successfully.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+  async checkingValidInvitation(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const invitedSeller = await this.serviceFactory
+        .getSellerInviteService()
+        .getSellerInvite(id);
+
+      if (!invitedSeller) {
+        return ERROR(res, false, "Seller does not exist.");
+      }
+
+      if (!invitedSeller.inviteExpiry) {
+        return ERROR(res, false, "Invalid invitation expiry.");
+      }
+
+      const currentTime = new Date();
+      const inviteExpiry = new Date(invitedSeller.inviteExpiry);
+
+      if (currentTime > inviteExpiry) {
+        return ERROR(res, null, "Invitation has expired.");
+      }
+
+      return OK(res, invitedSeller, "Invitation is valid.");
     } catch (error) {
       return ERROR(res, false, error);
     }

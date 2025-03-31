@@ -6,8 +6,7 @@ import {
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { Method } from "@/types/enums";
-import { Seller, SellerInvite } from "@prisma/client";
+import { Seller } from "@prisma/client";
 
 class SellerService {
   private repositoryFactory: RepositoryFactory;
@@ -17,10 +16,6 @@ class SellerService {
   }
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
     return this.repositoryFactory.getSellerRepository().createSeller(data);
-  }
-
-  async inviteSeller(data: InviteSellerInterface): Promise<SellerInvite> {
-    return this.repositoryFactory.getSellerRepository().inviteSeller(data);
   }
 
   async getSeller(id: string): Promise<Seller | null> {

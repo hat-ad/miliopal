@@ -48,4 +48,10 @@ router.post(
   SellerController.getInstance().inviteSeller
 );
 
+router.get(
+  "/is-seller-invite-valid/:id",
+  isAuthenticated,
+  SellerController.getInstance().checkingValidInvitation
+);
+
 export default router;

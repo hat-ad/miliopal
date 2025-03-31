@@ -10,6 +10,7 @@ import PurchaseRepository from "@/repository/purchase.repository";
 import ReceiptRepository from "@/repository/receipt.repository";
 import ReconciliationHistoryRepository from "@/repository/reconciliation.repository";
 import SellerRepository from "@/repository/seller.repository";
+import SellerInviteRepository from "@/repository/seller-invite.repository";
 import TodoListRepository from "@/repository/todo-list.repository";
 import UserRepository from "@/repository/user.repository";
 import { Prisma, PrismaClient } from "@prisma/client";
@@ -55,6 +56,10 @@ export class RepositoryFactory {
 
   getSellerRepository(): SellerRepository {
     return new SellerRepository(this.db);
+  }
+
+  getSellerInviteRepository(): SellerInviteRepository {
+    return new SellerInviteRepository(this.db);
   }
 
   getTodoListRepository(): TodoListRepository {
