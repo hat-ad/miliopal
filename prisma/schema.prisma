@@ -28,7 +28,7 @@ model PrivateSeller {
 model Product {
   id                 String               @id @default(uuid())
   name               String
-  price              Float
+  price              Decimal
   isDeleted          Boolean              @default(false)
   isArchived         Boolean              @default(false)
   organizationId     String
@@ -42,7 +42,7 @@ model Product {
 model ProductsPurchased {
   id         String   @id @default(uuid())
   productId  String
-  price      Float
+  price      Decimal
   quantity   Int
   purchaseId String
   createdAt  DateTime @default(now())
@@ -68,7 +68,7 @@ model Purchase {
   paymentMethod     PaymentMethod
   bankAccountNumber String?
   transactionDate   DateTime?
-  totalAmount       Int                 @default(0)
+  totalAmount       Decimal             @default(0)
   notes             String?
   sellerId          String
   userId            String
@@ -130,7 +130,7 @@ model User {
   isArchived          Boolean                 @default(false)
   isDeleted           Boolean                 @default(false)
   organizationId      String
-  wallet              Float                   @default(0)
+  wallet              Decimal                 @default(0)
   lastReconciled      DateTime?
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
@@ -150,7 +150,7 @@ model Organization {
   postalCode            String?
   city                  String?
   organizationNumber    String                  @unique // Ensure it's unique
-  wallet                Float
+  wallet                Decimal
   phone                 String?
   email                 String?
   createdAt             DateTime                @default(now())
@@ -217,7 +217,7 @@ enum AccountType {
 
 model CashHistory {
   id              String          @id @default(uuid())
-  amount          Float
+  amount          Decimal
   note            String?
   type            CashHistoryType
   accountType     AccountType
@@ -237,8 +237,8 @@ model ReconciliationHistory {
   userId                  String
   reConciliatedBy         String
   organizationId          String
-  expectedAmount          Float
-  amountCounted           Float
+  expectedAmount          Decimal
+  amountCounted           Decimal
   comment                 String?
   reconciliationStartTime DateTime
   reconciliationEndTime   DateTime
@@ -275,19 +275,18 @@ model TodoList {
 model TodoListSettings {
   id                                  String       @id @default(uuid())
   organizationId                      String       @unique
-  companyCashBalanceLowerThreshold    Float?
-  individualCashBalanceLowerThreshold Float?
-  individualCashBalanceUpperThreshold Float?
+  companyCashBalanceLowerThreshold    Decimal?
+  individualCashBalanceLowerThreshold Decimal?
+  individualCashBalanceUpperThreshold Decimal?
   createdAt                           DateTime     @default(now())
   updatedAt                           DateTime     @updatedAt
   organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
-
 model SellerInvite {
-  id            String       @id @default(uuid())
-  email         String?      @unique
-  inviteExpiry    DateTime?
-  createdAt                           DateTime     @default(now())
-  updatedAt                           DateTime     @updatedAt
+  id           String    @id @default(uuid())
+  email        String?   @unique
+  inviteExpiry DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }

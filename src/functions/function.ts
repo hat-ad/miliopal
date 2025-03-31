@@ -168,7 +168,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     const { product, quantity, price } = item;
     doc.text(product.name, 50, y);
     doc.text(quantity.toString(), 300, y);
-    doc.text(`${price * quantity} kr`, 400, y);
+    doc.text(`${price.mul(quantity)} kr`, 400, y);
     doc.fillColor("#818181").text(`${quantity} × ${price} kr`, 400, y + 15);
     doc.fillColor("#000");
     y += 30;

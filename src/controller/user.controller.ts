@@ -240,11 +240,10 @@ export default class UserController {
       const organizationId = req.payload?.organizationId;
 
       const encryptedEmail = email ? encrypt(email as string) : undefined;
-      const encryptedName = name ? (name as string) : undefined;
       const encryptedPhone = phone ? encrypt(phone as string) : undefined;
 
       const filters = {
-        ...(encryptedName && { name: encryptedName }),
+        ...(name && { name: name as string }),
         ...(encryptedEmail && { email: encryptedEmail }),
         ...(encryptedPhone && { phone: encryptedPhone }),
         ...(organizationId && { organizationId }),
@@ -264,7 +263,6 @@ export default class UserController {
 
       const responseUsers = users.map((user) => ({
         ...user,
-        name: user.name ? decrypt(user.name) : null,
         email: user.email ? decrypt(user.email) : null,
         phone: user.phone ? decrypt(user.phone) : null,
       }));
@@ -275,6 +273,7 @@ export default class UserController {
         "Users retrieved successfully"
       );
     } catch (error) {
+      console.log(error);
       return ERROR(res, false, "An error occurred while retrieving users");
     }
   }

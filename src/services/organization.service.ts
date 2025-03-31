@@ -111,9 +111,9 @@ class OrganizationService {
       let updatedAmount = organization.wallet;
 
       if (data.type === CashHistoryType.DEPOSIT) {
-        updatedAmount = updatedAmount + data.amount;
+        updatedAmount = updatedAmount.add(data.amount);
       } else if (data.type === CashHistoryType.WITHDRAW) {
-        updatedAmount = updatedAmount - data.amount!;
+        updatedAmount = updatedAmount.sub(data.amount);
       } else {
         throw new Error(
           "Invalid transaction type. Use 'DEPOSIT' or 'WITHDRAW'."
@@ -164,11 +164,11 @@ class OrganizationService {
       let updatedOrgAmount = organization.wallet;
 
       if (data.type === CashHistoryType.DEPOSIT) {
-        updatedUserAmount = updatedUserAmount + data.amount;
-        updatedOrgAmount = updatedOrgAmount - data.amount;
+        updatedUserAmount = updatedUserAmount.add(data.amount);
+        updatedOrgAmount = updatedOrgAmount.sub(data.amount);
       } else if (data.type === CashHistoryType.WITHDRAW) {
-        updatedUserAmount = updatedUserAmount - data.amount;
-        updatedOrgAmount = updatedOrgAmount + data.amount;
+        updatedUserAmount = updatedUserAmount.sub(data.amount);
+        updatedOrgAmount = updatedOrgAmount.add(data.amount);
       } else {
         throw new Error(
           "Invalid transaction type. Use 'DEPOSIT' or 'WITHDRAW'."

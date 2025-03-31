@@ -1,11 +1,12 @@
 import { ProductsPurchased } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import BaseRepository from "./base.repository";
 
 class ProductsPurchasedRepository extends BaseRepository {
   async bulkInsertProductsPurchased(
     products: {
       productId: string;
-      price: number;
+      price: Decimal;
       quantity: number;
       purchaseId: string;
     }[]
@@ -49,7 +50,7 @@ class ProductsPurchasedRepository extends BaseRepository {
 
   async getProductsPurchaseStatsByPurchaseIds(
     purchaseID: string[]
-  ): Promise<{ units: number; expense: number }> {
+  ): Promise<{ units: number; expense: Decimal }> {
     const result = await this.db.productsPurchased.aggregate({
       _sum: { price: true, quantity: true },
       where: { purchaseId: { in: purchaseID } },
@@ -57,7 +58,7 @@ class ProductsPurchasedRepository extends BaseRepository {
 
     return {
       units: result._sum.quantity || 0,
-      expense: result._sum.price || 0,
+      expense: result._sum.price || new Decimal(0),
     };
   }
 }

@@ -1,4 +1,5 @@
 import { Purchase, Role, Seller, User } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export interface CreateUserInterface {
   email: string;
@@ -26,7 +27,7 @@ export interface UserUpdateData {
   isDeleted?: boolean;
   otp?: string | null;
   otpExpiry?: Date | null;
-  wallet?: number;
+  wallet?: Decimal;
   lastReconciled?: Date | null;
 }
 

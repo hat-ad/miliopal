@@ -1,4 +1,5 @@
 import { OrderStatus, PaymentMethod, SellerType } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export interface CreatePurchaseInterface {
   userId: string;
@@ -9,7 +10,7 @@ export interface CreatePurchaseInterface {
   status: OrderStatus;
   organizationId: string;
   orderNo: string;
-  totalAmount: number;
+  totalAmount: Decimal;
   notes?: string;
   products: {
     productId: string;
@@ -27,7 +28,7 @@ export interface CreatePurchaseRepositoryInterface {
   paymentMethod: PaymentMethod;
   bankAccountNumber?: string | null;
   status: OrderStatus;
-  totalAmount: number;
+  totalAmount: Decimal;
   notes?: string | null;
   transactionDate?: Date | null;
 }

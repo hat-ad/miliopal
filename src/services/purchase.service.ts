@@ -15,6 +15,7 @@ import {
   TodoListEvent,
   User,
 } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 class PurchaseService {
   private repositoryFactory: RepositoryFactory;
@@ -47,12 +48,14 @@ class PurchaseService {
           );
         }
 
-        const totalAmount = data.products
-          .map(
-            (product: { price: number; quantity: number }) =>
-              product.price * product.quantity
-          )
-          .reduce((sum: number, value: number) => sum + value, 0);
+        const totalAmount = new Decimal(
+          data.products
+            .map(
+              (product: { price: number; quantity: number }) =>
+                product.price * product.quantity
+            )
+            .reduce((sum: number, value: number) => sum + value, 0)
+        );
 
         let orderNo = "";
 
@@ -82,7 +85,7 @@ class PurchaseService {
           payload.transactionDate = new Date();
           const user = await userRepo.getUser(data.userId);
           if (!user) throw new Error("User not found");
-          const newWalletAmount = user.wallet - totalAmount;
+          const newWalletAmount = user.wallet.sub(totalAmount);
           await userRepo.updateUser(data.userId, {
             wallet: newWalletAmount,
           });
@@ -92,6 +95,7 @@ class PurchaseService {
 
         const productsData = data.products.map((product) => ({
           ...product,
+          price: new Decimal(product.price),
           purchaseId: purchase.id,
         }));
 
@@ -175,7 +179,7 @@ class PurchaseService {
         paymentMethod: purchase.paymentMethod,
         bankAccountNumber: purchase.bankAccountNumber,
         status: purchase.status,
-        totalAmount: -purchase.totalAmount,
+        totalAmount: new Decimal(-purchase.totalAmount),
         notes: creditNotes,
         comment: purchase.comment,
       });
@@ -200,7 +204,7 @@ class PurchaseService {
       year: string;
       month: string;
       unit: number | null;
-      expense: number | null;
+      expense: Decimal | null;
     }[]
   > {
     try {
@@ -241,7 +245,8 @@ class PurchaseService {
       }
 
       // Group data by month & year
-      const groupedData: Record<string, { unit: number; expense: number }> = {};
+      const groupedData: Record<string, { unit: number; expense: Decimal }> =
+        {};
       productsPurchased.forEach((product) => {
         const date = new Date(product.createdAt);
         const year = date.getFullYear().toString();
@@ -249,11 +254,13 @@ class PurchaseService {
         const key = `${year}-${month}`;
 
         if (!groupedData[key]) {
-          groupedData[key] = { unit: 0, expense: 0 };
+          groupedData[key] = { unit: 0, expense: new Decimal(0) };
         }
 
         groupedData[key].unit += product.quantity;
-        groupedData[key].expense += product.price * product.quantity;
+        groupedData[key].expense = groupedData[key].expense.plus(
+          product.price.mul(product.quantity)
+        );
       });
 
       // Generate statistics from first purchase date to at least 12 months later
@@ -261,7 +268,7 @@ class PurchaseService {
         year: string;
         month: string;
         unit: number | null;
-        expense: number | null;
+        expense: Decimal | null;
       }[] = [];
       let currentDate = new Date(firstPurchaseDate);
       currentDate.setDate(1); // ✅ Set the day to the 1st to avoid month skipping issues
@@ -290,7 +297,7 @@ class PurchaseService {
 
   async getBuyerPurchaseStats(id: string): Promise<{
     units: number;
-    expense: number;
+    expense: Decimal;
   }> {
     const purchaseIds = await this.repositoryFactory
       .getPurchaseRepository()
@@ -303,7 +310,7 @@ class PurchaseService {
 
   async getSellerPurchaseStats(id: string): Promise<{
     units: number;
-    expense: number;
+    expense: Decimal;
   }> {
     const purchaseIds = await this.repositoryFactory
       .getPurchaseRepository()

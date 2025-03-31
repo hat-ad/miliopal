@@ -6,6 +6,7 @@ import {
   TodoListSettings,
   TodoListStatus,
 } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import BaseRepository from "./base.repository";
 type PrismaTransactionClient = PrismaClient | Prisma.TransactionClient;
 class CompanyCashBalanceEventsHandler {
@@ -15,7 +16,7 @@ class CompanyCashBalanceEventsHandler {
   }
   private async getCompanyCashBalanceBelowThresholdMeta(
     organizationId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     const organization = await this.db.organization.findUnique({
       where: {
@@ -30,7 +31,7 @@ class CompanyCashBalanceEventsHandler {
 
   private async createCompanyCashBalanceBelowThresholdEvent(
     organizationId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     await this.db.todoList.create({
       data: {
@@ -76,19 +77,20 @@ class CompanyCashBalanceEventsHandler {
     if (!settings || !organization)
       return {
         isThresholdCrossed: false,
-        thresholdBalance: 0,
+        thresholdBalance: new Decimal(0),
       };
 
     if (settings.companyCashBalanceLowerThreshold === null) {
       return {
         isThresholdCrossed: false,
-        thresholdBalance: 0,
+        thresholdBalance: new Decimal(0),
       };
     }
     return {
       isThresholdCrossed:
         organization?.wallet < settings?.companyCashBalanceLowerThreshold,
-      thresholdBalance: settings?.companyCashBalanceLowerThreshold || 0,
+      thresholdBalance:
+        settings?.companyCashBalanceLowerThreshold || new Decimal(0),
     };
   }
 
@@ -117,7 +119,7 @@ class IndividualCashBalanceEventsHandler {
   }
   private async getIndividualCashBalanceBelowThresholdMeta(
     userId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     const user = await this.db.user.findUnique({
       where: {
@@ -132,7 +134,7 @@ class IndividualCashBalanceEventsHandler {
   }
   private async getIndividualCashBalanceAboveThresholdMeta(
     userId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     const user = await this.db.user.findUnique({
       where: {
@@ -149,7 +151,7 @@ class IndividualCashBalanceEventsHandler {
   private async createIndividualCashBalanceBelowThresholdEvent(
     userId: string,
     organizationId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     await this.db.todoList.create({
       data: {
@@ -166,7 +168,7 @@ class IndividualCashBalanceEventsHandler {
   private async createIndividualCashBalanceAboveThresholdEvent(
     userId: string,
     organizationId: string,
-    thresholdBalance: number
+    thresholdBalance: Decimal
   ) {
     await this.db.todoList.create({
       data: {
@@ -213,8 +215,8 @@ class IndividualCashBalanceEventsHandler {
     const payload = {
       isWalletBalanceBelowThreshold: false,
       isWalletBalanceAboveThreshold: false,
-      userWalletBalance: 0,
-      thresholdBalance: 0,
+      userWalletBalance: new Decimal(0),
+      thresholdBalance: new Decimal(0),
     };
 
     if (!settings || !user) return payload;
