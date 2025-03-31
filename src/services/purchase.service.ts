@@ -197,7 +197,6 @@ class PurchaseService {
     filters: GetMonthlyPurchaseFilterInterface
   ): Promise<{ year: string; month: string; unit: number; expense: number }[]> {
     try {
-      // Get purchase IDs
       const purchaseIds = await this.repositoryFactory
         .getPurchaseRepository()
         .getPurchaseIds({
@@ -207,38 +206,39 @@ class PurchaseService {
         });
 
       if (!purchaseIds.length) {
-        // If no purchases exist, return last 12 months with zero values
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 11); // Ensure minimum 12 months
-
-        const fallbackStats = [];
-        while (startDate <= endDate) {
-          fallbackStats.push({
-            year: startDate.getFullYear().toString(),
-            month: MonthNames[startDate.getMonth()],
-            unit: 0,
-            expense: 0,
-          });
-          startDate.setMonth(startDate.getMonth() + 1);
-        }
-        return fallbackStats;
+        return [];
       }
 
-      // Fetch purchased products
       const productsPurchased = await this.repositoryFactory
         .getProductsPurchasedRepository()
         .getPurchasesByProductId({ productId: filters.productId, purchaseIds });
 
+      if (!productsPurchased.length) {
+        return [];
+      }
+
+      // Find the first and last purchase dates
+      const purchaseDates = productsPurchased.map((p) => new Date(p.createdAt));
+      const firstPurchaseDate = new Date(
+        Math.min(...purchaseDates.map((d) => d.getTime()))
+      );
+      const lastPurchaseDate = new Date(
+        Math.max(...purchaseDates.map((d) => d.getTime()))
+      );
+
+      // Extend the date range to at least 12 months
+      const minEndDate = new Date(firstPurchaseDate);
+      minEndDate.setMonth(minEndDate.getMonth() + 11);
+      if (lastPurchaseDate < minEndDate) {
+        lastPurchaseDate.setMonth(firstPurchaseDate.getMonth() + 11);
+      }
+
       // Group data by month & year
       const groupedData: Record<string, { unit: number; expense: number }> = {};
-
       productsPurchased.forEach((product) => {
         const date = new Date(product.createdAt);
         const year = date.getFullYear().toString();
-        const monthIndex = date.getMonth();
-        const month = MonthNames[monthIndex];
-
+        const month = MonthNames[date.getMonth()];
         const key = `${year}-${month}`;
 
         if (!groupedData[key]) {
@@ -249,66 +249,30 @@ class PurchaseService {
         groupedData[key].expense += product.price * product.quantity;
       });
 
-      // Step 4: Ensure at least 12 months of data
+      // Generate statistics from first purchase date to at least 12 months later
       const allStats: {
         year: string;
         month: string;
         unit: number;
         expense: number;
       }[] = [];
+      let currentDate = new Date(firstPurchaseDate);
+      currentDate.setDate(1); // ✅ Set the day to the 1st to avoid month skipping issues
 
-      const allKeys = Object.keys(groupedData);
-      let startDate: Date;
-      let endDate: Date;
+      while (currentDate <= lastPurchaseDate) {
+        const year = currentDate.getFullYear().toString();
+        const month = MonthNames[currentDate.getMonth()];
+        const key = `${year}-${month}`;
 
-      if (allKeys.length > 0) {
-        const sortedKeys = allKeys.sort();
-        const [startYear, startMonth] = sortedKeys[0].split("-");
-        const [endYear, endMonth] =
-          sortedKeys[sortedKeys.length - 1].split("-");
+        allStats.push({
+          year,
+          month,
+          unit: groupedData[key]?.unit || 0,
+          expense: groupedData[key]?.expense || 0,
+        });
 
-        startDate = new Date(
-          parseInt(startYear),
-          MonthNames.indexOf(startMonth)
-        );
-        endDate = new Date(parseInt(endYear), MonthNames.indexOf(endMonth));
-
-        // Ensure at least 12 months from the latest available month
-        const minStartDate = new Date(endDate);
-        minStartDate.setMonth(minStartDate.getMonth() - 11);
-        if (startDate > minStartDate) {
-          startDate = minStartDate;
-        }
-
-        while (startDate <= endDate) {
-          const year = startDate.getFullYear().toString();
-          const month = MonthNames[startDate.getMonth()];
-          const key = `${year}-${month}`;
-
-          allStats.push({
-            year,
-            month,
-            unit: groupedData[key]?.unit || 0,
-            expense: groupedData[key]?.expense || 0,
-          });
-
-          startDate.setMonth(startDate.getMonth() + 1);
-        }
-      } else {
-        // No existing data
-        endDate = new Date();
-        startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 11);
-
-        while (startDate <= endDate) {
-          allStats.push({
-            year: startDate.getFullYear().toString(),
-            month: MonthNames[startDate.getMonth()],
-            unit: 0,
-            expense: 0,
-          });
-          startDate.setMonth(startDate.getMonth() + 1);
-        }
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1); // ✅ Set back to the 1st to avoid leap year issues
       }
 
       return allStats;
