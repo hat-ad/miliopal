@@ -6,14 +6,20 @@
     <title>Welcome Email</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: Inter, sans-serif;
         background-color: #fff;
-        padding: 20px;
+        margin: 0;
+        margin-top: 3rem;
+        padding: 0;
       }
       .container {
         max-width: 600px;
+        width: 600px;
         background-color: #eef1f5;
-        padding: 20px;
+        padding-left: 75px;
+        /* padding-right: 68px; */
+        padding-top: 105px;
+        padding-bottom: 105px;
         margin: auto;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -40,47 +46,64 @@
         text-decoration: none;
         font-weight: lighter;
         font-size: 14px;
+        text-decoration: underline;
       }
       .footer {
-        margin-top: 20px;
+        /* margin-top: 20px; */
         font-size: 14px;
         color: #000;
       }
       .bold {
         font-weight: bold;
       }
+      .divider1 {
+        height: 16px;
+      }
+      .divider2 {
+        height: 45px;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Welcome <%= name %>!</h1>
+      <h1 style="line-height: 0cm">Welcome <%= name %>!</h1>
+      <div class="divider2"></div>
+
       <p>
         You have been added as a user at
-        <span class="bold"><%= companyName %></span> and are just one step away
-        from getting started.
+        <span class="bold"><%= companyName %></span> and are just one step
+        <br />
+        away from getting started.
       </p>
+      <div class="divider1"></div>
       <p>
         To access your account, please create a password by clicking the button
         below:
-        <a href="<%= link %>">Create password</a>
+        <br />
+        <a href="<%= link %>" style="text-decoration: underline"
+          >Create password</a
+        >
       </p>
-      <!-- <p> -->
-      <!-- </p> -->
+      <div class="divider1"></div>
       <p>
         Once your password is set, you can log in and start using the system
         right away.
       </p>
+      <div class="divider1"></div>
+
       <p class="footer">
         This is an automated email from
         <span class="bold"><%= companyName %></span>.
         <span class="bold"
-          >Please do not reply to this message, as replies will not be
+          >Please do not reply to <br />this message, as replies will not be
           monitored.</span
         >
-        If you need assistance, contact
+        If you need assistance, contact<br />
         <span class="bold"><%= companyName %></span> directly.
       </p>
-      <p style="margin-top: 1rem">
+      <div class="divider2"></div>
+
+      <p style="margin-top: 2.5rem">
         <span class="bold">Contact information:</span><br />
         <span><%= companyName %></span><br />
         <%= organizationNumber %><br />

@@ -6,62 +6,90 @@
     <title>Order Confirmation</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        line-height: 1.5;
-        color: #000;
+        font-family: Inter, sans-serif;
+        background-color: #fff;
         margin: 0;
+        margin-top: 3rem;
         padding: 0;
-        background-color: #ffffff;
       }
       .container {
         max-width: 600px;
+        width: 600px;
         background-color: #eef1f5;
-        margin: 40px auto;
-        padding: 20px;
+        padding-left: 75px;
+        padding-right: 80px;
+        padding-top: 105px;
+        padding-bottom: 105px;
+        margin: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
       h1 {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: bold;
-        margin-bottom: 20px;
+        line-height: 0;
+        color: #000;
       }
       p {
         font-size: 14px;
-        margin: 10px 0;
+        color: #000;
       }
-      .company-info {
-        margin-top: 20px;
-        font-size: 16px;
-      }
-      .company-info a {
-        color: #0066cc;
-        text-decoration: none;
-      }
+
       .footer {
-        margin-top: 40px;
+        /* margin-top: 40px; */
         font-size: 14px;
         color: #444;
       }
       .footer strong {
         font-weight: bold;
       }
+      .divider1 {
+        height: 12px;
+      }
+      .divider2 {
+        height: 32px;
+      }
+      .contact-info {
+        font-size: 14px;
+      }
+      .contact-info p {
+        line-height: 1.3rem;
+        margin: 4px 0;
+      }
+      .contact-info a {
+        color: #0049e5;
+        text-decoration: underline !important;
+        font-weight: "400";
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Order Confirmation</h1>
+      <div class="divider2"></div>
+      <div class="divider1"></div>
       <p>Hello,</p>
+      <div class="divider1"></div>
+
       <p>
         Attached you will find the order confirmation for the purchase of
         pallets. Please invoice us according to the attachment.
       </p>
+      <div class="divider1"></div>
+
       <p>Feel free to contact us if you have any questions.</p>
-      <p>Best regards,</p>
-      <div class="company-info">
-        <p><strong><%= companyName %></strong></p>
+      <div class="divider1"></div>
+      <div class="divider1"></div>
+      <p style="line-height: 0.5rem">Best regards,</p>
+      <div class="contact-info">
+        <p><%= companyName %></p>
         <p><%= organizationNumber %></p>
         <p><a href="mailto:<%= companyEmail %>"><%= companyEmail %></a></p>
-        <p><a href="tel:<%= companyPhone %>"><%= companyPhone %></a></p>
+        <p><%= companyPhone %></p>
       </div>
+      <div class="divider2"></div>
+      <div class="divider2"></div>
+      <div class="divider1"></div>
       <div class="footer">
         <p>
           This is an automatic email from <%= companyName %>.
