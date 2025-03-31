@@ -87,9 +87,9 @@ export default class SellerController {
       if (method === "INVITE") {
         await sendSellerInvitationMail(sellerInvite.id, email, inviteExpiry);
         return OK(res, inviteCode, "Seller invited successfully via email.");
-      } else {
-        return OK(res, inviteCode, "Invite link generated successfully.");
       }
+
+      return OK(res, inviteCode, "Invite link generated successfully.");
     } catch (error) {
       return ERROR(res, false, error);
     }

@@ -21,24 +21,16 @@
       h1 {
         color: #000;
         font-weight: bold;
-        font-size: 30px;
+        font-size: 24px;
       }
       p {
         color: #000;
         line-height: 1.5;
-        font-weight: normal;
-        font-size: 14px;
-      }
-      span {
-        color: #000;
-        line-height: 1.5;
-        font-weight: normal;
         font-size: 14px;
       }
       a {
         color: #007bff;
         text-decoration: none;
-        font-weight: lighter;
         font-size: 14px;
       }
       .footer {
@@ -46,46 +38,20 @@
         font-size: 14px;
         color: #000;
       }
-      .bold {
-        font-weight: bold;
-      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Welcome <%= name %>!</h1>
+      <h1>You're Invited!</h1>
       <p>
-        You have been added as a user at
-        <span class="bold"><%= companyName %></span> and are just one step away
-        from getting started.
+        You have been invited to join. Click the link below to invite your
+        seller and get started:
       </p>
       <p>
-        To access your account, please create a password by clicking the button
-        below:
-        <a href="<%= link %>">Create password</a>
-      </p>
-      <!-- <p> -->
-      <!-- </p> -->
-      <p>
-        Once your password is set, you can log in and start using the system
-        right away.
+        <a href="<%= link %>">Invite Link</a>
       </p>
       <p class="footer">
-        This is an automated email from
-        <span class="bold"><%= companyName %></span>.
-        <span class="bold"
-          >Please do not reply to this message, as replies will not be
-          monitored.</span
-        >
-        If you need assistance, contact
-        <span class="bold"><%= companyName %></span> directly.
-      </p>
-      <p style="margin-top: 1rem">
-        <span class="bold">Contact information:</span><br />
-        <span><%= companyName %></span><br />
-        <%= organizationNumber %><br />
-        <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a><br />
-        <%= companyPhone %>
+        If you did not request this, you can ignore this email.
       </p>
     </div>
   </body>
