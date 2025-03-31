@@ -100,7 +100,11 @@ export function bindMethods(instance: any) {
 }
 
 export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
-  const outputPath = `./pdf/${orderData.id}.pdf`;
+  const folderPath = "./pdf";
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+  const outputPath = `${folderPath}/${orderData.id}.pdf`;
   const doc = new PDFDocument({ size: "A4", margin: 50 });
   const stream = fs.createWriteStream(outputPath);
   doc.pipe(stream);
@@ -120,7 +124,9 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
 
   // Header Section
   doc.fontSize(20).font("Helvetica-Bold").text("Order Confirmation", 50, 50);
-  doc.image(logo, 450, 40, { width: 100 });
+  if (logo) {
+    doc.image(logo, 500, 55, { height: 50, width: 50, fit: [50, 50] });
+  }
   // doc
   //   .fontSize(16)
   //   .font("Helvetica-Bold")
@@ -192,10 +198,10 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
 
   doc.fontSize(8).text("All prices are exclusive of VAT.", 50, y + 40);
 
-  y += 250;
+  y += 50;
   // Footer
-  doc.fontSize(10).text(organization.companyName || "", 50, y + 70);
-  doc.text(organization.organizationNumber, 50, y + 85);
+  doc.fontSize(10).text(organization?.companyName || "", 50, y + 70);
+  doc.text(organization?.organizationNumber, 50, y + 85);
   doc.fillColor("blue").text(organization?.email || "", 50, y + 100);
   doc.fillColor("black").text(organization?.phone || "", 50, y + 115);
 
