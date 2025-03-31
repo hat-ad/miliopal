@@ -195,7 +195,14 @@ class PurchaseService {
 
   async getMonthlyPurchaseStats(
     filters: GetMonthlyPurchaseFilterInterface
-  ): Promise<{ year: string; month: string; unit: number; expense: number }[]> {
+  ): Promise<
+    {
+      year: string;
+      month: string;
+      unit: number | null;
+      expense: number | null;
+    }[]
+  > {
     try {
       const purchaseIds = await this.repositoryFactory
         .getPurchaseRepository()
@@ -253,8 +260,8 @@ class PurchaseService {
       const allStats: {
         year: string;
         month: string;
-        unit: number;
-        expense: number;
+        unit: number | null;
+        expense: number | null;
       }[] = [];
       let currentDate = new Date(firstPurchaseDate);
       currentDate.setDate(1); // ✅ Set the day to the 1st to avoid month skipping issues
@@ -267,8 +274,8 @@ class PurchaseService {
         allStats.push({
           year,
           month,
-          unit: groupedData[key]?.unit || 0,
-          expense: groupedData[key]?.expense || 0,
+          unit: groupedData[key]?.unit ?? null, // Use `null` if no data exists
+          expense: groupedData[key]?.expense ?? null, // Use `null` if no data exists
         });
 
         currentDate.setMonth(currentDate.getMonth() + 1);

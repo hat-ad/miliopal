@@ -108,7 +108,6 @@ export default class PurchaseController {
           ? {
               ...purchase.user,
               email: purchase.user.email ? decrypt(purchase.user.email) : null,
-              name: purchase.user.name ? decrypt(purchase.user.name) : null,
               phone: purchase.user.phone ? decrypt(purchase.user.phone) : null,
             }
           : null;
@@ -169,10 +168,6 @@ export default class PurchaseController {
               ...purchaseDetails.user,
               email: purchaseDetails.user.email
                 ? decrypt(purchaseDetails.user.email)
-                : null,
-
-              name: purchaseDetails.user.name
-                ? decrypt(purchaseDetails.user.name)
                 : null,
 
               phone: purchaseDetails.user.phone
@@ -321,10 +316,6 @@ export default class PurchaseController {
                 ...purchaseDetails.user,
                 email: purchaseDetails.user.email
                   ? decrypt(purchaseDetails.user.email)
-                  : null,
-
-                name: purchaseDetails.user.name
-                  ? decrypt(purchaseDetails.user.name)
                   : null,
 
                 phone: purchaseDetails.user.phone

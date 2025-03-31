@@ -38,7 +38,6 @@ export default class OrganizationController {
       const decryptedUsers = organization.users.map((user) => ({
         ...user,
         email: user.email ? decrypt(user.email) : null,
-        name: user.name ? decrypt(user.name) : null,
         phone: user.phone ? decrypt(user.phone) : null,
       }));
 

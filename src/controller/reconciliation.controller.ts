@@ -80,9 +80,6 @@ export default class ReconciliationHistoryController {
               email: reconciliation.user.email
                 ? decrypt(reconciliation.user.email)
                 : null,
-              name: reconciliation.user.name
-                ? decrypt(reconciliation.user.name)
-                : null,
               phone: reconciliation.user.phone
                 ? decrypt(reconciliation.user.phone)
                 : null,

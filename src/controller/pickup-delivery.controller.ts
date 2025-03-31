@@ -85,9 +85,6 @@ export default class PickupDeliveryController {
               email: pickupDelivery.user.email
                 ? decrypt(pickupDelivery.user.email)
                 : null,
-              name: pickupDelivery.user.name
-                ? decrypt(pickupDelivery.user.name)
-                : null,
               phone: pickupDelivery.user.phone
                 ? decrypt(pickupDelivery.user.phone)
                 : null,
@@ -149,10 +146,6 @@ export default class PickupDeliveryController {
               ...pickUpDeliveryDetails.user,
               email: pickUpDeliveryDetails.user.email
                 ? decrypt(pickUpDeliveryDetails.user.email)
-                : null,
-
-              name: pickUpDeliveryDetails.user.name
-                ? decrypt(pickUpDeliveryDetails.user.name)
                 : null,
 
               phone: pickUpDeliveryDetails.user.phone

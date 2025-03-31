@@ -1,7 +1,6 @@
 import { ServiceFactory } from "@/factory/service.factory";
 import { bindMethods, stringToHex } from "@/functions/function";
 import { sendSellerInvitationMail } from "@/templates/email";
-import { Method } from "@/types/enums";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
@@ -284,7 +283,6 @@ export default class SellerController {
                 email: purchase?.user.email
                   ? decrypt(purchase.user.email)
                   : null,
-                name: purchase?.user.name ? decrypt(purchase.user.name) : null,
                 phone: purchase?.user.phone
                   ? decrypt(purchase.user.phone)
                   : null,

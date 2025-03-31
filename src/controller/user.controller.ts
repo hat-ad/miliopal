@@ -26,7 +26,6 @@ export default class UserController {
     try {
       const { email, password, organizationNumber, phone, name } = req.body;
       const encryptedEmail = encrypt(email);
-      const encryptedName = encrypt(name);
       const encryptedPhone = encrypt(phone);
 
       let user = await this.serviceFactory
@@ -46,13 +45,12 @@ export default class UserController {
         organizationNumber: organizationNumber,
         password,
         phone: encryptedPhone,
-        name: encryptedName,
+        name,
       });
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
@@ -71,7 +69,6 @@ export default class UserController {
         return ERROR(res, false, "Unauthorized: Organization ID is missing");
 
       const encryptedEmail = encrypt(email);
-      const encryptedName = encrypt(name);
 
       let user = await this.serviceFactory
         .getUserService()
@@ -81,7 +78,7 @@ export default class UserController {
       user = await this.serviceFactory.getUserService().createUser({
         ...req.body,
         email: encryptedEmail,
-        name: encryptedName,
+        name,
         organizationId,
       });
 
@@ -95,7 +92,6 @@ export default class UserController {
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
@@ -139,7 +135,6 @@ export default class UserController {
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
       return OK(res, responseUser, "User updated successfully");
@@ -152,15 +147,12 @@ export default class UserController {
     try {
       let userId = req.payload?.id;
       const { id } = req.query;
-      const { name, phone } = req.body;
+      const { phone } = req.body;
 
       if (id) {
         userId = id as string;
       }
 
-      if (name) {
-        req.body.name = encrypt(name);
-      }
       if (phone) {
         req.body.phone = encrypt(phone);
       }
@@ -200,7 +192,6 @@ export default class UserController {
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
       return OK(res, responseUser, "User updated successfully");
@@ -219,7 +210,6 @@ export default class UserController {
         const responseUser = {
           ...user,
           email: user?.email ? decrypt(user.email) : null,
-          name: user?.name ? decrypt(user.name) : null,
           phone: user?.phone ? decrypt(user.phone) : null,
         };
         return OK(res, responseUser, "User retrieved successfully");
@@ -233,7 +223,6 @@ export default class UserController {
         const responseUser = {
           ...user,
           email: user?.email ? decrypt(user.email) : null,
-          name: user?.name ? decrypt(user.name) : null,
           phone: user?.phone ? decrypt(user.phone) : null,
         };
 
@@ -251,7 +240,7 @@ export default class UserController {
       const organizationId = req.payload?.organizationId;
 
       const encryptedEmail = email ? encrypt(email as string) : undefined;
-      const encryptedName = name ? encrypt(name as string) : undefined;
+      const encryptedName = name ? (name as string) : undefined;
       const encryptedPhone = phone ? encrypt(phone as string) : undefined;
 
       const filters = {
@@ -299,7 +288,6 @@ export default class UserController {
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
@@ -329,7 +317,6 @@ export default class UserController {
                 email: purchase?.user.email
                   ? decrypt(purchase.user.email)
                   : null,
-                name: purchase?.user.name ? decrypt(purchase.user.name) : null,
                 phone: purchase?.user.phone
                   ? decrypt(purchase.user.phone)
                   : null,
@@ -344,9 +331,7 @@ export default class UserController {
           email: userSellingHistory?.buyer?.email
             ? decrypt(userSellingHistory.buyer.email)
             : null,
-          name: userSellingHistory?.buyer?.name
-            ? decrypt(userSellingHistory.buyer.name)
-            : null,
+
           phone: userSellingHistory?.buyer?.phone
             ? decrypt(userSellingHistory.buyer.phone)
             : null,

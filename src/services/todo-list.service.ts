@@ -33,7 +33,6 @@ class TodoListService {
             email: pickupOrder.user.email
               ? decrypt(pickupOrder.user.email)
               : null,
-            name: pickupOrder.user.name ? decrypt(pickupOrder.user.name) : null,
             phone: pickupOrder.user.phone
               ? decrypt(pickupOrder.user.phone)
               : null,
@@ -74,7 +73,6 @@ class TodoListService {
       const decryptedUser = {
         ...user,
         email: user.email ? decrypt(user.email) : null,
-        name: user.name ? decrypt(user.name) : null,
         phone: user.phone ? decrypt(user.phone) : null,
       };
 
@@ -100,8 +98,6 @@ class TodoListService {
           ? {
               ...purchase.user,
               email: purchase.user.email ? decrypt(purchase.user.email) : null,
-
-              name: purchase.user.name ? decrypt(purchase.user.name) : null,
 
               phone: purchase.user.phone ? decrypt(purchase.user.phone) : null,
             }
