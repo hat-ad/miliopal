@@ -216,8 +216,7 @@ export default class PurchaseController {
 
   async getMonthlyPurchaseStats(req: Request, res: Response): Promise<void> {
     try {
-      const { productId } = req.params;
-      const { id, type } = req.query;
+      const { id, type, productId } = req.query;
       const organizationId = req.payload?.organizationId;
 
       if (!organizationId) {
@@ -225,7 +224,7 @@ export default class PurchaseController {
       }
 
       const filter: GetMonthlyPurchaseFilterInterface = {
-        productId: productId as string,
+        productId: productId ? (productId as string) : undefined,
       };
 
       if (type === "BUYER") {

@@ -46,7 +46,7 @@ export interface GetPurchaseFilterInterface {
 }
 
 export interface GetMonthlyPurchaseFilterInterface {
-  productId: string;
+  productId?: string;
   userId?: string;
   sellerId?: string;
   organizationId?: string;
