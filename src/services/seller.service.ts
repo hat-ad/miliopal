@@ -1,12 +1,12 @@
+import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
-  InviteSellerInterface,
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { Seller } from "@prisma/client";
+import { Seller, SellerType } from "@prisma/client";
 
 class SellerService {
   private repositoryFactory: RepositoryFactory;
@@ -15,7 +15,23 @@ class SellerService {
     this.repositoryFactory = factory ?? new RepositoryFactory();
   }
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    return this.repositoryFactory.getSellerRepository().createSeller(data);
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const sellerRepository = factory.getSellerRepository();
+      const privateSellerPurchaseStatsRepository =
+        factory.getPrivateSellerPurchaseStatsRepository();
+
+      const seller = await sellerRepository.createSeller(data);
+
+      if (data.type === SellerType.PRIVATE) {
+        await privateSellerPurchaseStatsRepository.createPrivateSellerPurchaseStats(
+          seller.id,
+          seller.organizationId
+        );
+      }
+
+      return seller;
+    });
   }
 
   async getSeller(id: string): Promise<Seller | null> {

@@ -89,25 +89,26 @@ enum SellerType {
 }
 
 model Seller {
-  id                String           @id @default(uuid())
-  email             String           @unique
-  type              SellerType
-  phone             String?
-  address           String?
-  postalCode        String?
-  city              String?
-  bankAccountNumber String?
-  paymentMethod     PaymentMethod    @default(CASH)
-  privateSeller     PrivateSeller?
-  businessSeller    BusinessSeller?
-  isArchived        Boolean          @default(false)
-  isDeleted         Boolean          @default(false)
-  organizationId    String
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  purchases         Purchase[]
-  PickUpDelivery    PickUpDelivery[]
+  id                         String                       @id @default(uuid())
+  email                      String                       @unique
+  type                       SellerType
+  phone                      String?
+  address                    String?
+  postalCode                 String?
+  city                       String?
+  bankAccountNumber          String?
+  paymentMethod              PaymentMethod                @default(CASH)
+  privateSeller              PrivateSeller?
+  businessSeller             BusinessSeller?
+  isArchived                 Boolean                      @default(false)
+  isDeleted                  Boolean                      @default(false)
+  organizationId             String
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  organization               Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchases                  Purchase[]
+  PickUpDelivery             PickUpDelivery[]
+  PrivateSellerPurchaseStats PrivateSellerPurchaseStats[]
 }
 
 enum Role {
@@ -252,7 +253,7 @@ model ReconciliationHistory {
 enum TodoListEvent {
   COMPANY_CASH_BALANCE_BELOW_THRESHOLD
   INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD
-  INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD
+  PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
   PURCHASE_INITIATED_WITH_BANK_TRANSFER
   ORDER_PICKUP_INITIATED
 }
@@ -283,11 +284,23 @@ model TodoListSettings {
   organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
-
 model SellerInvite {
-  id            String       @id @default(uuid())
-  email         String?      @unique
-  inviteExpiry    DateTime?
-  createdAt                           DateTime     @default(now())
-  updatedAt                           DateTime     @updatedAt
+  id           String    @id @default(uuid())
+  email        String?   @unique
+  inviteExpiry DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model PrivateSellerPurchaseStats {
+  id               String   @id @default(uuid())
+  organizationId   String   @unique
+  sellerId         String   @unique
+  totalSales       Float    @default(0)
+  totalQuantity    Int      @default(0)
+  isNotified       Boolean  @default(false)
+  lastReconciledAt DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  seller           Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 }

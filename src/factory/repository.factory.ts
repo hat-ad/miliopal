@@ -3,14 +3,15 @@ import AuthRepository from "@/repository/auth.repository";
 import CashHistoryRepository from "@/repository/cash-history.repository";
 import OrganizationRepository from "@/repository/organization.repository";
 import PickupDeliveryRepository from "@/repository/pickup-delivery.repository";
+import PrivateSellerPurchaseStatsRepository from "@/repository/private-seller-purchase-stats.repository";
 import ProductRepository from "@/repository/product.repository";
 import ProductsPickupRepository from "@/repository/products-pickup-delivery.repository";
 import ProductsPurchasedRepository from "@/repository/products-purchased.repository";
 import PurchaseRepository from "@/repository/purchase.repository";
 import ReceiptRepository from "@/repository/receipt.repository";
 import ReconciliationHistoryRepository from "@/repository/reconciliation.repository";
-import SellerRepository from "@/repository/seller.repository";
 import SellerInviteRepository from "@/repository/seller-invite.repository";
+import SellerRepository from "@/repository/seller.repository";
 import TodoListRepository from "@/repository/todo-list.repository";
 import UserRepository from "@/repository/user.repository";
 import { Prisma, PrismaClient } from "@prisma/client";
@@ -76,5 +77,9 @@ export class RepositoryFactory {
 
   getReconciliationHistoryRepository(): ReconciliationHistoryRepository {
     return new ReconciliationHistoryRepository(this.db);
+  }
+
+  getPrivateSellerPurchaseStatsRepository(): PrivateSellerPurchaseStatsRepository {
+    return new PrivateSellerPurchaseStatsRepository(this.db);
   }
 }

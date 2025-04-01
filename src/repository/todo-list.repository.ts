@@ -130,21 +130,6 @@ class IndividualCashBalanceEventsHandler {
       thresholdBalance,
     };
   }
-  private async getIndividualCashBalanceAboveThresholdMeta(
-    userId: string,
-    thresholdBalance: number
-  ) {
-    const user = await this.db.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-    return {
-      currentBalance: user?.wallet || 0,
-      userId,
-      thresholdBalance,
-    };
-  }
 
   private async createIndividualCashBalanceBelowThresholdEvent(
     userId: string,
@@ -156,23 +141,6 @@ class IndividualCashBalanceEventsHandler {
         organizationId,
         event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
         meta: await this.getIndividualCashBalanceBelowThresholdMeta(
-          userId,
-          thresholdBalance
-        ),
-      },
-    });
-  }
-
-  private async createIndividualCashBalanceAboveThresholdEvent(
-    userId: string,
-    organizationId: string,
-    thresholdBalance: number
-  ) {
-    await this.db.todoList.create({
-      data: {
-        organizationId,
-        event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
-        meta: await this.getIndividualCashBalanceAboveThresholdMeta(
           userId,
           thresholdBalance
         ),
@@ -248,28 +216,8 @@ class IndividualCashBalanceEventsHandler {
       );
     }
   }
-  async handleIndividualCashBalanceAboveThresholdEvent(
-    userId: string,
-    organizationId: string
-  ) {
-    const { isWalletBalanceAboveThreshold, thresholdBalance } =
-      await this.isEventCreationAllowed(userId);
-    if (isWalletBalanceAboveThreshold) {
-      await this.createIndividualCashBalanceAboveThresholdEvent(
-        userId,
-        organizationId,
-        thresholdBalance
-      );
-    }
-  }
 
   async handleIndividualCashBalanceBelowThresholdEventCompletion(
-    todoListId: string
-  ) {
-    await this.completeIndividualCashBalanceThresholdEvent(todoListId);
-  }
-
-  async handleIndividualCashBalanceAboveThresholdEventCompletion(
     todoListId: string
   ) {
     await this.completeIndividualCashBalanceThresholdEvent(todoListId);
@@ -387,7 +335,7 @@ class PurchaseWithBankTransferHandler {
 
 class TodoListRepository extends BaseRepository {
   constructor(db: PrismaTransactionClient) {
-    super();
+    super(db);
     bindMethods(this);
   }
   async registerEvent(
@@ -414,16 +362,6 @@ class TodoListRepository extends BaseRepository {
           this.db
         );
         await eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEvent(
-          payload.userId || "",
-          payload.organizationId
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD:
-        const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        await eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEvent(
           payload.userId || "",
           payload.organizationId
         );
@@ -469,15 +407,6 @@ class TodoListRepository extends BaseRepository {
           this.db
         );
         await eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEventCompletion(
-          payload.todoListId
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD:
-        const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        await eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEventCompletion(
           payload.todoListId
         );
         break;

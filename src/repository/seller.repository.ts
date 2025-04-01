@@ -3,16 +3,16 @@ import {
   GetSellersFilterInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { Seller } from "@prisma/client";
+import { PaymentMethod, Seller, SellerType } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class SellerRepository extends BaseRepository {
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    if (data.type === "PRIVATE" && !data.name) {
+    if (data.type === SellerType.PRIVATE && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
     if (
-      data.type === "BUSINESS" &&
+      data.type === SellerType.BUSINESS &&
       !data.organizationNumber &&
       !data.bankAccountNumber
     ) {
@@ -32,13 +32,16 @@ class SellerRepository extends BaseRepository {
         city: data.city,
         isDeleted: data.isDeleted ?? false,
         bankAccountNumber: data.bankAccountNumber,
-        paymentMethod: data.paymentMethod,
+        paymentMethod:
+          data.type === SellerType.PRIVATE
+            ? data.paymentMethod
+            : PaymentMethod.BANK_TRANSFER,
         privateSeller:
-          data.type === "PRIVATE"
+          data.type === SellerType.PRIVATE
             ? { create: { name: data.name! } }
             : undefined,
         businessSeller:
-          data.type === "BUSINESS"
+          data.type === SellerType.BUSINESS
             ? {
                 create: {
                   companyName: data.companyName!,
