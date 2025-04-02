@@ -274,14 +274,14 @@ model TodoList {
 }
 
 model TodoListSettings {
-  id                                  String       @id @default(uuid())
-  organizationId                      String       @unique
-  companyCashBalanceLowerThreshold    Float?
-  individualCashBalanceLowerThreshold Float?
-  individualCashBalanceUpperThreshold Float?
-  createdAt                           DateTime     @default(now())
-  updatedAt                           DateTime     @updatedAt
-  organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                                      String       @id @default(uuid())
+  organizationId                          String       @unique
+  companyCashBalanceLowerThreshold        Float?
+  individualCashBalanceLowerThreshold     Float?
+  privateSellerSalesBalanceUpperThreshold Float?
+  createdAt                               DateTime     @default(now())
+  updatedAt                               DateTime     @updatedAt
+  organization                            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model SellerInvite {

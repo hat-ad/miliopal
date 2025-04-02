@@ -80,6 +80,17 @@ class TodoListService {
     }
   }
 
+  private async getPrivateSellerMetaDetails(todoList: TodoList) {
+    if (todoList.meta) {
+      const meta = todoList.meta as Record<string, string>;
+      const seller = await this.repositoryFactory
+        .getSellerRepository()
+        .getSeller(meta.sellerId);
+
+      return { seller, ...meta };
+    }
+  }
+
   private async getPurchaseMetaDetails(todoList: TodoList) {
     if (todoList.meta) {
       const meta = todoList.meta as Record<string, string>;
@@ -180,13 +191,11 @@ class TodoListService {
           }
         }
       } else if (
-        todoList.event === TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD
+        todoList.event === TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
       ) {
-        const metaDetails = await this.getIndividualCashBalanceMetaDetails(
-          todoList
-        );
+        const metaDetails = await this.getPrivateSellerMetaDetails(todoList);
         if (metaDetails) {
-          listWithData.push({ ...todoList, details: { user: metaDetails } });
+          listWithData.push({ ...todoList, details: { seller: metaDetails } });
         }
       }
     }
@@ -204,15 +213,15 @@ class TodoListService {
     > & {
       isCompanyCashBalanceLowerThresholdEnabled: boolean;
       isIndividualCashBalanceLowerThresholdEnabled: boolean;
-      isIndividualCashBalanceUpperThresholdEnabled: boolean;
+      isPrivateSellerSalesBalanceUpperThresholdEnabled: boolean;
     }
   ) {
     const payload = {
       companyCashBalanceLowerThreshold: data.companyCashBalanceLowerThreshold,
       individualCashBalanceLowerThreshold:
         data.individualCashBalanceLowerThreshold,
-      individualCashBalanceUpperThreshold:
-        data.individualCashBalanceUpperThreshold,
+      privateSellerSalesBalanceUpperThreshold:
+        data.privateSellerSalesBalanceUpperThreshold,
     };
 
     if (!data.isCompanyCashBalanceLowerThresholdEnabled) {
@@ -221,8 +230,8 @@ class TodoListService {
     if (!data.isIndividualCashBalanceLowerThresholdEnabled) {
       payload.individualCashBalanceLowerThreshold = null;
     }
-    if (!data.isIndividualCashBalanceUpperThresholdEnabled) {
-      payload.individualCashBalanceUpperThreshold = null;
+    if (!data.isPrivateSellerSalesBalanceUpperThresholdEnabled) {
+      payload.privateSellerSalesBalanceUpperThreshold = null;
     }
 
     return await this.repositoryFactory

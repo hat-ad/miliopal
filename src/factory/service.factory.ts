@@ -1,12 +1,13 @@
 import AuthService from "@/services/auth.service";
 import OrganizationService from "@/services/organization.service";
 import PickupDeliveryService from "@/services/pickup-delivery.service";
+import PrivateSellerPurchaseStatsService from "@/services/private-seller-purchase-stats.service";
 import ProductService from "@/services/product.service";
 import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
 import ReconciliationHistoryService from "@/services/reconciliation.service";
-import SellerService from "@/services/seller.service";
 import SellerInviteService from "@/services/seller-invite.service";
+import SellerService from "@/services/seller.service";
 import TodoListService from "@/services/todo-list.service";
 import UserService from "@/services/user.service";
 
@@ -54,6 +55,9 @@ export class ServiceFactory {
 
   getReconciliationHistoryService(): ReconciliationHistoryService {
     return new ReconciliationHistoryService();
+  }
+  getPrivateSellerPurchaseStatsService(): PrivateSellerPurchaseStatsService {
+    return new PrivateSellerPurchaseStatsService();
   }
 }
 

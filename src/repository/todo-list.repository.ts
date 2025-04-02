@@ -193,12 +193,6 @@ class IndividualCashBalanceEventsHandler {
       payload.thresholdBalance = settings?.individualCashBalanceLowerThreshold;
     }
 
-    if (settings.individualCashBalanceUpperThreshold !== null) {
-      payload.isWalletBalanceAboveThreshold =
-        user?.wallet >= settings?.individualCashBalanceUpperThreshold;
-      payload.userWalletBalance = user?.wallet;
-    }
-
     return payload;
   }
 
@@ -333,6 +327,59 @@ class PurchaseWithBankTransferHandler {
   }
 }
 
+class PrivateSellerSalesEventsHandler {
+  db: PrismaTransactionClient;
+  constructor(db: PrismaTransactionClient) {
+    this.db = db;
+  }
+
+  private async getPrivateSellerMeta(
+    sellerId: string,
+    totalSales: number,
+    totalQuantity: number
+  ) {
+    return {
+      sellerId,
+      totalSales,
+      totalQuantity,
+    };
+  }
+
+  async handleCreatePrivateSellerUpperThresholdEvent(
+    organizationId: string,
+    sellerId: string,
+    totalSales: number,
+    totalQuantity: number
+  ) {
+    await this.db.todoList.create({
+      data: {
+        organizationId,
+        event: TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,
+        meta: await this.getPrivateSellerMeta(
+          sellerId,
+          totalSales,
+          totalQuantity
+        ),
+      },
+    });
+  }
+
+  private async completePrivateSellerUpperThresholdEvent(todoListId: string) {
+    await this.db.todoList.update({
+      where: {
+        id: todoListId,
+      },
+      data: {
+        status: TodoListStatus.DONE,
+      },
+    });
+  }
+
+  async handleCompletePrivateSellerUpperThresholdEvent(todoListId: string) {
+    await this.completePrivateSellerUpperThresholdEvent(todoListId);
+  }
+}
+
 class TodoListRepository extends BaseRepository {
   constructor(db: PrismaTransactionClient) {
     super(db);
@@ -345,6 +392,9 @@ class TodoListRepository extends BaseRepository {
       organizationId: string;
       pickUpOrderId?: string;
       purchaseId?: string;
+      totalSales?: number;
+      totalQuantity?: number;
+      sellerId?: string;
     }
   ) {
     switch (event) {
@@ -379,6 +429,16 @@ class TodoListRepository extends BaseRepository {
         await purchaseWithBankTransferHandler.handleCreatePurchaseWithBankTransferEvent(
           payload.organizationId,
           payload.purchaseId || ""
+        );
+        break;
+      case TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD:
+        const privateSellerSalesAboveThresholdHandler =
+          new PrivateSellerSalesEventsHandler(this.db);
+        await privateSellerSalesAboveThresholdHandler.handleCreatePrivateSellerUpperThresholdEvent(
+          payload.organizationId,
+          payload?.sellerId || "",
+          payload?.totalSales || 0,
+          payload?.totalQuantity || 0
         );
         break;
       default:
@@ -428,6 +488,13 @@ class TodoListRepository extends BaseRepository {
           payload.paymentDate
         );
         break;
+      case TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD:
+        const privateSellerSalesAboveThresholdHandler =
+          new PrivateSellerSalesEventsHandler(this.db);
+        await privateSellerSalesAboveThresholdHandler.handleCompletePrivateSellerUpperThresholdEvent(
+          payload.todoListId
+        );
+        break;
       default:
         break;
     }
@@ -469,6 +536,20 @@ class TodoListRepository extends BaseRepository {
     return await this.db.todoListSettings.findUnique({
       where: {
         organizationId: organizationId,
+      },
+    });
+  }
+
+  async listTodoListSettingsWithPrivateSellerSettingsEnabled() {
+    return await this.db.todoListSettings.findMany({
+      where: {
+        privateSellerSalesBalanceUpperThreshold: {
+          not: null,
+        },
+      },
+      select: {
+        organizationId: true,
+        privateSellerSalesBalanceUpperThreshold: true,
       },
     });
   }
