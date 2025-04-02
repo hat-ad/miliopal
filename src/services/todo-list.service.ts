@@ -126,10 +126,16 @@ class TodoListService {
     return organization;
   }
 
-  async getTodoList(organizationId: string, status?: TodoListStatus) {
+  async getTodoList(
+    organizationId: string,
+    status?: TodoListStatus,
+    event?: TodoListEvent,
+    from?: Date,
+    to?: Date
+  ) {
     const todoLists = await this.repositoryFactory
       .getTodoListRepository()
-      .listTodoLists(organizationId, status);
+      .listTodoLists(organizationId, status, event, from, to);
 
     const listWithData: (TodoList & { details: Record<string, unknown> })[] =
       [];
