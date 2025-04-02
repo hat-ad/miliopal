@@ -500,11 +500,22 @@ class TodoListRepository extends BaseRepository {
     }
   }
 
-  async listTodoLists(organizationId: string, status?: TodoListStatus) {
+  async listTodoLists(
+    organizationId: string,
+    status?: TodoListStatus,
+    event?: TodoListEvent,
+    from?: Date,
+    to?: Date
+  ) {
     return await this.db.todoList.findMany({
       where: {
         organizationId,
         status,
+        event,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
       },
     });
   }
