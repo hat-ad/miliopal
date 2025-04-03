@@ -3,6 +3,7 @@ import { bindMethods, stringToHex } from "@/functions/function";
 import { sendSellerInvitationMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
+import { PaymentMethod } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class SellerController {
@@ -256,13 +257,21 @@ export default class SellerController {
   async getSellerSellingHistory(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { page, limit } = req.query;
+      const { page, limit, from, to, paymentMethod } = req.query;
       const pageNumber = page ? parseInt(page as string, 10) : 1;
       const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
+      const filters = {
+        paymentMethod: paymentMethod
+          ? (paymentMethod as PaymentMethod)
+          : undefined,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
+      };
+
       const sellerSellingHistory = await this.serviceFactory
         .getSellerService()
-        .getSellerSellingHistory(id, pageNumber, pageSize);
+        .getSellerSellingHistory(id, pageNumber, pageSize, filters);
 
       const decryptedSeller = {
         ...sellerSellingHistory?.seller,

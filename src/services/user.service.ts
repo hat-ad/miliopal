@@ -3,6 +3,7 @@ import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateUserInterface,
   CreateUserInternalInterface,
+  GetBuyerBuyingHistoryFilterInterface,
   GetUsersFilterInterface,
   UserSellingHistoryInterface,
   UserUpdateData,
@@ -96,10 +97,12 @@ class UserService {
   async getUserSellingHistory(
     id: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    filter: GetBuyerBuyingHistoryFilterInterface
   ): Promise<UserSellingHistoryInterface | null> {
     const filters = {
       userId: id,
+      ...filter,
     };
     const purchasePaginated = await this.repositoryFactory
       .getPurchaseRepository()

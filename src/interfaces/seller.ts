@@ -68,3 +68,9 @@ export interface SellerSellingHistoryInterface {
   total: number;
   totalPages: number;
 }
+
+export interface GetSellerSellingHistoryFilterInterface {
+  paymentMethod?: PaymentMethod;
+  from?: string;
+  to?: string;
+}

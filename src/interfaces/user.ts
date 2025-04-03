@@ -1,4 +1,4 @@
-import { Purchase, Role, Seller, User } from "@prisma/client";
+import { PaymentMethod, Purchase, Role, Seller, User } from "@prisma/client";
 
 export interface CreateUserInterface {
   email: string;
@@ -47,4 +47,10 @@ export interface UserSellingHistoryInterface {
   })[];
   total: number;
   totalPages: number;
+}
+
+export interface GetBuyerBuyingHistoryFilterInterface {
+  paymentMethod?: PaymentMethod;
+  from?: string;
+  to?: string;
 }

@@ -4,7 +4,7 @@ import { bindMethods, generateOTP } from "@/functions/function";
 import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
-import { Role } from "@prisma/client";
+import { PaymentMethod, Role } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class UserController {
@@ -299,13 +299,21 @@ export default class UserController {
   async getUserSellingHistory(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-      const { page, limit } = req.query;
+      const { page, limit, from, to, paymentMethod } = req.query;
       const pageNumber = page ? parseInt(page as string, 10) : 1;
       const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
+      const filters = {
+        paymentMethod: paymentMethod
+          ? (paymentMethod as PaymentMethod)
+          : undefined,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
+      };
+
       const userSellingHistory = await this.serviceFactory
         .getUserService()
-        .getUserSellingHistory(userId, pageNumber, pageSize);
+        .getUserSellingHistory(userId, pageNumber, pageSize, filters);
 
       const decryptedPurchase = userSellingHistory?.purchase.map(
         (purchase) => ({

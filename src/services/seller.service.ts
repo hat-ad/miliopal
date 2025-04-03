@@ -2,6 +2,7 @@ import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateSellerInterface,
+  GetSellerSellingHistoryFilterInterface,
   GetSellersFilterInterface,
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
@@ -68,10 +69,12 @@ class SellerService {
   async getSellerSellingHistory(
     id: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    filter: GetSellerSellingHistoryFilterInterface
   ): Promise<SellerSellingHistoryInterface | null> {
     const filters = {
       sellerId: id,
+      ...filter,
     };
     const seller = await this.repositoryFactory
       .getSellerRepository()
