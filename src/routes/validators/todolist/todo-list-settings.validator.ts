@@ -5,7 +5,7 @@ import { z, ZodError } from "zod";
 const UpdateTodoListSettingsSchema = z.object({
   isCompanyCashBalanceLowerThresholdEnabled: z.boolean(),
   isIndividualCashBalanceLowerThresholdEnabled: z.boolean(),
-  isIndividualCashBalanceUpperThresholdEnabled: z.boolean(),
+  isPrivateSellerSalesBalanceUpperThresholdEnabled: z.boolean(),
   companyCashBalanceLowerThreshold: z
     .number()
     .min(0, "company cash balance lower threshold is required!")
@@ -14,9 +14,9 @@ const UpdateTodoListSettingsSchema = z.object({
     .number()
     .min(0, "individual cash balance lower threshold is required!")
     .optional(),
-  individualCashBalanceUpperThreshold: z
+  privateSellerSalesBalanceUpperThreshold: z
     .number()
-    .min(0, "individual cash balance upper threshold is required!")
+    .min(0, "private seller balance upper threshold is required!")
     .optional(),
 });
 
@@ -35,14 +35,14 @@ export const validateUpdateTodoListSettings = (
         req.body.companyCashBalanceLowerThreshold,
       individualCashBalanceLowerThreshold:
         req.body.individualCashBalanceLowerThreshold,
-      individualCashBalanceUpperThreshold:
-        req.body.individualCashBalanceUpperThreshold,
+      privateSellerSalesBalanceUpperThreshold:
+        req.body.privateSellerSalesBalanceUpperThreshold,
       isCompanyCashBalanceLowerThresholdEnabled:
         req.body.isCompanyCashBalanceLowerThresholdEnabled,
       isIndividualCashBalanceLowerThresholdEnabled:
         req.body.isIndividualCashBalanceLowerThresholdEnabled,
-      isIndividualCashBalanceUpperThresholdEnabled:
-        req.body.isIndividualCashBalanceUpperThresholdEnabled,
+      isPrivateSellerSalesBalanceUpperThresholdEnabled:
+        req.body.isPrivateSellerSalesBalanceUpperThresholdEnabled,
     };
     req.body = payload;
     UpdateTodoListSettingsSchema.parse(req.body);
