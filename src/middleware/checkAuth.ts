@@ -33,6 +33,10 @@ export const isAuthenticated = async (
     const user = await factory.getUserService().getUser(payload.sub);
     if (!user) return ERROR(res, null, "User does not exist");
 
+    if (user.isArchived || !user.isActive) {
+      return ERROR(res, false, "Your account is marked as inActive!");
+    }
+
     const userPayload: UserTokenPayload = {
       id: payload.sub,
       role: user.role as Role,

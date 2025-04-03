@@ -85,6 +85,11 @@ class ReconciliationHistoryRepository extends BaseRepository {
       where: {
         id: BigInt(id),
       },
+      include: {
+        organization: true,
+        user: true,
+        reconciliator: true,
+      },
     });
 
     if (!reconciliation) return null;

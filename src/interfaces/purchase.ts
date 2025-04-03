@@ -43,6 +43,7 @@ export interface GetPurchaseFilterInterface {
   from?: string;
   to?: string;
   sellerType?: SellerType;
+  name?: string;
 }
 
 export interface GetMonthlyPurchaseFilterInterface {

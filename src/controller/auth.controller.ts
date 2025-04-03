@@ -27,7 +27,12 @@ export default class AuthController {
       let user = await this.serviceFactory
         .getAuthService()
         .login(encryptedEmail, password);
+
       if (!user) return ERROR(res, false, "User not found");
+
+      if (user.isArchived || !user.isActive) {
+        return ERROR(res, false, "Your account is marked as inActive!");
+      }
 
       const token = generateToken(user?.id.toString());
 

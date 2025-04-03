@@ -74,12 +74,33 @@ class PurchaseRepository extends BaseRepository {
           }
         : undefined,
     };
+
+    if (filters.name) {
+      whereCondition.OR = [
+        { user: { name: { contains: filters.name, mode: "insensitive" } } },
+        {
+          seller: {
+            privateSeller: {
+              name: { contains: filters.name, mode: "insensitive" },
+            },
+          },
+        },
+        {
+          seller: {
+            businessSeller: {
+              companyName: { contains: filters.name, mode: "insensitive" },
+            },
+          },
+        },
+      ];
+    }
+
     if (filters.sellerType) {
       whereCondition.seller = {
+        ...whereCondition.seller,
         type: filters.sellerType,
       };
     }
-
     const total = await this.db.purchase.count({ where: whereCondition });
 
     const purchases = await this.db.purchase.findMany({

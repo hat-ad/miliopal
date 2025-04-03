@@ -31,6 +31,7 @@ class ReconciliationHistoryService {
 
       const updatedUser = await userRepo.updateUser(data.userId, {
         lastReconciled: new Date(),
+        wallet: data.amountCounted,
       });
 
       todoListRepo.registerEvent(
