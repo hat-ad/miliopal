@@ -4,7 +4,13 @@ import {
   CreateReconciliationHistoryInterface,
   FilterReconciliationListInterface,
 } from "@/interfaces/reconciliation";
-import { ReconciliationHistory, TodoListEvent, User } from "@prisma/client";
+import {
+  Organization,
+  Receipt,
+  ReconciliationHistory,
+  TodoListEvent,
+  User,
+} from "@prisma/client";
 
 class ReconciliationHistoryService {
   private repositoryFactory: RepositoryFactory;
@@ -38,10 +44,7 @@ class ReconciliationHistoryService {
         TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
         { organizationId: user.organizationId, userId: user.id }
       );
-      todoListRepo.registerEvent(
-        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
-        { organizationId: user.organizationId, userId: user.id }
-      );
+
       return { reconciliationHistory: reconciliation, user: updatedUser! };
     });
   }
@@ -60,10 +63,40 @@ class ReconciliationHistoryService {
       .getReconciliationList(filters, page, limit);
   }
 
-  async getReconciliation(id: number): Promise<ReconciliationHistory | null> {
+  async getReconciliation(id: number): Promise<
+    | (ReconciliationHistory & {
+        user?: User | null;
+        reconciliator?: User | null;
+        organization?: Organization | null;
+      })
+    | null
+  > {
     return this.repositoryFactory
       .getReconciliationHistoryRepository()
       .getReconciliation(id);
+  }
+
+  async getReconciliationReceipt(id: number): Promise<{
+    reconciliation:
+      | (ReconciliationHistory & {
+          user?: User | null;
+          reconciliator?: User | null;
+          organization?: Organization | null;
+        })
+      | null;
+    receiptSettings: Receipt | null;
+  }> {
+    const reconciliation = await this.repositoryFactory
+      .getReconciliationHistoryRepository()
+      .getReconciliation(id);
+    const receiptSettings = await this.repositoryFactory
+      .getReceiptRepository()
+      .getReceiptByOrganizationId(reconciliation?.organizationId as string);
+
+    return {
+      reconciliation,
+      receiptSettings,
+    };
   }
 }
 

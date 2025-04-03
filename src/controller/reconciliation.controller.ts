@@ -118,7 +118,113 @@ export default class ReconciliationHistoryController {
         return ERROR(res, false, "Reconciliation not found");
       }
 
-      return OK(res, reconciliation, "Reconciliation retrieved successfully");
+      let decryptedReconciliations: Record<string, any> = {
+        ...reconciliation,
+      };
+      if (reconciliation.user) {
+        const user = {
+          ...reconciliation.user,
+          email: reconciliation.user.email
+            ? decrypt(reconciliation.user.email)
+            : null,
+          phone: reconciliation.user.phone
+            ? decrypt(reconciliation.user.phone)
+            : null,
+        };
+        decryptedReconciliations = {
+          ...reconciliation,
+          user,
+        };
+      }
+
+      if (reconciliation.reconciliator) {
+        const reconciliator = {
+          ...reconciliation.reconciliator,
+          email: reconciliation.reconciliator.email
+            ? decrypt(reconciliation.reconciliator.email)
+            : null,
+          phone: reconciliation.reconciliator.phone
+            ? decrypt(reconciliation.reconciliator.phone)
+            : null,
+        };
+        decryptedReconciliations = {
+          ...reconciliation,
+          reconciliator,
+        };
+      }
+
+      return OK(
+        res,
+        decryptedReconciliations,
+        "Reconciliation retrieved successfully"
+      );
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+  async getReconciliationReceipt(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(Number(id))) {
+        return ERROR(res, false, "Invalid or missing reconciliation ID");
+      }
+
+      const reconciliation = await this.serviceFactory
+        .getReconciliationHistoryService()
+        .getReconciliationReceipt(Number(id));
+
+      if (!reconciliation) {
+        return ERROR(res, false, "Reconciliation not found");
+      }
+
+      let decryptedReconciliations: Record<string, any> = {
+        ...reconciliation,
+      };
+
+      if (!reconciliation.reconciliation) {
+        return ERROR(res, false, "Reconciliation not found");
+      }
+      if (reconciliation.reconciliation.user) {
+        const user = {
+          ...reconciliation.reconciliation.user,
+          email: reconciliation.reconciliation.user.email
+            ? decrypt(reconciliation.reconciliation.user.email)
+            : null,
+          phone: reconciliation.reconciliation.user.phone
+            ? decrypt(reconciliation.reconciliation.user.phone)
+            : null,
+        };
+        decryptedReconciliations = {
+          ...reconciliation,
+          user,
+        };
+      }
+
+      if (reconciliation.reconciliation.reconciliator) {
+        const reconciliator = {
+          ...reconciliation.reconciliation.reconciliator,
+          email: reconciliation.reconciliation.reconciliator.email
+            ? decrypt(reconciliation.reconciliation.reconciliator.email)
+            : null,
+          phone: reconciliation.reconciliation.reconciliator.phone
+            ? decrypt(reconciliation.reconciliation.reconciliator.phone)
+            : null,
+        };
+        decryptedReconciliations = {
+          ...reconciliation,
+          reconciliator,
+        };
+      }
+
+      return OK(
+        res,
+        {
+          reconciliation: decryptedReconciliations,
+          receiptSettings: reconciliation.receiptSettings,
+        },
+        "Reconciliation retrieved successfully"
+      );
     } catch (error) {
       return ERROR(res, false, error);
     }

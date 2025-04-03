@@ -2,7 +2,7 @@ import {
   CreateReconciliationHistoryInterface,
   FilterReconciliationListInterface,
 } from "@/interfaces/reconciliation";
-import { ReconciliationHistory } from "@prisma/client";
+import { Organization, ReconciliationHistory, User } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class ReconciliationHistoryRepository extends BaseRepository {
@@ -80,7 +80,16 @@ class ReconciliationHistoryRepository extends BaseRepository {
 
     return { reconciliations: sanitizedReconciliations, total, totalPages };
   }
-  async getReconciliation(id: number): Promise<ReconciliationHistory | null> {
+  async getReconciliation(
+    id: number
+  ): Promise<
+    | (ReconciliationHistory & {
+        user?: User | null;
+        reconciliator?: User | null;
+        organization?: Organization | null;
+      })
+    | null
+  > {
     const reconciliation = await this.db.reconciliationHistory.findUnique({
       where: {
         id: BigInt(id),
