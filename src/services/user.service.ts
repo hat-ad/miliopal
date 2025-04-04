@@ -30,24 +30,27 @@ class UserService {
       .createOrganization({
         organizationNumber: data.organizationNumber,
       });
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
 
-      if (data.password) {
-        data.password = await bcrypt.hash(data.password, 10);
-      }
+        if (data.password) {
+          data.password = await bcrypt.hash(data.password, 10);
+        }
 
-      const user = await factory.getUserRepository().createUserInternal({
-        email: data.email,
-        organizationId: newOrg.id,
-        password: data.password,
-        phone: data.phone,
-        name: data.name,
-      });
-      await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
+        const user = await factory.getUserRepository().createUserInternal({
+          email: data.email,
+          organizationId: newOrg.id,
+          password: data.password,
+          phone: data.phone,
+          name: data.name,
+        });
+        await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
 
-      return user;
-    });
+        return user;
+      },
+      { maxWait: 30000, timeout: 30000 }
+    );
   }
 
   async updateUser(id: string, data: UserUpdateData): Promise<User | null> {

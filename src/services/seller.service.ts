@@ -16,23 +16,26 @@ class SellerService {
     this.repositoryFactory = factory ?? new RepositoryFactory();
   }
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
-      const sellerRepository = factory.getSellerRepository();
-      const privateSellerPurchaseStatsRepository =
-        factory.getPrivateSellerPurchaseStatsRepository();
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const sellerRepository = factory.getSellerRepository();
+        const privateSellerPurchaseStatsRepository =
+          factory.getPrivateSellerPurchaseStatsRepository();
 
-      const seller = await sellerRepository.createSeller(data);
+        const seller = await sellerRepository.createSeller(data);
 
-      if (data.type === SellerType.PRIVATE) {
-        await privateSellerPurchaseStatsRepository.createPrivateSellerPurchaseStats(
-          seller.id,
-          seller.organizationId
-        );
-      }
+        if (data.type === SellerType.PRIVATE) {
+          await privateSellerPurchaseStatsRepository.createPrivateSellerPurchaseStats(
+            seller.id,
+            seller.organizationId
+          );
+        }
 
-      return seller;
-    });
+        return seller;
+      },
+      { maxWait: 30000, timeout: 30000 }
+    );
   }
 
   async getSeller(id: string): Promise<Seller | null> {

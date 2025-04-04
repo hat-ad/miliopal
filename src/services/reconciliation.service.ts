@@ -21,32 +21,35 @@ class ReconciliationHistoryService {
   async createReconciliation(
     data: CreateReconciliationHistoryInterface
   ): Promise<{ reconciliationHistory: ReconciliationHistory; user: User }> {
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
-      const userRepo = factory.getUserRepository();
-      const todoListRepo = factory.getTodoListRepository();
-      const reconciliationHistoryRepo =
-        factory.getReconciliationHistoryRepository();
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const userRepo = factory.getUserRepository();
+        const todoListRepo = factory.getTodoListRepository();
+        const reconciliationHistoryRepo =
+          factory.getReconciliationHistoryRepository();
 
-      const user = await userRepo.getUser(data.userId);
+        const user = await userRepo.getUser(data.userId);
 
-      if (!user) throw new Error("User not found.");
+        if (!user) throw new Error("User not found.");
 
-      const reconciliation =
-        await reconciliationHistoryRepo.createReconciliation(data);
+        const reconciliation =
+          await reconciliationHistoryRepo.createReconciliation(data);
 
-      const updatedUser = await userRepo.updateUser(data.userId, {
-        lastReconciled: new Date(),
-        wallet: data.amountCounted,
-      });
+        const updatedUser = await userRepo.updateUser(data.userId, {
+          lastReconciled: new Date(),
+          wallet: data.amountCounted,
+        });
 
-      todoListRepo.registerEvent(
-        TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
-        { organizationId: user.organizationId, userId: user.id }
-      );
+        await todoListRepo.registerEvent(
+          TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
+          { organizationId: user.organizationId, userId: user.id }
+        );
 
-      return { reconciliationHistory: reconciliation, user: updatedUser! };
-    });
+        return { reconciliationHistory: reconciliation, user: updatedUser! };
+      },
+      { maxWait: 60000, timeout: 60000 }
+    );
   }
 
   async getReconciliationList(

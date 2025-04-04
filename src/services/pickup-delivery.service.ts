@@ -24,37 +24,43 @@ class PickupDeliveryService {
     pickUpDelivery: PickUpDelivery;
     productsForDelivery: ProductForDelivery[];
   } | null> {
-    return PrismaService.getInstance().$transaction(async (tx) => {
-      const factory = new RepositoryFactory(tx);
-      const pickupDeliveryRepo = factory.getPickUpDeliveryRepository();
-      const productsPickupDeliveryRepo = factory.getProductsPickupRepository();
-      const todoListRepo = factory.getTodoListRepository();
-      const pickUpDelivery = await pickupDeliveryRepo.createPickupDelivery({
-        organizationId: data.organizationId,
-        userId: data.userId,
-        sellerId: data.sellerId,
-        PONumber: data.PONumber,
-        comment: data.comment,
-      });
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const pickupDeliveryRepo = factory.getPickUpDeliveryRepository();
+        const productsPickupDeliveryRepo =
+          factory.getProductsPickupRepository();
+        const todoListRepo = factory.getTodoListRepository();
+        const pickUpDelivery = await pickupDeliveryRepo.createPickupDelivery({
+          organizationId: data.organizationId,
+          userId: data.userId,
+          sellerId: data.sellerId,
+          PONumber: data.PONumber,
+          comment: data.comment,
+        });
 
-      const products = data.productsForDelivery.map((product) => ({
-        ...product,
-        pickUpDeliveryId: pickUpDelivery.id,
-      }));
+        const products = data.productsForDelivery.map((product) => ({
+          ...product,
+          pickUpDeliveryId: pickUpDelivery.id,
+        }));
 
-      const products_for_delivery =
-        await productsPickupDeliveryRepo.bulkInsertProductsPurchased(products);
+        const products_for_delivery =
+          await productsPickupDeliveryRepo.bulkInsertProductsPurchased(
+            products
+          );
 
-      todoListRepo.registerEvent(TodoListEvent.ORDER_PICKUP_INITIATED, {
-        organizationId: pickUpDelivery.organizationId,
-        pickUpOrderId: pickUpDelivery.id,
-      });
+        todoListRepo.registerEvent(TodoListEvent.ORDER_PICKUP_INITIATED, {
+          organizationId: pickUpDelivery.organizationId,
+          pickUpOrderId: pickUpDelivery.id,
+        });
 
-      return {
-        pickUpDelivery,
-        productsForDelivery: products_for_delivery,
-      };
-    });
+        return {
+          pickUpDelivery,
+          productsForDelivery: products_for_delivery,
+        };
+      },
+      { maxWait: 30000, timeout: 30000 }
+    );
   }
 
   async getPickupDelivery(id: string): Promise<PickUpDelivery | null> {
