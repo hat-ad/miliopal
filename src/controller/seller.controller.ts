@@ -70,6 +70,13 @@ export default class SellerController {
         if (existingSeller) {
           return ERROR(res, false, "Seller already exists.");
         }
+
+        const existingSellerInvite = await this.serviceFactory
+          .getSellerInviteService()
+          .getSellerInviteByEmail(email);
+        if (existingSellerInvite) {
+          return ERROR(res, false, "Seller invite already exists.");
+        }
       }
 
       const sellerInvite = await this.serviceFactory

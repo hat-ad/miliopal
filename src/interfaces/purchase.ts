@@ -1,4 +1,9 @@
-import { OrderStatus, PaymentMethod, SellerType } from "@prisma/client";
+import {
+  OrderStatus,
+  PaymentMethod,
+  PurchaseType,
+  SellerType,
+} from "@prisma/client";
 
 export interface CreatePurchaseInterface {
   userId: string;
@@ -30,6 +35,7 @@ export interface CreatePurchaseRepositoryInterface {
   totalAmount: number;
   notes?: string | null;
   transactionDate?: Date | null;
+  purchaseType?: PurchaseType;
 }
 
 export interface UpdatePurchaseInterface {

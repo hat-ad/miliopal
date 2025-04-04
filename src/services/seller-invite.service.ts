@@ -1,6 +1,6 @@
 import { RepositoryFactory } from "@/factory/repository.factory";
 import { InviteSellerInterface } from "@/interfaces/seller";
-import { Seller, SellerInvite } from "@prisma/client";
+import { SellerInvite } from "@prisma/client";
 
 class SellerService {
   private repositoryFactory: RepositoryFactory;
@@ -19,6 +19,24 @@ class SellerService {
     return this.repositoryFactory
       .getSellerInviteRepository()
       .getSellerInvite(id);
+  }
+
+  async getSellerInviteByEmail(email: string): Promise<SellerInvite | null> {
+    const sellerInvite = await this.repositoryFactory
+      .getSellerInviteRepository()
+      .getSellerInviteByEmail(email);
+
+    if (sellerInvite && sellerInvite.inviteExpiry) {
+      const inviteExpiry = new Date(sellerInvite.inviteExpiry);
+      if (inviteExpiry.getTime() < new Date().getTime()) {
+        await this.repositoryFactory
+          .getSellerInviteRepository()
+          .deleteSellerInvite(sellerInvite.id);
+
+        return null;
+      }
+    }
+    return sellerInvite;
   }
 }
 

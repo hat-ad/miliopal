@@ -20,6 +20,22 @@ class SellerRepository extends BaseRepository {
       },
     });
   }
+
+  async getSellerInviteByEmail(email: string): Promise<SellerInvite | null> {
+    return this.db.sellerInvite.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
+  async deleteSellerInvite(id: string): Promise<SellerInvite> {
+    return this.db.sellerInvite.delete({
+      where: {
+        id,
+      },
+    });
+  }
 }
 
 export default SellerRepository;
