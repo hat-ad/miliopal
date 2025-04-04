@@ -9,6 +9,7 @@ class SellerRepository extends BaseRepository {
         email: data.email!,
         sellerType: data.sellerType,
         inviteExpiry: data.inviteExpiry,
+        organizationId: data.organizationId,
       },
     });
   }

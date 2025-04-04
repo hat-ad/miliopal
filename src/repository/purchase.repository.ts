@@ -3,7 +3,7 @@ import {
   GetPurchaseFilterInterface,
   UpdatePurchaseInterface,
 } from "@/interfaces/purchase";
-import { Purchase, Seller, User } from "@prisma/client";
+import { Purchase, PurchaseType, Seller, User } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class PurchaseRepository extends BaseRepository {
@@ -182,7 +182,7 @@ class PurchaseRepository extends BaseRepository {
     organizationId?: string;
   }): Promise<string[]> {
     const whereClause: any = {
-      purchaseType: "PURCHASE",
+      purchaseType: PurchaseType.PURCHASE,
       creditOrderId: null,
     };
 

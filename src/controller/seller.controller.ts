@@ -54,7 +54,6 @@ export default class SellerController {
     try {
       const { inviteId } = req.params;
       const { email, phone } = req.body;
-      const organizationId = req.payload?.organizationId;
 
       const invitedSeller = await this.serviceFactory
         .getSellerInviteService()
@@ -74,6 +73,8 @@ export default class SellerController {
       if (currentTime > inviteExpiry) {
         return ERROR(res, null, "Invitation has expired.");
       }
+
+      const organizationId = invitedSeller.organizationId;
 
       const encryptedEmail = encrypt(email);
       const encryptedPhone = phone ? encrypt(phone) : null;
@@ -105,7 +106,14 @@ export default class SellerController {
   async inviteSeller(req: Request, res: Response): Promise<void> {
     try {
       const { method, email, sellerType } = req.body;
+
+      const organizationId = req.payload?.organizationId;
+
       const inviteExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+      if (!organizationId) {
+        return ERROR(res, false, "organizationId is required.");
+      }
 
       if (!sellerType) {
         return ERROR(res, false, "Seller type is required.");
@@ -133,7 +141,7 @@ export default class SellerController {
 
       const sellerInvite = await this.serviceFactory
         .getSellerInviteService()
-        .inviteSeller({ email, inviteExpiry, sellerType });
+        .inviteSeller({ email, inviteExpiry, sellerType, organizationId });
 
       if (!sellerInvite) {
         return ERROR(res, false, "Seller invitation not created.");

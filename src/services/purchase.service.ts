@@ -392,8 +392,6 @@ class PurchaseService {
       .getPurchaseRepository()
       .getPurchaseIds({ userId: id, organizationId });
 
-    console.log(purchaseIds);
-
     return this.repositoryFactory
       .getProductsPurchasedRepository()
       .getProductsPurchaseStatsByPurchaseIds(purchaseIds);
