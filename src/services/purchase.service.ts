@@ -195,6 +195,9 @@ class PurchaseService {
       const purchase = await purchaseRepo.getPurchase(purchaseId);
       if (!purchase) return null;
 
+      if (purchase.creditOrderId) {
+        throw new Error("Amount already Credited!");
+      }
       const productsPurchased =
         await productPurchasedRepo.getPurchasedProductByPurchaseId(purchaseId);
 
