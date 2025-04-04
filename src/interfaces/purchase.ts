@@ -32,6 +32,10 @@ export interface CreatePurchaseRepositoryInterface {
   transactionDate?: Date | null;
 }
 
+export interface UpdatePurchaseInterface {
+  creditOrderId?: string;
+}
+
 export interface GetPurchaseFilterInterface {
   userId?: string;
   sellerId?: string;

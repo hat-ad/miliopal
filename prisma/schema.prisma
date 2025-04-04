@@ -75,6 +75,7 @@ model Purchase {
   status            OrderStatus
   isArchived        Boolean             @default(false)
   organizationId    String
+  creditOrderId     String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)

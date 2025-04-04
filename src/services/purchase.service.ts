@@ -190,8 +190,11 @@ class PurchaseService {
       const factory = new RepositoryFactory(tx);
       const purchaseRepo = factory.getPurchaseRepository();
       const productPurchasedRepo = factory.getProductsPurchasedRepository();
+      const userRepo = factory.getUserRepository();
+
       const purchase = await purchaseRepo.getPurchase(purchaseId);
       if (!purchase) return null;
+
       const productsPurchased =
         await productPurchasedRepo.getPurchasedProductByPurchaseId(purchaseId);
 
@@ -209,6 +212,22 @@ class PurchaseService {
         notes: creditNotes,
         comment: purchase.comment,
       });
+
+      const updateOldPurchase = await purchaseRepo.updatePurchase(purchase.id, {
+        creditOrderId: newPurchase.id,
+      });
+
+      if (
+        purchase.paymentMethod === PaymentMethod.CASH &&
+        purchase.status === OrderStatus.PAID
+      ) {
+        const user = await userRepo.getUser(purchase.userId);
+        if (!user) throw new Error("User not found");
+        const refundCreditAmount = user.wallet + purchase.totalAmount;
+        await userRepo.updateUser(purchase.userId, {
+          wallet: refundCreditAmount,
+        });
+      }
 
       const products = productsPurchased.map((item) => ({
         productId: item.productId,

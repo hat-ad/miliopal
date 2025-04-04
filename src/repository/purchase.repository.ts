@@ -1,6 +1,7 @@
 import {
   CreatePurchaseRepositoryInterface,
   GetPurchaseFilterInterface,
+  UpdatePurchaseInterface,
 } from "@/interfaces/purchase";
 import { Purchase, Seller, User } from "@prisma/client";
 import BaseRepository from "./base.repository";
@@ -199,6 +200,16 @@ class PurchaseRepository extends BaseRepository {
 
     const purchaseIds = purchases.map((purchase) => purchase.id);
     return purchaseIds;
+  }
+
+  async updatePurchase(
+    id: string,
+    data: UpdatePurchaseInterface
+  ): Promise<Purchase> {
+    return this.db.purchase.update({
+      where: { id },
+      data: { ...data },
+    });
   }
 }
 
