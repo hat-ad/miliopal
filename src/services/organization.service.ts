@@ -191,10 +191,6 @@ class OrganizationService {
         TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
         { organizationId: user.organizationId, userId: user.id }
       );
-      todoListRepo.registerEvent(
-        TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
-        { organizationId: user.organizationId, userId: user.id }
-      );
       return {
         user: updatedUser!,
         organization: updatedOrganization!,
