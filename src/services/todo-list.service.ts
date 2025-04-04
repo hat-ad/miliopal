@@ -87,7 +87,7 @@ class TodoListService {
         .getSellerRepository()
         .getSeller(meta.sellerId);
 
-      return { seller, ...meta };
+      return { ...seller, ...meta };
     }
   }
 
