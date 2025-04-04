@@ -47,4 +47,6 @@ app.use(
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use("/api", api);
 
+import "./cron/private-seller-notif.cron";
+
 export default app;

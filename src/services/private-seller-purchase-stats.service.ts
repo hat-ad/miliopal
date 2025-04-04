@@ -57,7 +57,7 @@ class PrivateSellerPurchaseStatsService {
 
       for (const seller of sellersNeededToBeNotified) {
         await todoListRepo.registerEvent(
-          TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+          TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,
           {
             organizationId: seller.organizationId,
             sellerId: seller.sellerId,

@@ -414,7 +414,7 @@ class TodoListRepository extends BaseRepository {
     totalSales: number,
     totalQuantity: number
   ) {
-    await this.db.todoList.create({
+    return await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,

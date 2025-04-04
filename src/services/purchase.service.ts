@@ -112,7 +112,11 @@ class PurchaseService {
             { organizationId: data.organizationId, userId: data.userId }
           );
 
-          const purchasedItem = await purchaseRepo.getPurchase(purchase.id);
+          const purchasedItem = await purchaseRepo.getPurchase(purchase.id, {
+            include: {
+              seller: true,
+            },
+          });
 
           if (purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER) {
             await todoListRepo.registerEvent(
@@ -191,6 +195,8 @@ class PurchaseService {
       const purchaseRepo = factory.getPurchaseRepository();
       const productPurchasedRepo = factory.getProductsPurchasedRepository();
       const userRepo = factory.getUserRepository();
+      const privateSellerPurchaseStatsRepo =
+        factory.getPrivateSellerPurchaseStatsRepository();
 
       const purchase = await purchaseRepo.getPurchase(purchaseId);
       if (!purchase) return null;
@@ -202,6 +208,10 @@ class PurchaseService {
         await productPurchasedRepo.getPurchasedProductByPurchaseId(purchaseId);
 
       const newOrderNo = `CD-${purchase.orderNo.split("-")[1]}`;
+
+      const totalQuantity = productsPurchased
+        .map((product) => product.quantity)
+        .reduce((sum: number, value: number) => sum + value, 0);
 
       const newPurchase = await purchaseRepo.createPurchase({
         userId: purchase.userId,
@@ -216,7 +226,7 @@ class PurchaseService {
         comment: purchase.comment,
       });
 
-      const updateOldPurchase = await purchaseRepo.updatePurchase(purchase.id, {
+      await purchaseRepo.updatePurchase(purchase.id, {
         creditOrderId: newPurchase.id,
       });
 
@@ -240,6 +250,32 @@ class PurchaseService {
       }));
 
       await productPurchasedRepo.bulkInsertProductsPurchased(products);
+
+      const purchasedItem = await purchaseRepo.getPurchase(purchase.id, {
+        include: {
+          seller: true,
+        },
+      });
+
+      if (purchasedItem?.seller?.type === SellerType.PRIVATE) {
+        const privateSellerPurchaseStats =
+          await privateSellerPurchaseStatsRepo.getPrivateSellerPurchaseStatsBySellerId(
+            purchasedItem.sellerId
+          );
+
+        if (!privateSellerPurchaseStats) {
+          throw new Error("No purchase stats found for private seller");
+        }
+        const newTotalAmount =
+          privateSellerPurchaseStats.totalSales - purchase.totalAmount;
+        const newTotalQuantity =
+          privateSellerPurchaseStats.totalQuantity - totalQuantity;
+
+        await privateSellerPurchaseStatsRepo.updatePrivateSellerPurchaseStats(
+          purchasedItem.sellerId,
+          { totalSales: newTotalAmount, totalQuantity: newTotalQuantity }
+        );
+      }
 
       return newPurchase;
     });

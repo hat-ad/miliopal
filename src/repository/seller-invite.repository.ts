@@ -7,6 +7,7 @@ class SellerRepository extends BaseRepository {
     return this.db.sellerInvite.create({
       data: {
         email: data.email!,
+        sellerType: data.sellerType,
         inviteExpiry: data.inviteExpiry,
       },
     });

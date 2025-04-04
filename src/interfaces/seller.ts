@@ -25,6 +25,7 @@ export interface CreateSellerInterface {
 
 export interface InviteSellerInterface {
   email?: string;
+  sellerType: SellerType;
   inviteExpiry?: Date | null;
 }
 

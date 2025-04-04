@@ -292,11 +292,12 @@ model TodoListSettings {
 }
 
 model SellerInvite {
-  id           String    @id @default(uuid())
-  email        String?   @unique
+  id           String     @id @default(uuid())
+  email        String?    @unique
+  sellerType   SellerType @default(BUSINESS)
   inviteExpiry DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model PrivateSellerPurchaseStats {

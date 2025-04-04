@@ -52,8 +52,12 @@ export default class SellerController {
 
   async inviteSeller(req: Request, res: Response): Promise<void> {
     try {
-      const { method, email } = req.body;
+      const { method, email, sellerType } = req.body;
       const inviteExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+      if (!sellerType) {
+        return ERROR(res, false, "Seller type is required.");
+      }
 
       if (method === "INVITE" && !email) {
         return ERROR(res, false, "Email is required for invitation.");
@@ -70,7 +74,7 @@ export default class SellerController {
 
       const sellerInvite = await this.serviceFactory
         .getSellerInviteService()
-        .inviteSeller({ email, inviteExpiry });
+        .inviteSeller({ email, inviteExpiry, sellerType });
 
       if (!sellerInvite) {
         return ERROR(res, false, "Seller invitation not created.");

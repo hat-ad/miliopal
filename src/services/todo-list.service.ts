@@ -195,13 +195,17 @@ class TodoListService {
           if (metaDetails) {
             listWithData.push({ ...todoList, details: { user: metaDetails } });
           }
-        }
-      } else if (
-        todoList.event === TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
-      ) {
-        const metaDetails = await this.getPrivateSellerMetaDetails(todoList);
-        if (metaDetails) {
-          listWithData.push({ ...todoList, details: { seller: metaDetails } });
+        } else if (
+          todoList.event === TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
+        ) {
+          const metaDetails = await this.getPrivateSellerMetaDetails(todoList);
+
+          if (metaDetails) {
+            listWithData.push({
+              ...todoList,
+              details: { seller: metaDetails },
+            });
+          }
         }
       }
     }
