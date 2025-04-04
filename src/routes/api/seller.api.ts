@@ -15,7 +15,7 @@ router.post(
 router.post(
   "/create-seller-from-invite/:inviteId",
   validateCreateSeller,
-  SellerController.getInstance().createSeller
+  SellerController.getInstance().createSellerFromInvite
 );
 
 router.get(

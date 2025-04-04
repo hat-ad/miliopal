@@ -303,7 +303,7 @@ model SellerInvite {
 
 model PrivateSellerPurchaseStats {
   id               String   @id @default(uuid())
-  organizationId   String   @unique
+  organizationId   String
   sellerId         String   @unique
   totalSales       Float    @default(0)
   totalQuantity    Int      @default(0)
