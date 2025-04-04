@@ -4,8 +4,8 @@
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "start": "node -r module-alias/register dist/index.js",
+    "build": "rm -rf dist && tsc && node copy-files.js",
+    "start": "npm run build && node -r module-alias/register dist/index.js",
     "dev": "tsx watch src/index.ts",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
