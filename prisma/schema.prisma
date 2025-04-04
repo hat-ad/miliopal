@@ -12,7 +12,6 @@ model BusinessSeller {
   companyName        String?
   contactPerson      String?
   organizationNumber String
-  bankAccountNumber  String?
   seller             Seller   @relation(fields: [id], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -28,14 +27,14 @@ model PrivateSeller {
 
 model Product {
   id                 String               @id @default(uuid())
-  name               String?
+  name               String
   price              Float
   isDeleted          Boolean              @default(false)
   isArchived         Boolean              @default(false)
-  organizationId     String?
+  organizationId     String
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  organization       Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   productsPurchased  ProductsPurchased[]
   ProductForDelivery ProductForDelivery[]
 }
@@ -62,23 +61,30 @@ enum OrderStatus {
   UNPAID
 }
 
+enum PurchaseType {
+  PURCHASE
+  CREDIT
+}
+
 model Purchase {
   id                String              @id @default(uuid())
   orderNo           String
   comment           String?
   paymentMethod     PaymentMethod
   bankAccountNumber String?
-  bankTransferDate  DateTime?
-  totalAmount       Int?
+  transactionDate   DateTime?
+  totalAmount       Int                 @default(0)
   notes             String?
   sellerId          String
   userId            String
   status            OrderStatus
   isArchived        Boolean             @default(false)
-  organizationId    String?
+  organizationId    String
+  creditOrderId     String?
+  purchaseType      PurchaseType        @default(PURCHASE)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller            Seller              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   productsPurchased ProductsPurchased[]
@@ -90,23 +96,26 @@ enum SellerType {
 }
 
 model Seller {
-  id             String           @id @default(uuid())
-  email          String           @unique
-  type           SellerType
-  phone          String?
-  address        String?
-  postalCode     String?
-  city           String?
-  privateSeller  PrivateSeller?
-  businessSeller BusinessSeller?
-  isArchived     Boolean          @default(false)
-  isDeleted      Boolean          @default(false)
-  organizationId String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  purchases      Purchase[]
-  PickUpDelivery PickUpDelivery[]
+  id                         String                       @id @default(uuid())
+  email                      String                       @unique
+  type                       SellerType
+  phone                      String?
+  address                    String?
+  postalCode                 String?
+  city                       String?
+  bankAccountNumber          String?
+  paymentMethod              PaymentMethod                @default(CASH)
+  privateSeller              PrivateSeller?
+  businessSeller             BusinessSeller?
+  isArchived                 Boolean                      @default(false)
+  isDeleted                  Boolean                      @default(false)
+  organizationId             String
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  organization               Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchases                  Purchase[]
+  PickUpDelivery             PickUpDelivery[]
+  PrivateSellerPurchaseStats PrivateSellerPurchaseStats[]
 }
 
 enum Role {
@@ -136,7 +145,8 @@ model User {
   organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   purchases           Purchase[]
   PickUpDelivery      PickUpDelivery[]
-  CashHistory         CashHistory[]
+  actionByUser        CashHistory[]           @relation("ActionByDetails")
+  actionToUsers       CashHistory[]           @relation("ActionToDetails")
   reconciliations     ReconciliationHistory[] @relation("ReconciledHistory")
   reconciliationsMade ReconciliationHistory[] @relation("Reconciliator")
 }
@@ -149,6 +159,8 @@ model Organization {
   city                  String?
   organizationNumber    String                  @unique // Ensure it's unique
   wallet                Float
+  phone                 String?
+  email                 String?
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   users                 User[]
@@ -163,15 +175,15 @@ model Organization {
 }
 
 model Receipt {
-  id                  String        @id @default(uuid())
+  id                  String       @id @default(uuid())
   organizationId      String
   startingOrderNumber Int
   currentOrderNumber  Int
   logo                String?
   receiptText         String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  organization        Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model ProductForDelivery {
@@ -212,17 +224,20 @@ enum AccountType {
 }
 
 model CashHistory {
-  id             String          @id @default(uuid())
-  amount         Float
-  note           String?
-  type           CashHistoryType
-  accountType    AccountType
-  organizationId String
-  userId         String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String          @id @default(uuid())
+  amount          Float
+  note            String?
+  type            CashHistoryType
+  accountType     AccountType
+  organizationId  String
+  actionBy        String
+  actionTo        String?
+  date            DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actionByDetails User            @relation(fields: [actionBy], references: [id], onDelete: Cascade, name: "ActionByDetails")
+  actionToDetails User?           @relation(fields: [actionTo], references: [id], onDelete: SetNull, name: "ActionToDetails")
 }
 
 model ReconciliationHistory {
@@ -232,7 +247,7 @@ model ReconciliationHistory {
   organizationId          String
   expectedAmount          Float
   amountCounted           Float
-  comment                 String
+  comment                 String?
   reconciliationStartTime DateTime
   reconciliationEndTime   DateTime
   createdAt               DateTime     @default(now())
@@ -245,7 +260,7 @@ model ReconciliationHistory {
 enum TodoListEvent {
   COMPANY_CASH_BALANCE_BELOW_THRESHOLD
   INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD
-  INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD
+  PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
   PURCHASE_INITIATED_WITH_BANK_TRANSFER
   ORDER_PICKUP_INITIATED
 }
@@ -266,12 +281,35 @@ model TodoList {
 }
 
 model TodoListSettings {
-  id                                  String       @id @default(uuid())
-  organizationId                      String       @unique
-  companyCashBalanceLowerThreshold    Float
-  individualCashBalanceLowerThreshold Float
-  individualCashBalanceUpperThreshold Float
-  createdAt                           DateTime     @default(now())
-  updatedAt                           DateTime     @updatedAt
-  organization                        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                                      String       @id @default(uuid())
+  organizationId                          String       @unique
+  companyCashBalanceLowerThreshold        Float?
+  individualCashBalanceLowerThreshold     Float?
+  privateSellerSalesBalanceUpperThreshold Float?
+  createdAt                               DateTime     @default(now())
+  updatedAt                               DateTime     @updatedAt
+  organization                            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model SellerInvite {
+  id             String     @id @default(uuid())
+  email          String?    @unique
+  organizationId String
+  sellerType     SellerType @default(BUSINESS)
+  inviteExpiry   DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model PrivateSellerPurchaseStats {
+  id               String   @id @default(uuid())
+  organizationId   String
+  sellerId         String   @unique
+  totalSales       Float    @default(0)
+  totalQuantity    Int      @default(0)
+  isNotified       Boolean  @default(false)
+  lastReconciledAt DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  seller           Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 }

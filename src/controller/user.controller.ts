@@ -1,44 +1,56 @@
-import { generateOTP } from "@/functions/function";
-import OrganizationService from "@/services/organization.service";
-import UserService from "@/services/user.service";
+import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods, generateOTP } from "@/functions/function";
+
 import { sendResetPasswordMail, sendWelcomeMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
+import { PaymentMethod, Role } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class UserController {
-  static async createUserInternal(req: Request, res: Response): Promise<void> {
+  private static instance: UserController;
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
+  }
+
+  static getInstance(factory?: ServiceFactory): UserController {
+    if (!UserController.instance) {
+      UserController.instance = new UserController(factory);
+    }
+    return UserController.instance;
+  }
+  async createUserInternal(req: Request, res: Response): Promise<void> {
     try {
       const { email, password, organizationNumber, phone, name } = req.body;
       const encryptedEmail = encrypt(email);
-      const encryptedName = encrypt(name);
       const encryptedPhone = encrypt(phone);
 
-      let user = await UserService.getUserByEmail(encryptedEmail);
+      let user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail);
       if (user) return ERROR(res, false, "User already exist");
 
-      let org = await OrganizationService.getOrganizationByNumber(
-        organizationNumber
-      );
+      let org = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationByNumber(organizationNumber);
       if (org) {
         return ERROR(res, false, "Organization already exist");
       }
-      const newOrg = await OrganizationService.createOrganization({
-        organizationNumber,
-      });
 
-      user = await UserService.createUserInternal({
+      user = await this.serviceFactory.getUserService().createUserInternal({
         email: encryptedEmail,
-        organizationId: newOrg.id,
+        organizationNumber: organizationNumber,
         password,
         phone: encryptedPhone,
-        name: encryptedName,
+        name,
       });
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
@@ -48,35 +60,47 @@ export default class UserController {
     }
   }
 
-  static async inviteUser(req: Request, res: Response): Promise<void> {
+  async inviteUser(req: Request, res: Response): Promise<void> {
     try {
       const { email, name } = req.body;
       const organizationId = req.payload?.organizationId;
 
+      if (!organizationId)
+        return ERROR(res, false, "Unauthorized: Organization ID is missing");
+
       const encryptedEmail = encrypt(email);
-      const encryptedName = encrypt(name);
 
-      let user = await UserService.getUserByEmail(encryptedEmail);
-      if (user && user.organizationId === organizationId)
-        return ERROR(res, false, "User already exist");
+      let user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail);
+      if (user) return ERROR(res, false, "User already exist");
 
-      user = await UserService.createUser({
+      user = await this.serviceFactory.getUserService().createUser({
         ...req.body,
         email: encryptedEmail,
-        name: encryptedName,
+        name,
         organizationId,
       });
 
       if (!user) return ERROR(res, false, "user not created");
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationById(organizationId);
+
+      if (!organization) return ERROR(res, false, "Organization not found");
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
-      await sendWelcomeMail(user.id, email, responseUser.name || "");
+      await sendWelcomeMail(
+        user.id,
+        email,
+        responseUser.name || "",
+        organization
+      );
 
       return OK(res, responseUser, "User invited successfully");
     } catch (error) {
@@ -84,11 +108,13 @@ export default class UserController {
     }
   }
 
-  static async activateUser(req: Request, res: Response): Promise<void> {
+  async activateUser(req: Request, res: Response): Promise<void> {
     try {
       const { userID, password } = req.body;
 
-      const existingUser = await UserService.getUser(userID);
+      const existingUser = await this.serviceFactory
+        .getUserService()
+        .getUser(userID);
 
       if (!existingUser) {
         throw new Error("User not found");
@@ -98,16 +124,17 @@ export default class UserController {
         throw new Error("User is already active");
       }
 
-      const user = await UserService.updateUser(existingUser.id, {
-        password,
-        isActive: true,
-      });
+      const user = await this.serviceFactory
+        .getUserService()
+        .updateUser(existingUser.id, {
+          password,
+          isActive: true,
+        });
       if (!user) return ERROR(res, false, "User not updated!");
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
       return OK(res, responseUser, "User updated successfully");
@@ -116,35 +143,55 @@ export default class UserController {
     }
   }
 
-  static async updateUser(req: Request, res: Response): Promise<void> {
+  async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.payload?.id;
-      const { name, phone } = req.body;
+      let userId = req.payload?.id;
+      const { id } = req.query;
+      const { phone } = req.body;
 
-      if (name) {
-        req.body.name = encrypt(name);
+      if (id) {
+        userId = id as string;
       }
+
       if (phone) {
         req.body.phone = encrypt(phone);
       }
 
       if (!userId) return ERROR(res, false, "Unauthorized: User ID is missing");
 
-      const existingUser = await UserService.getUser(userId);
+      const existingUser = await this.serviceFactory
+        .getUserService()
+        .getUser(userId);
 
       if (!existingUser) {
         throw new Error("User not found");
       }
 
-      const user = await UserService.updateUser(userId, {
-        ...req.body,
-      });
+      const actionByUser = await this.serviceFactory
+        .getUserService()
+        .getUser(req.payload?.id as string);
+
+      if (!actionByUser) {
+        throw new Error("User not found");
+      }
+
+      if (
+        actionByUser?.role !== Role.ADMIN &&
+        actionByUser?.role !== Role.SUPERADMIN
+      ) {
+        throw new Error("You are not authorized to update this user");
+      }
+
+      const user = await this.serviceFactory
+        .getUserService()
+        .updateUser(userId, {
+          ...req.body,
+        });
       if (!user) return ERROR(res, false, "User not updated!");
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
       return OK(res, responseUser, "User updated successfully");
@@ -153,21 +200,29 @@ export default class UserController {
     }
   }
 
-  static async getUser(req: Request, res: Response): Promise<void> {
+  async getUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.query;
       if (id) {
-        const user = await UserService.getUser(id as string);
-        return OK(res, user, "User retrieved successfully");
+        const user = await this.serviceFactory
+          .getUserService()
+          .getUser(id as string);
+        const responseUser = {
+          ...user,
+          email: user?.email ? decrypt(user.email) : null,
+          phone: user?.phone ? decrypt(user.phone) : null,
+        };
+        return OK(res, responseUser, "User retrieved successfully");
       } else {
         const userID = req.payload?.id;
-        const user = await UserService.getUser(userID as string);
+        const user = await this.serviceFactory
+          .getUserService()
+          .getUser(userID as string);
         if (!user) return ERROR(res, false, "User not found!");
 
         const responseUser = {
           ...user,
           email: user?.email ? decrypt(user.email) : null,
-          name: user?.name ? decrypt(user.name) : null,
           phone: user?.phone ? decrypt(user.phone) : null,
         };
 
@@ -178,18 +233,17 @@ export default class UserController {
     }
   }
 
-  static async getUsersList(req: Request, res: Response): Promise<void> {
+  async getUsersList(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, phone, isActive, isArchived, sortOrder, page } =
         req.query;
       const organizationId = req.payload?.organizationId;
 
       const encryptedEmail = email ? encrypt(email as string) : undefined;
-      const encryptedName = name ? encrypt(name as string) : undefined;
       const encryptedPhone = phone ? encrypt(phone as string) : undefined;
 
       const filters = {
-        ...(encryptedName && { name: encryptedName }),
+        ...(name && { name: name as string }),
         ...(encryptedEmail && { email: encryptedEmail }),
         ...(encryptedPhone && { phone: encryptedPhone }),
         ...(organizationId && { organizationId }),
@@ -203,16 +257,12 @@ export default class UserController {
         ? parseInt(page as string, 10)
         : 1;
 
-      const { users, total, totalPages } = await UserService.getUsersList(
-        filters,
-        sortedBy,
-        sortedOrder,
-        pageNumber
-      );
+      const { users, total, totalPages } = await this.serviceFactory
+        .getUserService()
+        .getUsersList(filters, sortedBy, sortedOrder, pageNumber);
 
       const responseUsers = users.map((user) => ({
         ...user,
-        name: user.name ? decrypt(user.name) : null,
         email: user.email ? decrypt(user.email) : null,
         phone: user.phone ? decrypt(user.phone) : null,
       }));
@@ -223,21 +273,20 @@ export default class UserController {
         "Users retrieved successfully"
       );
     } catch (error) {
-      console.error("Error retrieving users list:", error);
+      console.log(error);
       return ERROR(res, false, "An error occurred while retrieving users");
     }
   }
 
-  static async deleteUser(req: Request, res: Response): Promise<void> {
+  async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const user = await UserService.deleteUser(id);
+      const user = await this.serviceFactory.getUserService().deleteUser(id);
       if (!user) return ERROR(res, false, "User not deleted!");
 
       const responseUser = {
         ...user,
         email: user?.email ? decrypt(user.email) : null,
-        name: user?.name ? decrypt(user.name) : null,
         phone: user?.phone ? decrypt(user.phone) : null,
       };
 
@@ -247,33 +296,56 @@ export default class UserController {
     }
   }
 
-  static async getUserSellingHistory(req: Request, res: Response) {
+  async getUserSellingHistory(req: Request, res: Response) {
     try {
-      const userId = req.payload?.id;
+      const { userId } = req.params;
+      const { page, limit, from, to, paymentMethod } = req.query;
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
-      if (!userId) {
-        return ERROR(res, null, "Unauthorized: No user ID in token");
-      }
+      const filters = {
+        paymentMethod: paymentMethod
+          ? (paymentMethod as PaymentMethod)
+          : undefined,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
+      };
 
-      const userSellingHistory = await UserService.getUserSellingHistory(
-        userId
+      const userSellingHistory = await this.serviceFactory
+        .getUserService()
+        .getUserSellingHistory(userId, pageNumber, pageSize, filters);
+
+      const decryptedPurchase = userSellingHistory?.purchase.map(
+        (purchase) => ({
+          ...purchase,
+          user: purchase?.user
+            ? {
+                ...purchase?.user,
+                email: purchase?.user.email
+                  ? decrypt(purchase.user.email)
+                  : null,
+                phone: purchase?.user.phone
+                  ? decrypt(purchase.user.phone)
+                  : null,
+              }
+            : null,
+        })
       );
 
       const response = {
         buyer: {
           ...userSellingHistory?.buyer,
-          email: userSellingHistory?.buyer.email
+          email: userSellingHistory?.buyer?.email
             ? decrypt(userSellingHistory.buyer.email)
             : null,
-          name: userSellingHistory?.buyer.name
-            ? decrypt(userSellingHistory.buyer.name)
-            : null,
-          phone: userSellingHistory?.buyer.phone
+
+          phone: userSellingHistory?.buyer?.phone
             ? decrypt(userSellingHistory.buyer.phone)
             : null,
         },
-        purchase: userSellingHistory?.purchase,
-        organization: userSellingHistory?.organization,
+        purchase: decryptedPurchase,
+        total: userSellingHistory?.total,
+        totalPages: userSellingHistory?.totalPages,
       };
       return OK(res, response, "User selling history retrived successfully");
     } catch (error) {
@@ -281,46 +353,52 @@ export default class UserController {
     }
   }
 
-  static async sendResetPasswordEmail(req: Request, res: Response) {
+  async sendResetPasswordEmail(req: Request, res: Response) {
     try {
       const { email } = req.body;
-      const organizationId = req.payload?.organizationId;
-
-      if (!organizationId) {
-        return ERROR(res, false, "Unauthorized: Organization ID is missing");
-      }
 
       const encryptedEmail = encrypt(email);
       const otp = generateOTP();
       const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-      const user = await UserService.getUserByEmail(
-        encryptedEmail,
-        organizationId
-      );
+      const user = await this.serviceFactory
+        .getUserService()
+        .getUserByEmail(encryptedEmail);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      await UserService.sendResetPasswordEmail(user.id, otp, otpExpiry);
+      const organization = await this.serviceFactory
+        .getOrganizationService()
+        .getOrganizationById(user.organizationId);
 
-      await sendResetPasswordMail(user.id, email, otp);
+      if (!organization) {
+        return ERROR(res, false, "Organization not found");
+      }
+
+      await this.serviceFactory
+        .getUserService()
+        .sendResetPasswordEmail(user.id, otp, otpExpiry);
+
+      await sendResetPasswordMail(user.id, email, otp, organization);
       return OK(res, null, "Email sent successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
   }
 
-  static async isOTPValid(req: Request, res: Response) {
+  async isOTPValid(req: Request, res: Response) {
     try {
       const { userID, otp } = req.body;
 
-      const user = await UserService.getUser(userID);
+      const user = await this.serviceFactory.getUserService().getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      const isOTPValid = await this.serviceFactory
+        .getUserService()
+        .isOTPValid(user.id, otp);
       if (!isOTPValid) {
         return ERROR(res, false, "Invalid OTP");
       }
@@ -331,21 +409,25 @@ export default class UserController {
     }
   }
 
-  static async resetPassword(req: Request, res: Response) {
+  async resetPassword(req: Request, res: Response) {
     try {
       const { userID, otp, password } = req.body;
 
-      const user = await UserService.getUser(userID);
+      const user = await this.serviceFactory.getUserService().getUser(userID);
       if (!user) {
         return ERROR(res, false, "User not found");
       }
 
-      const isOTPValid = await UserService.isOTPValid(user.id, otp);
+      const isOTPValid = await this.serviceFactory
+        .getUserService()
+        .isOTPValid(user.id, otp);
       if (!isOTPValid) {
         return ERROR(res, false, "Invalid OTP");
       }
 
-      await UserService.resetPassword(user.id, password);
+      await this.serviceFactory
+        .getUserService()
+        .resetPassword(user.id, password);
 
       return OK(res, isOTPValid, "Password reset successful");
     } catch (error) {

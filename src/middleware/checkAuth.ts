@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
-import { Role } from "@/types/enums";
-import UserService from "@/services/user.service";
+import { ServiceFactorySingleton } from "@/factory/service.factory";
 import { UserTokenPayload } from "@/types/common";
+import { Role } from "@/types/enums";
+import { ERROR, UNAUTHORIZED } from "@/utils/response-helper";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 export const isAuthenticated = async (
   req: Request,
@@ -23,14 +23,19 @@ export const isAuthenticated = async (
     }
 
     const payload = jwt.verify(token, secretKey) as jwt.JwtPayload;
-    console.log("Decoded Token Payload:", payload);
 
     if (!payload.sub) {
       return ERROR(res, null, "Invalid token");
     }
 
-    const user = await UserService.getUser(payload.sub);
+    const factory = ServiceFactorySingleton.getInstance();
+
+    const user = await factory.getUserService().getUser(payload.sub);
     if (!user) return ERROR(res, null, "User does not exist");
+
+    if (user.isArchived || !user.isActive) {
+      return ERROR(res, false, "Your account is marked as inActive!");
+    }
 
     const userPayload: UserTokenPayload = {
       id: payload.sub,
@@ -38,8 +43,6 @@ export const isAuthenticated = async (
       email: user.email,
       organizationId: user.organizationId,
     };
-
-    console.log("Authenticated User:", userPayload);
 
     req.payload = userPayload;
     next();

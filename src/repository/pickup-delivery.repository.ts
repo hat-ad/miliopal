@@ -1,27 +1,36 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreatePickupDelivery,
   GetPickupDeliveryFilterInterface,
 } from "@/interfaces/pickup-delivery";
 
-import { PickUpDelivery, PrismaClient, Seller, User } from "@prisma/client";
+import { PickUpDelivery, Seller, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class PickupDeliveryRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
+class PickupDeliveryRepository extends BaseRepository {
   async createPickupDelivery(
-    data: CreatePickupDelivery
+    data: Omit<CreatePickupDelivery, "productsForDelivery">
   ): Promise<PickUpDelivery> {
     return this.db.pickUpDelivery.create({
       data: data,
     });
   }
 
-  async getPickupDelivery(id: string): Promise<PickUpDelivery | null> {
+  async getPickupDelivery(
+    id: string,
+    options?: { include: { user?: boolean; seller?: boolean } }
+  ): Promise<
+    | (PickUpDelivery & {
+        user?: User | null;
+        seller?: Seller | null;
+      })
+    | null
+  > {
     return this.db.pickUpDelivery.findUnique({
       where: { id },
+      include: {
+        user: options?.include?.user || false,
+        seller: options?.include?.seller || false,
+      },
     });
   }
 
@@ -127,4 +136,4 @@ class PickupDeliveryRepository {
   }
 }
 
-export default new PickupDeliveryRepository();
+export default PickupDeliveryRepository;

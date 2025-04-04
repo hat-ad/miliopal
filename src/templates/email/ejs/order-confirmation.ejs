@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation</title>
+    <style>
+      body {
+        font-family: Inter, sans-serif;
+        background-color: #fff;
+        margin: 0;
+        margin-top: 3rem;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        width: 600px;
+        background-color: #eef1f5;
+        padding-left: 75px;
+        padding-right: 80px;
+        padding-top: 105px;
+        padding-bottom: 105px;
+        margin: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: bold;
+        line-height: 0;
+        color: #000;
+      }
+      p {
+        font-size: 14px;
+        color: #000;
+      }
+
+      .footer {
+        /* margin-top: 40px; */
+        font-size: 14px;
+        color: #444;
+      }
+      .footer strong {
+        font-weight: bold;
+      }
+      .divider1 {
+        height: 12px;
+      }
+      .divider2 {
+        height: 32px;
+      }
+      .contact-info {
+        font-size: 14px;
+      }
+      .contact-info p {
+        line-height: 1.3rem;
+        margin: 4px 0;
+      }
+      .contact-info a {
+        color: #0049e5;
+        text-decoration: underline !important;
+        font-weight: "400";
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Order Confirmation</h1>
+      <div class="divider2"></div>
+      <div class="divider1"></div>
+      <p>Hello,</p>
+      <div class="divider1"></div>
+
+      <p>
+        Attached you will find the order confirmation for the purchase of
+        pallets. Please invoice us according to the attachment.
+      </p>
+      <div class="divider1"></div>
+
+      <p>Feel free to contact us if you have any questions.</p>
+      <div class="divider1"></div>
+      <div class="divider1"></div>
+      <p style="line-height: 0.5rem">Best regards,</p>
+      <div class="contact-info">
+        <p><%= companyName %></p>
+        <p><%= organizationNumber %></p>
+        <p><a href="mailto:<%= companyEmail %>"><%= companyEmail %></a></p>
+        <p><%= companyPhone %></p>
+      </div>
+      <div class="divider2"></div>
+      <div class="divider2"></div>
+      <div class="divider1"></div>
+      <div class="footer">
+        <p>
+          This is an automatic email from <%= companyName %>.
+          <strong>
+            This inbox is not monitored, please do not reply to this email.
+          </strong>
+          If you need assistance, please contact <%= companyEmail %> directly.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

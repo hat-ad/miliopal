@@ -1,17 +1,16 @@
-import PrismaService from "@/db/prisma-service";
 import {
-  CreatePurchaseInterface,
+  CreatePurchaseRepositoryInterface,
   GetPurchaseFilterInterface,
+  UpdatePurchaseInterface,
 } from "@/interfaces/purchase";
-import { PrismaClient, Purchase, Seller, User } from "@prisma/client";
+import { Purchase, PurchaseType, Seller, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class PurchaseRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-  async createPurchase(data: CreatePurchaseInterface): Promise<Purchase> {
-    return this.db.purchase.create({
+class PurchaseRepository extends BaseRepository {
+  async createPurchase(
+    data: CreatePurchaseRepositoryInterface
+  ): Promise<Purchase> {
+    const purchase = await this.db.purchase.create({
       data: {
         orderNo: data.orderNo,
         userId: data.userId,
@@ -23,13 +22,25 @@ class PurchaseRepository {
         status: data.status,
         totalAmount: data.totalAmount,
         notes: data.notes ?? null,
+        transactionDate: data.transactionDate ?? null,
       },
     });
+
+    return purchase;
   }
 
-  async getPurchase(id: string): Promise<Purchase | null> {
+  async getPurchase(
+    id: string,
+    options?: { include: { user?: boolean; seller?: boolean } }
+  ): Promise<
+    (Purchase & { user?: User | null; seller?: Seller | null }) | null
+  > {
     return this.db.purchase.findUnique({
       where: { id },
+      include: {
+        user: options?.include?.user || false,
+        seller: options?.include?.seller || false,
+      },
     });
   }
 
@@ -53,6 +64,10 @@ class PurchaseRepository {
       bankAccountNumber: filters.bankAccountNumber || undefined,
       status: filters.status || undefined,
       orderNo: filters.orderNo ? { contains: filters.orderNo } : undefined,
+      createdAt: {
+        ...(filters.from ? { gte: new Date(filters.from) } : {}),
+        ...(filters.to ? { lte: new Date(filters.to) } : {}),
+      },
       organizationId: filters.organizationId
         ? {
             contains: filters.organizationId,
@@ -61,6 +76,32 @@ class PurchaseRepository {
         : undefined,
     };
 
+    if (filters.name) {
+      whereCondition.OR = [
+        { user: { name: { contains: filters.name, mode: "insensitive" } } },
+        {
+          seller: {
+            privateSeller: {
+              name: { contains: filters.name, mode: "insensitive" },
+            },
+          },
+        },
+        {
+          seller: {
+            businessSeller: {
+              companyName: { contains: filters.name, mode: "insensitive" },
+            },
+          },
+        },
+      ];
+    }
+
+    if (filters.sellerType) {
+      whereCondition.seller = {
+        ...whereCondition.seller,
+        type: filters.sellerType,
+      };
+    }
     const total = await this.db.purchase.count({ where: whereCondition });
 
     const purchases = await this.db.purchase.findMany({
@@ -71,6 +112,7 @@ class PurchaseRepository {
       include: {
         user: true,
         seller: {
+          // where:{},
           include: {
             privateSeller: true,
             businessSeller: true,
@@ -133,6 +175,47 @@ class PurchaseRepository {
 
     return purchase as Purchase & { user: User; seller: Seller };
   }
+
+  async getPurchaseIds(filters: {
+    userId?: string;
+    sellerId?: string;
+    organizationId?: string;
+  }): Promise<string[]> {
+    const whereClause: any = {
+      purchaseType: PurchaseType.PURCHASE,
+      creditOrderId: null,
+    };
+
+    if (filters.organizationId) {
+      whereClause.organizationId = filters.organizationId;
+    }
+
+    if (filters.userId) {
+      whereClause.userId = filters.userId;
+    }
+
+    if (filters.sellerId) {
+      whereClause.sellerId = filters.sellerId;
+    }
+
+    const purchases = await this.db.purchase.findMany({
+      where: whereClause,
+      select: { id: true },
+    });
+
+    const purchaseIds = purchases.map((purchase) => purchase.id);
+    return purchaseIds;
+  }
+
+  async updatePurchase(
+    id: string,
+    data: UpdatePurchaseInterface
+  ): Promise<Purchase> {
+    return this.db.purchase.update({
+      where: { id },
+      data: { ...data },
+    });
+  }
 }
 
-export default new PurchaseRepository();
+export default PurchaseRepository;

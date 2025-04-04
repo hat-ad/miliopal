@@ -1,19 +1,13 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateUserInterface,
   CreateUserInternalInterface,
   GetUsersFilterInterface,
-  UserSellingHistoryInterface,
-  UserUpdateData,
+  UserUpdateData
 } from "@/interfaces/user";
-import { Prisma, PrismaClient, Role, User } from "@prisma/client";
+import { Prisma, Role, User } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class UserRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class UserRepository extends BaseRepository {
   async createUserInternal(data: CreateUserInternalInterface): Promise<User> {
     return this.db.user.create({
       data: {
@@ -47,12 +41,15 @@ class UserRepository {
     });
   }
 
-  async getUser(id: string): Promise<User | null> {
+  async getUser(
+    id: string,
+    options?: { include: { purchases?: boolean; organization?: boolean } }
+  ): Promise<User | null> {
     return this.db.user.findUnique({
       where: { id },
       include: {
-        purchases: true,
-        organization: true,
+        purchases: options?.include.purchases || false,
+        organization: options?.include.organization || false,
       },
     });
   }
@@ -125,48 +122,7 @@ class UserRepository {
     });
   }
 
-  async getUserSellingHistory(
-    id: string
-  ): Promise<UserSellingHistoryInterface | null> {
-    const userSellingHistory = await this.db.user.findUnique({
-      where: { id },
-      include: {
-        purchases: {
-          include: {
-            seller: {
-              include: {
-                privateSeller: true,
-                businessSeller: true,
-                organization: true,
-              },
-            },
-            productsPurchased: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        },
-        organization: true,
-      },
-    });
 
-    if (!userSellingHistory) {
-      return null;
-    }
-
-    const { purchases, organization, ...userDetails } = userSellingHistory;
-
-    const response = {
-      buyer: {
-        ...userDetails,
-      },
-      purchase: purchases,
-      organization: organization ?? null,
-    };
-
-    return response;
-  }
 }
 
-export default new UserRepository();
+export default UserRepository;

@@ -16,52 +16,63 @@ const router = express.Router();
 router.post(
   "/create-user-internal",
   validateCreateUser,
-  UserController.createUserInternal
+  UserController.getInstance().createUserInternal
 );
 
 router.post(
   "/create-user",
   validateInviteUser,
   isAuthenticated,
-  UserController.inviteUser
+  UserController.getInstance().inviteUser
 );
 
-router.put("/activate-user", validateActivateUser, UserController.activateUser);
+router.put(
+  "/activate-user",
+  validateActivateUser,
+  UserController.getInstance().activateUser
+);
 router.put(
   "/update-user",
   isAuthenticated,
   validateUpdateUser,
-  UserController.updateUser
+  UserController.getInstance().updateUser
 );
 
-router.get("/get-user", isAuthenticated, UserController.getUser);
-
-router.get("/get-users-list", isAuthenticated, UserController.getUsersList);
-
-router.put("/delete-user/:id", isAuthenticated, UserController.deleteUser);
+router.get("/get-user", isAuthenticated, UserController.getInstance().getUser);
 
 router.get(
-  "/get-user-selling-history",
+  "/get-users-list",
   isAuthenticated,
-  UserController.getUserSellingHistory
+  UserController.getInstance().getUsersList
+);
+
+router.put(
+  "/delete-user/:id",
+  isAuthenticated,
+  UserController.getInstance().deleteUser
+);
+
+router.get(
+  "/get-user-selling-history/:userId",
+  isAuthenticated,
+  UserController.getInstance().getUserSellingHistory
 );
 
 router.post(
   "/send-reset-password-link",
-  isAuthenticated,
   validateSendResetPassword,
-  UserController.sendResetPasswordEmail
+  UserController.getInstance().sendResetPasswordEmail
 );
 
 router.post(
   "/validate-reset-password-link",
   validateOTPValidation,
-  UserController.isOTPValid
+  UserController.getInstance().isOTPValid
 );
 
 router.post(
   "/reset-password",
   validateResetPassword,
-  UserController.resetPassword
+  UserController.getInstance().resetPassword
 );
 export default router;

@@ -1,27 +1,45 @@
-import { OK, ERROR } from "@/utils/response-helper";
+import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
+import { ERROR, OK } from "@/utils/response-helper";
 import { Request, Response } from "express";
-import ProductService from "@/services/product.service";
 
 export default class ProductController {
-  static async createProduct(req: Request, res: Response): Promise<void> {
+  private static instance: ProductController;
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
+  }
+
+  static getInstance(factory?: ServiceFactory): ProductController {
+    if (!ProductController.instance) {
+      ProductController.instance = new ProductController(factory);
+    }
+    return ProductController.instance;
+  }
+  async createProduct(req: Request, res: Response): Promise<void> {
     try {
       const organizationId = req.payload?.organizationId;
 
-      const product = await ProductService.createProduct({
-        ...req.body,
-        organizationId,
-      });
+      const product = await this.serviceFactory
+        .getProductService()
+        .createProduct({
+          ...req.body,
+          organizationId,
+        });
       return OK(res, product, "Product created successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
   }
 
-  static async getProductsList(req: Request, res: Response): Promise<void> {
+  async getProductsList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, price, isArchived, page } = req.query;
+      const { name, price, isArchived, page, limit } = req.query;
 
       const organizationId = req.payload?.organizationId;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
       const filters = {
         name: name ? String(name) : undefined,
@@ -32,10 +50,9 @@ export default class ProductController {
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;
 
-      const products = await ProductService.getProductsList(
-        filters,
-        pageNumber
-      );
+      const products = await this.serviceFactory
+        .getProductService()
+        .getProductsList(filters, pageNumber, pageSize);
 
       return OK(res, products, "Products retrieved successfully");
     } catch (error) {
@@ -43,20 +60,24 @@ export default class ProductController {
     }
   }
 
-  static async updateProduct(req: Request, res: Response): Promise<void> {
+  async updateProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const product = await ProductService.updateProduct(id, req.body);
+      const product = await this.serviceFactory
+        .getProductService()
+        .updateProduct(id, req.body);
       return OK(res, product, "Product updated successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
   }
 
-  static async deleteProduct(req: Request, res: Response): Promise<void> {
+  async deleteProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const product = await ProductService.deleteProduct(id);
+      const product = await this.serviceFactory
+        .getProductService()
+        .deleteProduct(id);
       return OK(res, product, "Product deleted successfully");
     } catch (error) {
       return ERROR(res, false, error);

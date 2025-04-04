@@ -1,10 +1,24 @@
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods, stringToHex } from "@/functions/function";
+import { sendSellerInvitationMail } from "@/templates/email";
 import { decrypt, encrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
+import { PaymentMethod } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class SellerController {
-  static async createSeller(req: Request, res: Response): Promise<void> {
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
+  }
+
+  static getInstance(factory?: ServiceFactory): SellerController {
+    return new SellerController(factory);
+  }
+
+  async createSeller(req: Request, res: Response): Promise<void> {
     try {
       const { email, phone } = req.body;
       const organizationId = req.payload?.organizationId;
@@ -12,10 +26,12 @@ export default class SellerController {
       const encryptedEmail = encrypt(email);
       const encryptedPhone = phone ? encrypt(phone) : null;
 
-      let seller = await SellerService.getSellerByEmail(encryptedEmail);
+      let seller = await this.serviceFactory
+        .getSellerService()
+        .getSellerByEmail(encryptedEmail);
       if (seller) return ERROR(res, false, "Seller already exist");
 
-      seller = await SellerService.createSeller({
+      seller = await this.serviceFactory.getSellerService().createSeller({
         ...req.body,
         email: encryptedEmail,
         phone: encryptedPhone,
@@ -34,10 +50,159 @@ export default class SellerController {
     }
   }
 
-  static async getSeller(req: Request, res: Response): Promise<void> {
+  async createSellerFromInvite(req: Request, res: Response): Promise<void> {
+    try {
+      const { inviteId } = req.params;
+      const { email, phone } = req.body;
+
+      const invitedSeller = await this.serviceFactory
+        .getSellerInviteService()
+        .getSellerInvite(inviteId);
+
+      if (!invitedSeller) {
+        return ERROR(res, false, "Seller invite does not exist.");
+      }
+
+      if (!invitedSeller.inviteExpiry) {
+        return ERROR(res, false, "Invalid invitation expiry.");
+      }
+
+      const currentTime = new Date();
+      const inviteExpiry = new Date(invitedSeller.inviteExpiry);
+
+      if (currentTime > inviteExpiry) {
+        return ERROR(res, null, "Invitation has expired.");
+      }
+
+      const organizationId = invitedSeller.organizationId;
+
+      const encryptedEmail = encrypt(email);
+      const encryptedPhone = phone ? encrypt(phone) : null;
+
+      let seller = await this.serviceFactory
+        .getSellerService()
+        .getSellerByEmail(encryptedEmail);
+      if (seller) return ERROR(res, false, "Seller already exist");
+
+      seller = await this.serviceFactory.getSellerService().createSeller({
+        ...req.body,
+        email: encryptedEmail,
+        phone: encryptedPhone,
+        organizationId,
+      });
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+
+      return OK(res, responseSeller, "Seller created successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async inviteSeller(req: Request, res: Response): Promise<void> {
+    try {
+      const { method, email, sellerType } = req.body;
+
+      const organizationId = req.payload?.organizationId;
+
+      const inviteExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+      if (!organizationId) {
+        return ERROR(res, false, "organizationId is required.");
+      }
+
+      if (!sellerType) {
+        return ERROR(res, false, "Seller type is required.");
+      }
+
+      if (method === "INVITE" && !email) {
+        return ERROR(res, false, "Email is required for invitation.");
+      }
+
+      if (email) {
+        const existingSeller = await this.serviceFactory
+          .getSellerService()
+          .getSellerByEmail(email);
+        if (existingSeller) {
+          return ERROR(res, false, "Seller already exists.");
+        }
+
+        const existingSellerInvite = await this.serviceFactory
+          .getSellerInviteService()
+          .getSellerInviteByEmail(email);
+        if (existingSellerInvite) {
+          return ERROR(res, false, "Seller invite already exists.");
+        }
+      }
+
+      const sellerInvite = await this.serviceFactory
+        .getSellerInviteService()
+        .inviteSeller({ email, inviteExpiry, sellerType, organizationId });
+
+      if (!sellerInvite) {
+        return ERROR(res, false, "Seller invitation not created.");
+      }
+
+      const inviteData = {
+        id: sellerInvite.id,
+        email,
+        inviteExpiry,
+      };
+
+      const inviteCode = `${stringToHex(JSON.stringify(inviteData))}`;
+
+      if (method === "INVITE") {
+        await sendSellerInvitationMail(
+          sellerInvite.id,
+          email,
+          inviteExpiry,
+          sellerType
+        );
+        return OK(res, inviteCode, "Seller invited successfully via email.");
+      }
+
+      return OK(res, inviteCode, "Invite link generated successfully.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+  async checkingValidInvitation(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const seller = await SellerService.getSeller(id);
+
+      const invitedSeller = await this.serviceFactory
+        .getSellerInviteService()
+        .getSellerInvite(id);
+
+      if (!invitedSeller) {
+        return ERROR(res, false, "Seller does not exist.");
+      }
+
+      if (!invitedSeller.inviteExpiry) {
+        return ERROR(res, false, "Invalid invitation expiry.");
+      }
+
+      const currentTime = new Date();
+      const inviteExpiry = new Date(invitedSeller.inviteExpiry);
+
+      if (currentTime > inviteExpiry) {
+        return ERROR(res, null, "Invitation has expired.");
+      }
+
+      return OK(res, invitedSeller, "Invitation is valid.");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
+  async getSeller(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const seller = await this.serviceFactory.getSellerService().getSeller(id);
 
       const responseSeller = {
         ...seller,
@@ -50,7 +215,7 @@ export default class SellerController {
     }
   }
 
-  static async getSellersList(req: Request, res: Response): Promise<void> {
+  async getSellersList(req: Request, res: Response): Promise<void> {
     try {
       const {
         email,
@@ -100,12 +265,9 @@ export default class SellerController {
         ? parseInt(page as string, 10)
         : 1;
 
-      const { sellers, total, totalPages } = await SellerService.getSellersList(
-        filters,
-        sortedBy,
-        sortedOrder,
-        pageNumber
-      );
+      const { sellers, total, totalPages } = await this.serviceFactory
+        .getSellerService()
+        .getSellersList(filters, sortedBy, sortedOrder, pageNumber);
 
       const responseSellers = sellers.map((seller) => ({
         ...seller,
@@ -123,7 +285,7 @@ export default class SellerController {
     }
   }
 
-  static async updateSeller(req: Request, res: Response): Promise<void> {
+  async updateSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { email, phone } = req.body;
@@ -131,11 +293,13 @@ export default class SellerController {
       const encryptedEmail = email ? encrypt(email) : null;
       const encryptedPhone = phone ? encrypt(phone) : null;
 
-      const seller = await SellerService.updateSeller(id, {
-        ...req.body,
-        email: encryptedEmail,
-        phone: encryptedPhone,
-      });
+      const seller = await this.serviceFactory
+        .getSellerService()
+        .updateSeller(id, {
+          ...req.body,
+          email: encryptedEmail,
+          phone: encryptedPhone,
+        });
 
       const responseSeller = {
         ...seller,
@@ -148,10 +312,12 @@ export default class SellerController {
     }
   }
 
-  static async deleteSeller(req: Request, res: Response): Promise<void> {
+  async deleteSeller(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const seller = await SellerService.deleteSeller(id);
+      const seller = await this.serviceFactory
+        .getSellerService()
+        .deleteSeller(id);
 
       const responseSeller = {
         ...seller,
@@ -164,13 +330,24 @@ export default class SellerController {
     }
   }
 
-  static async getSellerSellingHistory(req: Request, res: Response) {
+  async getSellerSellingHistory(req: Request, res: Response) {
     try {
       const { id } = req.params;
+      const { page, limit, from, to, paymentMethod } = req.query;
+      const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
-      const sellerSellingHistory = await SellerService.getSellerSellingHistory(
-        id
-      );
+      const filters = {
+        paymentMethod: paymentMethod
+          ? (paymentMethod as PaymentMethod)
+          : undefined,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
+      };
+
+      const sellerSellingHistory = await this.serviceFactory
+        .getSellerService()
+        .getSellerSellingHistory(id, pageNumber, pageSize, filters);
 
       const decryptedSeller = {
         ...sellerSellingHistory?.seller,
@@ -191,7 +368,6 @@ export default class SellerController {
                 email: purchase?.user.email
                   ? decrypt(purchase.user.email)
                   : null,
-                name: purchase?.user.name ? decrypt(purchase.user.name) : null,
                 phone: purchase?.user.phone
                   ? decrypt(purchase.user.phone)
                   : null,
@@ -204,6 +380,8 @@ export default class SellerController {
         ...sellerSellingHistory,
         seller: decryptedSeller,
         purchase: decryptedPurchases,
+        total: sellerSellingHistory?.total,
+        totalPages: sellerSellingHistory?.totalPages,
       };
 
       return OK(

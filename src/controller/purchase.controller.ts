@@ -1,79 +1,63 @@
-import ProductsPurchasedService from "@/services/products-purchased.service";
-import PurchaseService from "@/services/purchase.service";
-import ReceiptService from "@/services/receipt.service";
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
+import {
+  bindMethods,
+  generatePurchasePDFForB2B,
+  removeFile,
+} from "@/functions/function";
+import { GetMonthlyPurchaseFilterInterface } from "@/interfaces/purchase";
+import { sendPurchaseMail } from "@/templates/email";
+import { IPurchase } from "@/types/purchase";
 import { decrypt } from "@/utils/AES";
+import { getError } from "@/utils/common";
 import { ERROR, OK } from "@/utils/response-helper";
-import { OrderStatus, PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod, SellerType } from "@prisma/client";
 import { Request, Response } from "express";
 
 export default class PurchaseController {
-  static async createPurchase(req: Request, res: Response): Promise<void> {
+  private static instance: PurchaseController;
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
+  }
+
+  static getInstance(factory?: ServiceFactory): PurchaseController {
+    if (!PurchaseController.instance) {
+      PurchaseController.instance = new PurchaseController(factory);
+    }
+    return PurchaseController.instance;
+  }
+
+  async createPurchase(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
-      const { products, ...purchaseData } = req.body;
-      const { sellerId } = purchaseData;
 
       if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
 
       if (!organizationId)
         return ERROR(res, null, "No Organization ID in token");
 
-      const sellerExists = await SellerService.getSeller(sellerId);
-
-      if (!sellerExists) {
-        throw new Error("Seller does not exist");
-      }
-
-      const receipt = await ReceiptService.getReceiptByOrganizationId(
-        organizationId
-      );
-      if (!receipt?.startingOrderNumber || !receipt?.currentOrderNumber) {
-        return ERROR(
-          res,
-          false,
-          "Starting order number / Current order number is missing. Please set before purchasing."
-        );
-      }
-
-      const totalAmount = products
-        .map(
-          (product: { price: number; quantity: number }) =>
-            product.price * product.quantity
-        )
-        .reduce((sum: number, value: number) => sum + value, 0);
-
-      const orderNo = `ORD-${receipt.currentOrderNumber + 1}`;
-      const purchase = await PurchaseService.createPurchase({
-        userId,
-        organizationId,
-        orderNo,
-        totalAmount,
-        ...purchaseData,
-      });
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .createPurchase({
+          userId,
+          organizationId,
+          ...req.body,
+        });
 
       if (!purchase) {
         return ERROR(res, null, "Failed to create purchase");
       }
 
-      const poducts_purchased =
-        await ProductsPurchasedService.addProductsToPurchase(
-          purchase.id,
-          products
-        );
-
-      return OK(
-        res,
-        { purchase, poducts_purchased },
-        "Purchase created successfully with products"
-      );
+      return OK(res, purchase, "Purchase created successfully with products");
     } catch (error) {
       return ERROR(res, null, error);
     }
   }
 
-  static async getPurchaseList(req: Request, res: Response): Promise<void> {
+  async getPurchaseList(req: Request, res: Response): Promise<void> {
     try {
       const {
         userId,
@@ -82,13 +66,19 @@ export default class PurchaseController {
         bankAccountNumber,
         status,
         orderNo,
+        name,
         sortBy,
         sortOrder,
         page,
+        limit,
+        from,
+        to,
+        sellerType,
       } = req.query;
       const organizationId = req.payload?.organizationId;
 
       const filters = {
+        organizationId: organizationId as string,
         userId: userId ? (userId as string) : undefined,
         sellerId: sellerId ? (sellerId as string) : undefined,
         paymentMethod: paymentMethod
@@ -99,28 +89,27 @@ export default class PurchaseController {
           : undefined,
         status: status ? (status as OrderStatus) : undefined,
         orderNo: orderNo ? (orderNo as string) : undefined,
-        organizationId: organizationId as string,
+        name: name ? (name as string) : undefined,
+        from: from ? new Date(from as string).toISOString() : undefined,
+        to: to ? new Date(to as string).toISOString() : undefined,
+        sellerType: sellerType ? (sellerType as SellerType) : undefined,
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
       const sortedBy: "orderNo" | "createdAt" | "status" =
         sortBy === "orderNo" || sortBy === "status" ? sortBy : "createdAt";
       const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
 
-      const { purchases, total, totalPages } =
-        await PurchaseService.getPurchaseList(
-          filters,
-          sortedBy,
-          sortedOrder,
-          pageNumber
-        );
+      const { purchases, total, totalPages } = await this.serviceFactory
+        .getPurchaseService()
+        .getPurchaseList(filters, sortedBy, sortedOrder, pageNumber, pageSize);
 
       const decryptedPurchases = purchases.map((purchase) => {
         const decryptedUser = purchase.user
           ? {
               ...purchase.user,
               email: purchase.user.email ? decrypt(purchase.user.email) : null,
-              name: purchase.user.name ? decrypt(purchase.user.name) : null,
               phone: purchase.user.phone ? decrypt(purchase.user.phone) : null,
             }
           : null;
@@ -154,7 +143,7 @@ export default class PurchaseController {
     }
   }
 
-  static async getReceiptByOrderNo(req: Request, res: Response) {
+  async getReceiptByOrderNo(req: Request, res: Response) {
     try {
       const { orderNo } = req.params;
       const organizationId = req.payload?.organizationId;
@@ -162,22 +151,25 @@ export default class PurchaseController {
       if (!organizationId) {
         return ERROR(res, false, "No Organization ID in token");
       }
-      const purchaseDetails = await PurchaseService.getReceiptByOrderNo(
-        orderNo,
-        organizationId
-      );
+      const purchaseDetails = await this.serviceFactory
+        .getPurchaseService()
+        .getReceiptByOrderNo(orderNo, organizationId);
+      const receiptSettings = await this.serviceFactory
+        .getReceiptService()
+        .getReceiptByOrganizationId(organizationId);
+
+      if (!receiptSettings) {
+        return ERROR(res, false, "Receipt not found");
+      }
 
       const decryptedPurchaseDetails = {
         ...purchaseDetails,
+        receiptSettings,
         user: purchaseDetails?.user
           ? {
               ...purchaseDetails.user,
               email: purchaseDetails.user.email
                 ? decrypt(purchaseDetails.user.email)
-                : null,
-
-              name: purchaseDetails.user.name
-                ? decrypt(purchaseDetails.user.name)
                 : null,
 
               phone: purchaseDetails.user.phone
@@ -208,34 +200,159 @@ export default class PurchaseController {
     }
   }
 
-  static async creditPurchaseOrder(req: Request, res: Response): Promise<void> {
+  async creditPurchaseOrder(req: Request, res: Response): Promise<void> {
     try {
       const { purchaseId } = req.params;
       const { creditNotes } = req.body;
 
-      const purchase = await PurchaseService.getPurchase(purchaseId.toString());
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .creditPurchaseOrder(purchaseId, creditNotes);
       if (!purchase) return ERROR(res, false, "purchase not found!");
 
-      const purchaseCredit = await PurchaseService.createPurchase({
-        userId: purchase.userId,
-        sellerId: purchase.sellerId,
-        organizationId: purchase.organizationId ?? "",
-        orderNo: purchase.orderNo,
-        paymentMethod: purchase.paymentMethod,
-        bankAccountNumber: purchase.bankAccountNumber ?? undefined,
-        status: purchase.status,
-        totalAmount: 0,
-        notes: creditNotes,
-        comment: purchase.comment ?? undefined,
-      });
-
-      return OK(
-        res,
-        purchaseCredit,
-        "Purchase created successfully with products"
-      );
+      return OK(res, purchase, "Purchase created successfully with products");
     } catch (error) {
       return ERROR(res, null, error);
+    }
+  }
+
+  async getMonthlyPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, type, productId } = req.query;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, null, "No Organization ID in token");
+      }
+
+      const filter: GetMonthlyPurchaseFilterInterface = {
+        productId: productId ? (productId as string) : undefined,
+      };
+
+      if (type === "BUYER") {
+        filter.userId = id as string;
+      } else if (type === "SELLER") {
+        filter.sellerId = id as string;
+      } else if (type === "ORGANIZATION") {
+        filter.organizationId = organizationId;
+      } else {
+        return ERROR(res, null, "Invalid type. Allowed: BUYER, SELLER, ORG");
+      }
+
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getMonthlyPurchaseStats(filter);
+
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+
+      return OK(res, purchase, "Monthly purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
+
+  async getSellerPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const organizationId = req.payload?.organizationId;
+      const { id } = req.params;
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getSellerPurchaseStats(id, organizationId as string);
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+      return OK(res, purchase, "purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
+
+  async getBuyerPurchaseStats(req: Request, res: Response): Promise<void> {
+    try {
+      const organizationId = req.payload?.organizationId;
+      const { id } = req.params;
+      const purchase = await this.serviceFactory
+        .getPurchaseService()
+        .getBuyerPurchaseStats(id, organizationId as string);
+      if (!purchase) {
+        return ERROR(res, null, "No purchase data found");
+      }
+      return OK(res, purchase, "purchase stats retrieved successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
+    }
+  }
+
+  async sendReceipt(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderNo } = req.params;
+      const organizationId = req.payload?.organizationId;
+
+      if (!organizationId) {
+        return ERROR(res, null, "No Organization ID found");
+      }
+
+      const purchaseDetails = await this.serviceFactory
+        .getPurchaseService()
+        .getReceiptByOrderNo(orderNo, organizationId);
+
+      if (!purchaseDetails) {
+        return ERROR(res, null, "No purchase data found");
+      }
+
+      if (purchaseDetails.seller.type === SellerType.BUSINESS) {
+        const receiptSettings = await this.serviceFactory
+          .getReceiptService()
+          .getReceiptByOrganizationId(organizationId);
+
+        if (!receiptSettings) {
+          return ERROR(res, false, "Receipt not found");
+        }
+
+        const decryptedPurchaseDetails = {
+          ...purchaseDetails,
+          receiptSettings,
+          user: purchaseDetails?.user
+            ? {
+                ...purchaseDetails.user,
+                email: purchaseDetails.user.email
+                  ? decrypt(purchaseDetails.user.email)
+                  : null,
+
+                phone: purchaseDetails.user.phone
+                  ? decrypt(purchaseDetails.user.phone)
+                  : null,
+              }
+            : null,
+          seller: purchaseDetails?.seller
+            ? {
+                ...purchaseDetails.seller,
+                email: purchaseDetails.seller.email
+                  ? decrypt(purchaseDetails.seller.email)
+                  : null,
+                phone: purchaseDetails.seller.phone
+                  ? decrypt(purchaseDetails.seller.phone)
+                  : null,
+              }
+            : null,
+        } as IPurchase;
+        const pathStored = await generatePurchasePDFForB2B(
+          decryptedPurchaseDetails
+        );
+
+        await sendPurchaseMail(
+          decryptedPurchaseDetails.seller?.email || "",
+          decryptedPurchaseDetails.organization,
+          pathStored
+        );
+        removeFile(pathStored);
+      }
+
+      return OK(res, true, "Receipt sent successfully");
+    } catch (error) {
+      return ERROR(res, getError(error), "Internal Server Error");
     }
   }
 }

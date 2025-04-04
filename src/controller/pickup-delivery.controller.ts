@@ -1,53 +1,55 @@
-import PickupDeliveryService from "@/services/pickup-delivery.service";
-import ProductsPickupService from "@/services/product-pickup-delivery.service";
-import SellerService from "@/services/seller.service";
+import { ServiceFactory } from "@/factory/service.factory";
+import { bindMethods } from "@/functions/function";
 import { decrypt } from "@/utils/AES";
 import { ERROR, OK } from "@/utils/response-helper";
 
 import { Request, Response } from "express";
 
 export default class PickupDeliveryController {
-  static async createPickupDelivery(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  private static instance: PickupDeliveryController;
+  private serviceFactory: ServiceFactory;
+
+  private constructor(factory?: ServiceFactory) {
+    this.serviceFactory = factory ?? new ServiceFactory();
+    bindMethods(this);
+  }
+
+  static getInstance(factory?: ServiceFactory): PickupDeliveryController {
+    if (!PickupDeliveryController.instance) {
+      PickupDeliveryController.instance = new PickupDeliveryController(factory);
+    }
+    return PickupDeliveryController.instance;
+  }
+
+  async createPickupDelivery(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
-      const { products, sellerId, PONumber, comment } = req.body;
+      const { productsForDelivery, sellerId, PONumber, comment } = req.body;
 
       if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
 
       if (!organizationId)
         return ERROR(res, null, "No Organization ID in token");
 
-      const sellerExists = await SellerService.getSeller(sellerId);
-
-      if (!sellerExists) {
-        throw new Error("Seller does not exist");
-      }
-
-      const pickUpDelivery = await PickupDeliveryService.createPickupDelivery({
-        userId,
-        organizationId,
-        sellerId,
-        PONumber,
-        comment,
-      });
+      const pickUpDelivery = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .createPickupDelivery({
+          userId,
+          organizationId,
+          sellerId,
+          PONumber,
+          comment,
+          productsForDelivery,
+        });
 
       if (!pickUpDelivery) {
         return ERROR(res, null, "Failed to create pickup delivery");
       }
 
-      const products_for_delivery =
-        await ProductsPickupService.addProductsToPickup(
-          pickUpDelivery.id,
-          products
-        );
-
       return OK(
         res,
-        { pickUpDelivery, products_for_delivery },
+        pickUpDelivery,
         "Pickup delivery created successfully with products"
       );
     } catch (error) {
@@ -55,10 +57,7 @@ export default class PickupDeliveryController {
     }
   }
 
-  static async getPickupDeliveryList(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  async getPickupDeliveryList(req: Request, res: Response): Promise<void> {
     try {
       const { userId, sellerId, PONumber, sortBy, sortOrder, page } = req.query;
       const organizationId = req.payload?.organizationId;
@@ -75,13 +74,9 @@ export default class PickupDeliveryController {
         sortBy === "PONumber" || sortBy === "createdAt" ? sortBy : "createdAt";
       const sortedOrder: "asc" | "desc" = sortOrder === "desc" ? "desc" : "asc";
 
-      const { pickupDeliveries, total, totalPages } =
-        await PickupDeliveryService.getPickupDeliveryList(
-          filters,
-          sortedBy,
-          sortedOrder,
-          pageNumber
-        );
+      const { pickupDeliveries, total, totalPages } = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .getPickupDeliveryList(filters, sortedBy, sortedOrder, pageNumber);
 
       const decryptedPickupDelivery = pickupDeliveries.map((pickupDelivery) => {
         const decryptedUser = pickupDelivery.user
@@ -89,9 +84,6 @@ export default class PickupDeliveryController {
               ...pickupDelivery.user,
               email: pickupDelivery.user.email
                 ? decrypt(pickupDelivery.user.email)
-                : null,
-              name: pickupDelivery.user.name
-                ? decrypt(pickupDelivery.user.name)
                 : null,
               phone: pickupDelivery.user.phone
                 ? decrypt(pickupDelivery.user.phone)
@@ -128,7 +120,7 @@ export default class PickupDeliveryController {
     }
   }
 
-  static async getReceiptByID(req: Request, res: Response) {
+  async getReceiptByID(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const organizationId = req.payload?.organizationId;
@@ -136,11 +128,17 @@ export default class PickupDeliveryController {
       if (!organizationId) {
         return ERROR(res, false, "No Organization ID in token");
       }
-      const pickUpDeliveryDetails = await PickupDeliveryService.getReceiptById(
-        id,
-        organizationId
-      );
+      const pickUpDeliveryDetails = await this.serviceFactory
+        .getPickUpDeliveryService()
+        .getReceiptById(id, organizationId);
 
+      const receiptSettings = await this.serviceFactory
+        .getReceiptService()
+        .getReceiptByOrganizationId(organizationId);
+
+      if (!receiptSettings) {
+        return ERROR(res, false, "Receipt not found");
+      }
       const decryptedpickUpDeliveryDetails = {
         ...pickUpDeliveryDetails,
         user: pickUpDeliveryDetails?.user
@@ -148,10 +146,6 @@ export default class PickupDeliveryController {
               ...pickUpDeliveryDetails.user,
               email: pickUpDeliveryDetails.user.email
                 ? decrypt(pickUpDeliveryDetails.user.email)
-                : null,
-
-              name: pickUpDeliveryDetails.user.name
-                ? decrypt(pickUpDeliveryDetails.user.name)
                 : null,
 
               phone: pickUpDeliveryDetails.user.phone
@@ -170,6 +164,7 @@ export default class PickupDeliveryController {
                 : null,
             }
           : null,
+        receiptSettings,
       };
 
       return OK(

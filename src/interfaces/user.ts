@@ -1,4 +1,4 @@
-import { Organization, Purchase, Role, User } from "@prisma/client";
+import { PaymentMethod, Purchase, Role, Seller, User } from "@prisma/client";
 
 export interface CreateUserInterface {
   email: string;
@@ -11,13 +11,14 @@ export interface CreateUserInternalInterface {
   email: string;
   password?: string;
   phone?: string;
-  organizationId?: string;
+  organizationId: string;
   name?: string;
 }
 
 export interface UserUpdateData {
   name?: string;
   phone?: string;
+  role?: Role;
   password?: string;
   token?: string;
   isActive?: boolean;
@@ -25,6 +26,8 @@ export interface UserUpdateData {
   isDeleted?: boolean;
   otp?: string | null;
   otpExpiry?: Date | null;
+  wallet?: number;
+  lastReconciled?: Date | null;
 }
 
 export interface GetUsersFilterInterface {
@@ -37,7 +40,17 @@ export interface GetUsersFilterInterface {
 }
 
 export interface UserSellingHistoryInterface {
-  buyer: User;
-  purchase: Purchase[];
-  organization: Organization | null;
+  buyer: User | null;
+  purchase: (Purchase & {
+    user?: User | null;
+    seller?: Seller | null;
+  })[];
+  total: number;
+  totalPages: number;
+}
+
+export interface GetBuyerBuyingHistoryFilterInterface {
+  paymentMethod?: PaymentMethod;
+  from?: string;
+  to?: string;
 }

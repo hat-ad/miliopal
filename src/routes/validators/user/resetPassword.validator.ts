@@ -57,8 +57,8 @@ export const validateOTPValidation = (
   next: NextFunction
 ) => {
   try {
-    const { email, otp } = req.body;
-    const payload = { email, otp };
+    const { userID, otp } = req.body;
+    const payload = { userID, otp };
     req.body = payload;
 
     OTPValidationInputSchema.parse(req.body);
@@ -83,8 +83,8 @@ export const validateResetPassword = (
   next: NextFunction
 ) => {
   try {
-    const { email, password, otp } = req.body;
-    const payload = { email, password, otp };
+    const { userID, password, otp } = req.body;
+    const payload = { userID, password, otp };
     req.body = payload;
 
     ResetPasswordSchema.parse(req.body);

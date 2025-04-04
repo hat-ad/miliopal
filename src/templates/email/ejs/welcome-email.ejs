@@ -1,153 +1,115 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Welcome Email</title>
+    <style>
+      body {
+        font-family: Inter, sans-serif;
+        background-color: #fff;
+        margin: 0;
+        margin-top: 3rem;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        width: 600px;
+        background-color: #eef1f5;
+        padding-left: 75px;
+        /* padding-right: 68px; */
+        padding-top: 105px;
+        padding-bottom: 105px;
+        margin: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #000;
+        font-weight: bold;
+        font-size: 30px;
+      }
+      p {
+        color: #000;
+        line-height: 1.5;
+        font-weight: normal;
+        font-size: 14px;
+      }
+      span {
+        color: #000;
+        line-height: 1.5;
+        font-weight: normal;
+        font-size: 14px;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: lighter;
+        font-size: 14px;
+        text-decoration: underline;
+      }
+      .footer {
+        /* margin-top: 20px; */
+        font-size: 14px;
+        color: #000;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .divider1 {
+        height: 16px;
+      }
+      .divider2 {
+        height: 45px;
+      }
+    </style>
   </head>
-  <body
-    style="
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f5f7fa;
-    "
-  >
-    <table
-      role="presentation"
-      width="100%"
-      cellspacing="0"
-      cellpadding="0"
-      border="0"
-    >
-      <tr>
-        <td style="padding: 20px 0">
-          <table
-            role="presentation"
-            style="
-              max-width: 600px;
-              margin: 0 auto;
-              background-color: #ffffff;
-              border-radius: 8px;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            "
-            width="100%"
-            cellspacing="0"
-            cellpadding="0"
-            border="0"
-          >
-            <tr>
-              <td style="padding: 30px">
-                <!-- Email Content -->
-                <table
-                  role="presentation"
-                  width="100%"
-                  cellspacing="0"
-                  cellpadding="0"
-                  border="0"
-                >
-                  <!-- Header -->
-                  <tr>
-                    <td style="padding-bottom: 20px">
-                      <h1
-                        style="
-                          margin: 0;
-                          font-size: 24px;
-                          font-weight: bold;
-                          color: #000000;
-                        "
-                      >
-                        Welcome <%= name %>!
-                      </h1>
-                    </td>
-                  </tr>
+  <body>
+    <div class="container">
+      <h1 style="line-height: 0cm">Welcome <%= name %>!</h1>
+      <div class="divider2"></div>
 
-                  <!-- Main Content -->
-                  <tr>
-                    <td style="padding-bottom: 20px">
-                      <p
-                        style="
-                          margin: 0 0 16px 0;
-                          font-size: 16px;
-                          line-height: 1.5;
-                          color: #4a5568;
-                        "
-                      >
-                        You have been added as a user at Palle Kvittering and
-                        are just one step away from getting started.
-                      </p>
-                      <p
-                        style="
-                          margin: 0 0 20px 0;
-                          font-size: 16px;
-                          line-height: 1.5;
-                          color: #4a5568;
-                        "
-                      >
-                        To access your account, please create a password by
-                        clicking the button below:
-                      </p>
-                    </td>
-                  </tr>
+      <p>
+        You have been added as a user at
+        <span class="bold"><%= companyName %></span> and are just one step
+        <br />
+        away from getting started.
+      </p>
+      <div class="divider1"></div>
+      <p>
+        To access your account, please create a password by clicking the button
+        below:
+        <br />
+        <a href="<%= link %>" style="text-decoration: underline"
+          >Create password</a
+        >
+      </p>
+      <div class="divider1"></div>
+      <p>
+        Once your password is set, you can log in and start using the system
+        right away.
+      </p>
+      <div class="divider1"></div>
 
-                  <!-- Button -->
-                  <tr>
-                    <td style="padding-bottom: 20px">
-                      <table
-                        role="presentation"
-                        cellspacing="0"
-                        cellpadding="0"
-                        border="0"
-                      >
-                        <tr>
-                          <td
-                            style="
-                              border-radius: 4px;
-                              background-color: #2563eb;
-                            "
-                          >
-                            <a
-                              href="<%= link %>"
-                              target="_blank"
-                              style="
-                                display: inline-block;
-                                padding: 12px 24px;
-                                font-size: 16px;
-                                color: #ffffff;
-                                text-decoration: none;
-                                border-radius: 4px;
-                                font-weight: bold;
-                              "
-                              >Create password</a
-                            >
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
+      <p class="footer">
+        This is an automated email from
+        <span class="bold"><%= companyName %></span>.
+        <span class="bold"
+          >Please do not reply to <br />this message, as replies will not be
+          monitored.</span
+        >
+        If you need assistance, contact<br />
+        <span class="bold"><%= companyName %></span> directly.
+      </p>
+      <div class="divider2"></div>
 
-                  <!-- Footer Content -->
-                  <tr>
-                    <td>
-                      <p
-                        style="
-                          margin: 0;
-                          font-size: 16px;
-                          line-height: 1.5;
-                          color: #4a5568;
-                        "
-                      >
-                        Once your password is set, you can log in and start
-                        using the system right away.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+      <p style="margin-top: 2.5rem">
+        <span class="bold">Contact information:</span><br />
+        <span><%= companyName %></span><br />
+        <%= organizationNumber %><br />
+        <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a><br />
+        <%= companyPhone %>
+      </p>
+    </div>
   </body>
 </html>

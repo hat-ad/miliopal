@@ -1,24 +1,18 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateSellerInterface,
   GetSellersFilterInterface,
-  SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import { PrismaClient, Seller } from "@prisma/client";
+import { PaymentMethod, Seller, SellerType } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class SellerRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class SellerRepository extends BaseRepository {
   async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    if (data.type === "PRIVATE" && !data.name) {
+    if (data.type === SellerType.PRIVATE && !data.name) {
       throw new Error("Private Seller must have a name.");
     }
     if (
-      data.type === "BUSINESS" &&
+      data.type === SellerType.BUSINESS &&
       !data.organizationNumber &&
       !data.bankAccountNumber
     ) {
@@ -37,20 +31,22 @@ class SellerRepository {
         postalCode: data.postalCode,
         city: data.city,
         isDeleted: data.isDeleted ?? false,
-
+        bankAccountNumber: data.bankAccountNumber,
+        paymentMethod:
+          data.type === SellerType.PRIVATE
+            ? data.paymentMethod
+            : PaymentMethod.BANK_TRANSFER,
         privateSeller:
-          data.type === "PRIVATE"
+          data.type === SellerType.PRIVATE
             ? { create: { name: data.name! } }
             : undefined,
-
         businessSeller:
-          data.type === "BUSINESS"
+          data.type === SellerType.BUSINESS
             ? {
                 create: {
                   companyName: data.companyName!,
                   contactPerson: data.contactPerson!,
                   organizationNumber: data.organizationNumber!,
-                  bankAccountNumber: data.bankAccountNumber!,
                 },
               }
             : undefined,
@@ -244,60 +240,6 @@ class SellerRepository {
       },
     });
   }
-
-  async getSellerSellingHistory(
-    id: string
-  ): Promise<SellerSellingHistoryInterface | null> {
-    const sellerSellingHistory = await this.db.seller.findUnique({
-      where: { id },
-      include: {
-        privateSeller: true,
-        businessSeller: true,
-        organization: true,
-        purchases: {
-          include: {
-            user: true,
-            productsPurchased: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!sellerSellingHistory) {
-      return null;
-    }
-
-    const {
-      privateSeller,
-      businessSeller,
-      purchases,
-      organization,
-      ...sellerDetails
-    } = sellerSellingHistory;
-
-    return {
-      seller: {
-        ...sellerDetails,
-        ...(privateSeller || null),
-        ...(businessSeller || null),
-      },
-      purchase: purchases.map((purchase) => ({
-        ...purchase,
-        user: purchase.user
-          ? {
-              ...purchase.user,
-              email: purchase.user.email ?? null,
-              phone: purchase.user.phone ?? null,
-            }
-          : null,
-      })),
-      organization: organization ?? null,
-    };
-  }
 }
 
-export default new SellerRepository();
+export default SellerRepository;

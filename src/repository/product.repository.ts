@@ -1,17 +1,12 @@
-import PrismaService from "@/db/prisma-service";
 import {
   CreateProductInterface,
   GetProductsFilterInterface,
   UpdateProductInterface,
 } from "@/interfaces/product";
-import { PrismaClient, Product } from "@prisma/client";
+import { Product } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class ProductRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
-  }
-
+class ProductRepository extends BaseRepository {
   async createProduct(data: CreateProductInterface): Promise<Product> {
     return this.db.product.create({
       data: {
@@ -103,4 +98,4 @@ class ProductRepository {
   }
 }
 
-export default new ProductRepository();
+export default ProductRepository;

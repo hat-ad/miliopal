@@ -1,62 +1,97 @@
+import PrismaService from "@/db/prisma-service";
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateSellerInterface,
+  GetSellerSellingHistoryFilterInterface,
   GetSellersFilterInterface,
   SellerSellingHistoryInterface,
   UpdateSellerInterface,
 } from "@/interfaces/seller";
-import SellerRepository from "@/repository/seller.repository";
-import {
-  Organization,
-  Purchase,
-  Seller,
-  SellerType,
-  User,
-} from "@prisma/client";
+import { Seller, SellerType } from "@prisma/client";
 
 class SellerService {
-  static async createSeller(data: CreateSellerInterface): Promise<Seller> {
-    return SellerRepository.createSeller(data);
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
+  }
+  async createSeller(data: CreateSellerInterface): Promise<Seller> {
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const sellerRepository = factory.getSellerRepository();
+        const privateSellerPurchaseStatsRepository =
+          factory.getPrivateSellerPurchaseStatsRepository();
+
+        const seller = await sellerRepository.createSeller(data);
+
+        if (data.type === SellerType.PRIVATE) {
+          await privateSellerPurchaseStatsRepository.createPrivateSellerPurchaseStats(
+            seller.id,
+            seller.organizationId
+          );
+        }
+
+        return seller;
+      },
+      { maxWait: 30000, timeout: 30000 }
+    );
   }
 
-  static async getSeller(id: string): Promise<Seller | null> {
-    return SellerRepository.getSeller(id);
+  async getSeller(id: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().getSeller(id);
   }
 
-  static async getSellerByEmail(email: string): Promise<Seller | null> {
-    return SellerRepository.getSellerByEmail(email);
+  async getSellerByEmail(email: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().getSellerByEmail(email);
   }
 
-  static async getSellersList(
+  async getSellersList(
     filters: GetSellersFilterInterface,
     sortBy: "name" | "city" = "name",
     sortOrder: "asc" | "desc" = "asc",
     page: number = 1,
     limit: number = 10
   ): Promise<{ sellers: Seller[]; total: number; totalPages: number }> {
-    return SellerRepository.getSellersList(
-      filters,
-      sortBy,
-      sortOrder,
-      page,
-      limit
-    );
+    return this.repositoryFactory
+      .getSellerRepository()
+      .getSellersList(filters, sortBy, sortOrder, page, limit);
   }
 
-  static async updateSeller(
+  async updateSeller(
     id: string,
     data: UpdateSellerInterface
   ): Promise<Seller | null> {
-    return SellerRepository.updateSeller(id, data);
+    return this.repositoryFactory.getSellerRepository().updateSeller(id, data);
   }
 
-  static async deleteSeller(id: string): Promise<Seller | null> {
-    return SellerRepository.deleteSeller(id);
+  async deleteSeller(id: string): Promise<Seller | null> {
+    return this.repositoryFactory.getSellerRepository().deleteSeller(id);
   }
 
-  static async getSellerSellingHistory(
-    id: string
+  async getSellerSellingHistory(
+    id: string,
+    page: number = 1,
+    limit: number = 10,
+    filter: GetSellerSellingHistoryFilterInterface
   ): Promise<SellerSellingHistoryInterface | null> {
-    return SellerRepository.getSellerSellingHistory(id);
+    const filters = {
+      sellerId: id,
+      ...filter,
+    };
+    const seller = await this.repositoryFactory
+      .getSellerRepository()
+      .getSeller(id);
+    const purchasePaginated = await this.repositoryFactory
+      .getPurchaseRepository()
+      .getPurchaseList(filters, "createdAt", "asc", page, limit);
+
+    return {
+      purchase: purchasePaginated.purchases,
+      total: purchasePaginated.total,
+      totalPages: purchasePaginated.totalPages,
+      seller: seller,
+    };
   }
 }
 

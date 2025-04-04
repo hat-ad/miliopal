@@ -10,18 +10,18 @@ router.post(
   "/create-pickup-delivery",
   isAuthenticated,
   validateCreatePickupDelivery,
-  PickupDeliveryController.createPickupDelivery
+  PickupDeliveryController.getInstance().createPickupDelivery
 );
 
 router.get(
   "/get-pickup-delivery-list",
   isAuthenticated,
-  PickupDeliveryController.getPickupDeliveryList
+  PickupDeliveryController.getInstance().getPickupDeliveryList
 );
 router.get(
   "/get-receipt-by-id/:id",
   isAuthenticated,
-  PickupDeliveryController.getReceiptByID
+  PickupDeliveryController.getInstance().getReceiptByID
 );
 
 export default router;

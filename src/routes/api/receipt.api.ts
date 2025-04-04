@@ -9,15 +9,19 @@ router.post(
   "/create-receipt",
   validateCreateReceipt,
   isAuthenticated,
-  ReceiptController.createReceipt
+  ReceiptController.getInstance().createReceipt
 );
 
-router.get("/get-receipt", isAuthenticated, ReceiptController.getSingleReceipt);
+router.get(
+  "/get-receipt",
+  isAuthenticated,
+  ReceiptController.getInstance().getSingleReceipt
+);
 
 router.put(
   "/update-receipt/:id",
   isAuthenticated,
-  ReceiptController.updateReceipt
+  ReceiptController.getInstance().updateReceipt
 );
 
 export default router;

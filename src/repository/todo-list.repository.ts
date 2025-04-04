@@ -1,17 +1,171 @@
-import PrismaService from "@/db/prisma-service";
 import {
-  PaymentMethod,
-  Prisma,
-  PrismaClient,
   TodoListEvent,
+  TodoListSettings,
   TodoListStatus,
 } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
-class CompanyCashBalanceEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
-    this.db = db;
+class TodoListRepository extends BaseRepository {
+  async registerEvent(
+    event: TodoListEvent,
+    payload: {
+      userId?: string;
+      organizationId: string;
+      pickUpOrderId?: string;
+      purchaseId?: string;
+      totalSales?: number;
+      totalQuantity?: number;
+      sellerId?: string;
+    }
+  ) {
+    switch (event) {
+      case TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD:
+        await this.handleCompanyCashBalanceBelowThresholdEvent(
+          payload.organizationId
+        );
+        break;
+
+      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD:
+        await this.handleIndividualCashBalanceBelowThresholdEvent(
+          payload.userId || "",
+          payload.organizationId
+        );
+        break;
+      case TodoListEvent.ORDER_PICKUP_INITIATED:
+        await this.handleCreateOrderPickupEvent(
+          payload.organizationId,
+          payload.pickUpOrderId || ""
+        );
+        break;
+      case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
+        await this.handleCreatePurchaseWithBankTransferEvent(
+          payload.organizationId,
+          payload.purchaseId || ""
+        );
+        break;
+      case TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD:
+        await this.handleCreatePrivateSellerUpperThresholdEvent(
+          payload.organizationId,
+          payload?.sellerId || "",
+          payload?.totalSales || 0,
+          payload?.totalQuantity || 0
+        );
+        break;
+      default:
+        break;
+    }
   }
+
+  async completeEvent(
+    event: TodoListEvent,
+    payload: {
+      todoListId: string;
+      paymentDate?: string;
+      purchaseId?: string;
+    }
+  ) {
+    switch (event) {
+      case TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD:
+        await this.completeTodoListEvent(payload.todoListId);
+        break;
+
+      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD:
+        await this.completeTodoListEvent(payload.todoListId);
+        break;
+      case TodoListEvent.ORDER_PICKUP_INITIATED:
+        await this.completeTodoListEvent(payload.todoListId);
+        break;
+      case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
+        if (!payload.paymentDate || !payload.purchaseId) {
+          throw new Error("Payment date and purchase id are required");
+        }
+        await this.completeTodoListEvent(payload.todoListId);
+        await this.updatePaymentDate(payload.purchaseId, payload.paymentDate);
+        break;
+      case TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD:
+        await this.completeTodoListEvent(payload.todoListId);
+        break;
+      default:
+        break;
+    }
+  }
+
+  async listTodoLists(
+    organizationId: string,
+    status?: TodoListStatus,
+    event?: TodoListEvent,
+    from?: Date,
+    to?: Date
+  ) {
+    return await this.db.todoList.findMany({
+      where: {
+        organizationId,
+        status,
+        event,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+      },
+    });
+  }
+
+  async createTodoListSettings(organizationId: string) {
+    return await this.db.todoListSettings.create({
+      data: { organizationId },
+    });
+  }
+
+  async updateTodoListSettings(
+    organizationId: string,
+    data: Partial<
+      Omit<
+        TodoListSettings,
+        "organizationId" | "id" | "createdAt" | "updatedAt"
+      >
+    >
+  ) {
+    return await this.db.todoListSettings.update({
+      where: {
+        organizationId: organizationId,
+      },
+      data: data,
+    });
+  }
+
+  async getTodoListSettings(organizationId: string) {
+    return await this.db.todoListSettings.findUnique({
+      where: {
+        organizationId: organizationId,
+      },
+    });
+  }
+
+  async listTodoListSettingsWithPrivateSellerSettingsEnabled() {
+    return await this.db.todoListSettings.findMany({
+      where: {
+        privateSellerSalesBalanceUpperThreshold: {
+          not: null,
+        },
+      },
+      select: {
+        organizationId: true,
+        privateSellerSalesBalanceUpperThreshold: true,
+      },
+    });
+  }
+
+  private async completeTodoListEvent(todoListId: string) {
+    await this.db.todoList.update({
+      where: {
+        id: todoListId,
+      },
+      data: {
+        status: TodoListStatus.DONE,
+      },
+    });
+  }
+
   private async getCompanyCashBalanceBelowThresholdMeta(
     organizationId: string,
     thresholdBalance: number
@@ -31,7 +185,7 @@ class CompanyCashBalanceEventsHandler {
     organizationId: string,
     thresholdBalance: number
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD,
@@ -43,20 +197,9 @@ class CompanyCashBalanceEventsHandler {
     });
   }
 
-  private async completeCompanyCashBalanceBelowThresholdEvent(
-    todoListId: string
+  private async isEventCreationAllowedForCompanyCashBalanceThresholdEvent(
+    organizationId: string
   ) {
-    this.db.todoList.update({
-      where: {
-        id: todoListId,
-      },
-      data: {
-        status: TodoListStatus.DONE,
-      },
-    });
-  }
-
-  private async isEventCreationAllowed(organizationId: string) {
     const organization = await this.db.organization.findUnique({
       where: {
         id: organizationId,
@@ -78,6 +221,12 @@ class CompanyCashBalanceEventsHandler {
         thresholdBalance: 0,
       };
 
+    if (settings.companyCashBalanceLowerThreshold === null) {
+      return {
+        isThresholdCrossed: false,
+        thresholdBalance: 0,
+      };
+    }
     return {
       isThresholdCrossed:
         organization?.wallet < settings?.companyCashBalanceLowerThreshold,
@@ -85,9 +234,13 @@ class CompanyCashBalanceEventsHandler {
     };
   }
 
-  async handleCompanyCashBalanceBelowThresholdEvent(organizationId: string) {
+  private async handleCompanyCashBalanceBelowThresholdEvent(
+    organizationId: string
+  ) {
     const { isThresholdCrossed, thresholdBalance } =
-      await this.isEventCreationAllowed(organizationId);
+      await this.isEventCreationAllowedForCompanyCashBalanceThresholdEvent(
+        organizationId
+      );
     if (isThresholdCrossed) {
       await this.createCompanyCashBalanceBelowThresholdEvent(
         organizationId,
@@ -96,40 +249,7 @@ class CompanyCashBalanceEventsHandler {
     }
   }
 
-  async handleCompanyCashBalanceBelowThresholdEventCompletion(
-    todoListId: string,
-    organizationId: string
-  ) {
-    const { isThresholdCrossed } = await this.isEventCreationAllowed(
-      organizationId
-    );
-    if (!isThresholdCrossed) {
-      await this.completeCompanyCashBalanceBelowThresholdEvent(todoListId);
-    }
-  }
-}
-
-class IndividualCashBalanceEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
-    this.db = db;
-  }
   private async getIndividualCashBalanceBelowThresholdMeta(
-    userId: string,
-    thresholdBalance: number
-  ) {
-    const user = await this.db.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-    return {
-      currentBalance: user?.wallet || 0,
-      userId,
-      thresholdBalance,
-    };
-  }
-  private async getIndividualCashBalanceAboveThresholdMeta(
     userId: string,
     thresholdBalance: number
   ) {
@@ -150,7 +270,7 @@ class IndividualCashBalanceEventsHandler {
     organizationId: string,
     thresholdBalance: number
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
@@ -162,37 +282,9 @@ class IndividualCashBalanceEventsHandler {
     });
   }
 
-  private async createIndividualCashBalanceAboveThresholdEvent(
-    userId: string,
-    organizationId: string,
-    thresholdBalance: number
+  private async isEventCreationAllowedForIndividualCashBalanceThresholdEvent(
+    userId: string
   ) {
-    this.db.todoList.create({
-      data: {
-        organizationId,
-        event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD,
-        meta: await this.getIndividualCashBalanceAboveThresholdMeta(
-          userId,
-          thresholdBalance
-        ),
-      },
-    });
-  }
-
-  private async completeIndividualCashBalanceThresholdEvent(
-    todoListId: string
-  ) {
-    this.db.todoList.update({
-      where: {
-        id: todoListId,
-      },
-      data: {
-        status: TodoListStatus.DONE,
-      },
-    });
-  }
-
-  private async isEventCreationAllowed(userId: string) {
     const user = await this.db.user.findUnique({
       where: {
         id: userId,
@@ -218,22 +310,23 @@ class IndividualCashBalanceEventsHandler {
 
     if (!settings || !user) return payload;
 
-    payload.isWalletBalanceAboveThreshold =
-      user?.wallet >= settings?.individualCashBalanceUpperThreshold;
-    payload.isWalletBalanceBelowThreshold =
-      user?.wallet < settings?.individualCashBalanceLowerThreshold;
-    payload.userWalletBalance = user?.wallet;
-    payload.thresholdBalance = settings?.individualCashBalanceLowerThreshold;
+    if (settings.individualCashBalanceLowerThreshold !== null) {
+      payload.isWalletBalanceBelowThreshold =
+        user?.wallet < settings?.individualCashBalanceLowerThreshold;
+      payload.thresholdBalance = settings?.individualCashBalanceLowerThreshold;
+    }
 
     return payload;
   }
 
-  async handleIndividualCashBalanceBelowThresholdEvent(
+  private async handleIndividualCashBalanceBelowThresholdEvent(
     userId: string,
     organizationId: string
   ) {
     const { isWalletBalanceBelowThreshold, thresholdBalance } =
-      await this.isEventCreationAllowed(userId);
+      await this.isEventCreationAllowedForIndividualCashBalanceThresholdEvent(
+        userId
+      );
     if (isWalletBalanceBelowThreshold) {
       await this.createIndividualCashBalanceBelowThresholdEvent(
         userId,
@@ -242,51 +335,6 @@ class IndividualCashBalanceEventsHandler {
       );
     }
   }
-  async handleIndividualCashBalanceAboveThresholdEvent(
-    userId: string,
-    organizationId: string
-  ) {
-    const { isWalletBalanceAboveThreshold, thresholdBalance } =
-      await this.isEventCreationAllowed(userId);
-    if (isWalletBalanceAboveThreshold) {
-      await this.createIndividualCashBalanceAboveThresholdEvent(
-        userId,
-        organizationId,
-        thresholdBalance
-      );
-    }
-  }
-
-  async handleIndividualCashBalanceBelowThresholdEventCompletion(
-    todoListId: string,
-    userId: string
-  ) {
-    const { isWalletBalanceBelowThreshold } = await this.isEventCreationAllowed(
-      userId
-    );
-    if (!isWalletBalanceBelowThreshold) {
-      await this.completeIndividualCashBalanceThresholdEvent(todoListId);
-    }
-  }
-
-  async handleIndividualCashBalanceAboveThresholdEventCompletion(
-    todoListId: string,
-    userId: string
-  ) {
-    const { isWalletBalanceAboveThreshold } = await this.isEventCreationAllowed(
-      userId
-    );
-    if (!isWalletBalanceAboveThreshold) {
-      await this.completeIndividualCashBalanceThresholdEvent(todoListId);
-    }
-  }
-}
-
-class OrderPickUpEventsHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
-    this.db = db;
-  }
 
   private async getOrderPickupMeta(pickUpOrderId: string) {
     return {
@@ -294,11 +342,11 @@ class OrderPickUpEventsHandler {
     };
   }
 
-  async handleCreateOrderPickupEvent(
+  private async handleCreateOrderPickupEvent(
     organizationId: string,
     pickUpOrderId: string
   ) {
-    this.db.todoList.create({
+    await this.db.todoList.create({
       data: {
         organizationId,
         event: TodoListEvent.ORDER_PICKUP_INITIATED,
@@ -307,80 +355,19 @@ class OrderPickUpEventsHandler {
     });
   }
 
-  private async completeOrderPickupEvent(todoListId: string) {
-    this.db.todoList.update({
-      where: {
-        id: todoListId,
-      },
-      data: {
-        status: TodoListStatus.DONE,
-      },
-    });
-  }
-
-  async handleCompleteOrderPickupEvent(todoListId: string) {
-    await this.completeOrderPickupEvent(todoListId);
-  }
-}
-
-class PurchaseWithBankTransferHandler {
-  db: PrismaClient;
-  constructor(db: PrismaClient) {
-    this.db = db;
-  }
-
   private async getPurchaseWithBankTransferEventMeta(purchaseId: string) {
     return {
       purchaseId,
     };
   }
 
-  private async isEventCreationAllowed(purchaseId: string) {
-    const purchase = await this.db.purchase.findUnique({
-      where: {
-        id: purchaseId,
-      },
-      select: {
-        paymentMethod: true,
-      },
-    });
-
-    if (!purchase) {
-      return {
-        isAllowed: false,
-      };
-    }
-
-    return {
-      isAllowed: purchase.paymentMethod === PaymentMethod.BANK_TRANSFER,
-    };
-  }
-
-  private async updatePaymentDate(
-    prisma: Prisma.TransactionClient,
-    purchaseId: string,
-    paymentDate: Date
-  ) {
-    return prisma.purchase.update({
+  private async updatePaymentDate(purchaseId: string, paymentDate: string) {
+    return await this.db.purchase.update({
       where: {
         id: purchaseId,
       },
       data: {
-        bankTransferDate: paymentDate,
-      },
-    });
-  }
-
-  private async completePurchaseWithBankTransferEvent(
-    prisma: Prisma.TransactionClient,
-    todoListId: string
-  ) {
-    return prisma.todoList.update({
-      where: {
-        id: todoListId,
-      },
-      data: {
-        status: TodoListStatus.DONE,
+        transactionDate: paymentDate,
       },
     });
   }
@@ -389,165 +376,56 @@ class PurchaseWithBankTransferHandler {
     organizationId: string,
     purchaseId: string
   ) {
-    this.db.todoList.create({
-      data: {
-        organizationId,
-        event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
-        meta: await this.getPurchaseWithBankTransferEventMeta(purchaseId),
-      },
-    });
+    try {
+      await this.db.todoList.create({
+        data: {
+          organizationId,
+          event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
+          meta: await this.getPurchaseWithBankTransferEventMeta(purchaseId),
+        },
+      });
+    } catch (error) {
+      console.log("🚀 ~ PurchaseWithBankTransferHandler ~ error:", error);
+    }
   }
 
-  async handleCreatePurchaseWithBankTransferEvent(
+  private async handleCreatePurchaseWithBankTransferEvent(
     organizationId: string,
     purchaseId: string
   ) {
-    const { isAllowed } = await this.isEventCreationAllowed(purchaseId);
-    if (isAllowed) {
-      this.createPurchaseWithBankTransferEvent(organizationId, purchaseId);
-    }
+    this.createPurchaseWithBankTransferEvent(organizationId, purchaseId);
   }
 
-  async handleCompletePurchaseWithBankTransferEvent(
-    todoListId: string,
-    purchaseId: string,
-    paymentDate: Date
+  private async getPrivateSellerMeta(
+    sellerId: string,
+    totalSales: number,
+    totalQuantity: number
   ) {
-    await this.db.$transaction(async (prisma) => {
-      await this.updatePaymentDate(prisma, purchaseId, paymentDate);
-      await this.completePurchaseWithBankTransferEvent(prisma, todoListId);
-    });
-  }
-}
-
-class TodoListRepository {
-  db: PrismaClient;
-  constructor() {
-    this.db = PrismaService.getInstance();
+    return {
+      sellerId,
+      totalSales,
+      totalQuantity,
+    };
   }
 
-  registerEvent(
-    event: TodoListEvent,
-    payload: {
-      userId?: string;
-      organizationId: string;
-      pickUpOrderId?: string;
-      purchaseId?: string;
-    }
+  private async handleCreatePrivateSellerUpperThresholdEvent(
+    organizationId: string,
+    sellerId: string,
+    totalSales: number,
+    totalQuantity: number
   ) {
-    switch (event) {
-      case TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD:
-        const eventHandlerCompany = new CompanyCashBalanceEventsHandler(
-          this.db
-        );
-        eventHandlerCompany.handleCompanyCashBalanceBelowThresholdEvent(
-          payload.organizationId
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD:
-        const eventHandlerIndividual1 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEvent(
-          payload.userId || "",
-          payload.organizationId
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD:
-        const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEvent(
-          payload.userId || "",
-          payload.organizationId
-        );
-        break;
-      case TodoListEvent.ORDER_PICKUP_INITIATED:
-        const orderPickupHandler = new OrderPickUpEventsHandler(this.db);
-        orderPickupHandler.handleCreateOrderPickupEvent(
-          payload.organizationId,
-          payload.pickUpOrderId || ""
-        );
-        break;
-      case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
-        const purchaseWithBankTransferHandler =
-          new PurchaseWithBankTransferHandler(this.db);
-        purchaseWithBankTransferHandler.handleCreatePurchaseWithBankTransferEvent(
-          payload.organizationId,
-          payload.purchaseId || ""
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
-  completeEvent(
-    event: TodoListEvent,
-    payload: {
-      userId?: string;
-      todoListId: string;
-      organizationId?: string;
-      paymentDate?: Date;
-      purchaseId?: string;
-    }
-  ) {
-    switch (event) {
-      case TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD:
-        const eventHandler = new CompanyCashBalanceEventsHandler(this.db);
-        eventHandler.handleCompanyCashBalanceBelowThresholdEventCompletion(
-          payload.todoListId,
-          payload.organizationId || ""
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD:
-        const eventHandlerIndividual1 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        eventHandlerIndividual1.handleIndividualCashBalanceBelowThresholdEventCompletion(
-          payload.todoListId,
-          payload.userId || ""
-        );
-        break;
-
-      case TodoListEvent.INDIVIDUAL_CASH_BALANCE_ABOVE_THRESHOLD:
-        const eventHandlerIndividual2 = new IndividualCashBalanceEventsHandler(
-          this.db
-        );
-        eventHandlerIndividual2.handleIndividualCashBalanceAboveThresholdEventCompletion(
-          payload.todoListId,
-          payload.userId || ""
-        );
-        break;
-      case TodoListEvent.ORDER_PICKUP_INITIATED:
-        const orderPickupHandler = new OrderPickUpEventsHandler(this.db);
-        orderPickupHandler.handleCompleteOrderPickupEvent(payload.todoListId);
-        break;
-      case TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER:
-        if (!payload.paymentDate || !payload.purchaseId) return;
-        const purchaseWithBankTransferHandler =
-          new PurchaseWithBankTransferHandler(this.db);
-        purchaseWithBankTransferHandler.handleCompletePurchaseWithBankTransferEvent(
-          payload.todoListId,
-          payload.purchaseId,
-          payload.paymentDate
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
-  listTodoLists(organizationId: string) {
-    return this.db.todoList.findMany({
-      where: {
+    return await this.db.todoList.create({
+      data: {
         organizationId,
+        event: TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,
+        meta: await this.getPrivateSellerMeta(
+          sellerId,
+          totalSales,
+          totalQuantity
+        ),
       },
     });
   }
 }
 
-export default new TodoListRepository();
+export default TodoListRepository;

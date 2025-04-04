@@ -1,5 +1,5 @@
 import {
-  Organization,
+  PaymentMethod,
   Purchase,
   Seller,
   SellerType,
@@ -19,7 +19,15 @@ export interface CreateSellerInterface {
   contactPerson?: string;
   organizationNumber?: string;
   bankAccountNumber?: string;
+  paymentMethod?: PaymentMethod;
   isDeleted?: boolean;
+}
+
+export interface InviteSellerInterface {
+  email?: string;
+  sellerType: SellerType;
+  organizationId: string;
+  inviteExpiry?: Date | null;
 }
 
 export interface GetSellersFilterInterface {
@@ -54,7 +62,17 @@ export interface UpdateSellerInterface {
 }
 
 export interface SellerSellingHistoryInterface {
-  seller: Seller;
-  purchase: (Purchase & { user?: User | null })[];
-  organization: Organization | null;
+  seller: Seller | null;
+  purchase: (Purchase & {
+    user?: User | null;
+    seller?: Seller | null;
+  })[];
+  total: number;
+  totalPages: number;
+}
+
+export interface GetSellerSellingHistoryFilterInterface {
+  paymentMethod?: PaymentMethod;
+  from?: string;
+  to?: string;
 }

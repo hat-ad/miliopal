@@ -1,33 +1,43 @@
-import { Product } from "@prisma/client";
-import ProductRepository from "@/repository/product.repository";
+import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreateProductInterface,
   GetProductsFilterInterface,
   UpdateProductInterface,
 } from "@/interfaces/product";
+import { Product } from "@prisma/client";
 
 class ProductService {
-  static async createProduct(data: CreateProductInterface): Promise<Product> {
-    return ProductRepository.createProduct(data);
+  private repositoryFactory: RepositoryFactory;
+
+  constructor(factory?: RepositoryFactory) {
+    this.repositoryFactory = factory ?? new RepositoryFactory();
   }
 
-  static async getProductsList(
+  async createProduct(data: CreateProductInterface): Promise<Product> {
+    return this.repositoryFactory.getProductRepository().createProduct(data);
+  }
+
+  async getProductsList(
     filters: GetProductsFilterInterface,
     page: number = 1,
     limit: number = 10
   ): Promise<{ products: Product[]; total: number; totalPages: number }> {
-    return ProductRepository.getProductsList(filters, page, limit);
+    return this.repositoryFactory
+      .getProductRepository()
+      .getProductsList(filters, page, limit);
   }
 
-  static async updateProduct(
+  async updateProduct(
     id: string,
     data: UpdateProductInterface
   ): Promise<Product | null> {
-    return ProductRepository.updateProduct(id, data);
+    return this.repositoryFactory
+      .getProductRepository()
+      .updateProduct(id, data);
   }
 
-  static async deleteProduct(id: string): Promise<Product | null> {
-    return ProductRepository.deleteProduct(id);
+  async deleteProduct(id: string): Promise<Product | null> {
+    return this.repositoryFactory.getProductRepository().deleteProduct(id);
   }
 }
 
