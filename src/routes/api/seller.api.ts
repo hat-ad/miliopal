@@ -12,6 +12,12 @@ router.post(
   SellerController.getInstance().createSeller
 );
 
+router.post(
+  "/create-seller-from-invite/:inviteId",
+  validateCreateSeller,
+  SellerController.getInstance().createSeller
+);
+
 router.get(
   "/get-seller/:id",
   isAuthenticated,

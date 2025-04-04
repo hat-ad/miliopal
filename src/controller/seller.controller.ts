@@ -50,6 +50,58 @@ export default class SellerController {
     }
   }
 
+  async createSellerFromInvite(req: Request, res: Response): Promise<void> {
+    try {
+      const { inviteId } = req.params;
+      const { email, phone } = req.body;
+      const organizationId = req.payload?.organizationId;
+
+      const invitedSeller = await this.serviceFactory
+        .getSellerInviteService()
+        .getSellerInvite(inviteId);
+
+      if (!invitedSeller) {
+        return ERROR(res, false, "Seller invite does not exist.");
+      }
+
+      if (!invitedSeller.inviteExpiry) {
+        return ERROR(res, false, "Invalid invitation expiry.");
+      }
+
+      const currentTime = new Date();
+      const inviteExpiry = new Date(invitedSeller.inviteExpiry);
+
+      if (currentTime > inviteExpiry) {
+        return ERROR(res, null, "Invitation has expired.");
+      }
+
+      const encryptedEmail = encrypt(email);
+      const encryptedPhone = phone ? encrypt(phone) : null;
+
+      let seller = await this.serviceFactory
+        .getSellerService()
+        .getSellerByEmail(encryptedEmail);
+      if (seller) return ERROR(res, false, "Seller already exist");
+
+      seller = await this.serviceFactory.getSellerService().createSeller({
+        ...req.body,
+        email: encryptedEmail,
+        phone: encryptedPhone,
+        organizationId,
+      });
+
+      const responseSeller = {
+        ...seller,
+        email: seller?.email ? decrypt(seller.email) : null,
+        phone: seller?.phone ? decrypt(seller.phone) : null,
+      };
+
+      return OK(res, responseSeller, "Seller created successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
+
   async inviteSeller(req: Request, res: Response): Promise<void> {
     try {
       const { method, email, sellerType } = req.body;
