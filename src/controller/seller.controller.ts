@@ -96,7 +96,12 @@ export default class SellerController {
       const inviteCode = `${stringToHex(JSON.stringify(inviteData))}`;
 
       if (method === "INVITE") {
-        await sendSellerInvitationMail(sellerInvite.id, email, inviteExpiry);
+        await sendSellerInvitationMail(
+          sellerInvite.id,
+          email,
+          inviteExpiry,
+          sellerType
+        );
         return OK(res, inviteCode, "Seller invited successfully via email.");
       }
 
