@@ -255,10 +255,11 @@ export default class PurchaseController {
 
   async getSellerPurchaseStats(req: Request, res: Response): Promise<void> {
     try {
+      const organizationId = req.payload?.organizationId;
       const { id } = req.params;
       const purchase = await this.serviceFactory
         .getPurchaseService()
-        .getSellerPurchaseStats(id);
+        .getSellerPurchaseStats(id, organizationId as string);
       if (!purchase) {
         return ERROR(res, null, "No purchase data found");
       }
@@ -270,10 +271,11 @@ export default class PurchaseController {
 
   async getBuyerPurchaseStats(req: Request, res: Response): Promise<void> {
     try {
+      const organizationId = req.payload?.organizationId;
       const { id } = req.params;
       const purchase = await this.serviceFactory
         .getPurchaseService()
-        .getBuyerPurchaseStats(id);
+        .getBuyerPurchaseStats(id, organizationId as string);
       if (!purchase) {
         return ERROR(res, null, "No purchase data found");
       }

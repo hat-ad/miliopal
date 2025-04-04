@@ -55,18 +55,39 @@ class ProductsPurchasedRepository extends BaseRepository {
     }
   }
 
+  // async getProductsPurchaseStatsByPurchaseIds(
+  //   purchaseID: string[]
+  // ): Promise<{ units: number; expense: number }> {
+  //   const result = await this.db.productsPurchased.aggregate({
+  //     _sum: { price: true, quantity: true },
+  //     where: { purchaseId: { in: purchaseID } },
+  //   });
+
+  //   return {
+  //     units: result._sum.quantity || 0,
+  //     expense: result._sum.price || 0,
+  //   };
+  // }
+
   async getProductsPurchaseStatsByPurchaseIds(
-    purchaseID: string[]
+    purchaseIds: string[]
   ): Promise<{ units: number; expense: number }> {
-    const result = await this.db.productsPurchased.aggregate({
-      _sum: { price: true, quantity: true },
-      where: { purchaseId: { in: purchaseID } },
+    if (!purchaseIds.length) {
+      return { units: 0, expense: 0 };
+    }
+
+    const result = await this.db.productsPurchased.findMany({
+      where: { purchaseId: { in: purchaseIds } },
+      select: { price: true, quantity: true },
     });
 
-    return {
-      units: result._sum.quantity || 0,
-      expense: result._sum.price || 0,
-    };
+    const units = result.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+    const expense = result.reduce(
+      (sum, item) => sum + (item.price ?? 0) * (item.quantity ?? 0),
+      0
+    );
+
+    return { units, expense };
   }
 }
 
