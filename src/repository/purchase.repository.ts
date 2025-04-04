@@ -3,7 +3,7 @@ import {
   GetPurchaseFilterInterface,
   UpdatePurchaseInterface,
 } from "@/interfaces/purchase";
-import { Purchase, PurchaseType, Seller, User } from "@prisma/client";
+import { Purchase, Seller, User } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class PurchaseRepository extends BaseRepository {
@@ -179,17 +179,16 @@ class PurchaseRepository extends BaseRepository {
   async getPurchaseIds(filters: {
     userId?: string;
     sellerId?: string;
-    organizationId: string;
+    organizationId?: string;
   }): Promise<string[]> {
-    if (!filters.organizationId) {
-      throw new Error("organizationId are required.");
-    }
-
     const whereClause: any = {
-      organizationId: filters.organizationId,
       purchaseType: "PURCHASE",
       creditOrderId: null,
     };
+
+    if (filters.organizationId) {
+      whereClause.organizationId = filters.organizationId;
+    }
 
     if (filters.userId) {
       whereClause.userId = filters.userId;

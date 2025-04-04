@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "start": "node -r module-alias/register dist/index.js",
     "dev": "tsx watch src/index.ts",
     "db:push": "prisma db push",
@@ -20,8 +20,6 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@swc/cli": "^0.6.0",
-    "@swc/core": "^1.10.16",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/ejs": "^3.1.5",
