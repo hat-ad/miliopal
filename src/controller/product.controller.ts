@@ -36,9 +36,10 @@ export default class ProductController {
 
   async getProductsList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, price, isArchived, page } = req.query;
+      const { name, price, isArchived, page, limit } = req.query;
 
       const organizationId = req.payload?.organizationId;
+      const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
       const filters = {
         name: name ? String(name) : undefined,
@@ -51,7 +52,7 @@ export default class ProductController {
 
       const products = await this.serviceFactory
         .getProductService()
-        .getProductsList(filters, pageNumber);
+        .getProductsList(filters, pageNumber, pageSize);
 
       return OK(res, products, "Products retrieved successfully");
     } catch (error) {
