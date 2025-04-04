@@ -31,7 +31,7 @@ router.post(
 );
 
 router.get(
-  "/get-monthly-purchase-stats/:productId",
+  "/get-monthly-purchase-stats",
   isAuthenticated,
   PurchaseController.getInstance().getMonthlyPurchaseStats
 );
