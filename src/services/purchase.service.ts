@@ -340,26 +340,34 @@ class PurchaseService {
     }
   }
 
-  async getBuyerPurchaseStats(id: string): Promise<{
+  async getBuyerPurchaseStats(
+    id: string,
+    organizationId: string
+  ): Promise<{
     units: number;
     expense: number;
   }> {
     const purchaseIds = await this.repositoryFactory
       .getPurchaseRepository()
-      .getPurchaseIds({ userId: id });
+      .getPurchaseIds({ userId: id, organizationId });
+
+    console.log(purchaseIds);
 
     return this.repositoryFactory
       .getProductsPurchasedRepository()
       .getProductsPurchaseStatsByPurchaseIds(purchaseIds);
   }
 
-  async getSellerPurchaseStats(id: string): Promise<{
+  async getSellerPurchaseStats(
+    id: string,
+    organizationId: string
+  ): Promise<{
     units: number;
     expense: number;
   }> {
     const purchaseIds = await this.repositoryFactory
       .getPurchaseRepository()
-      .getPurchaseIds({ sellerId: id });
+      .getPurchaseIds({ sellerId: id, organizationId });
 
     return this.repositoryFactory
       .getProductsPurchasedRepository()
