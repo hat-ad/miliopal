@@ -178,53 +178,11 @@ export default class ReconciliationHistoryController {
         return ERROR(res, false, "Reconciliation not found");
       }
 
-      let decryptedReconciliations: Record<string, any> = {
-        ...reconciliation,
-      };
-
       if (!reconciliation.reconciliation) {
         return ERROR(res, false, "Reconciliation not found");
       }
-      if (reconciliation.reconciliation.user) {
-        const user = {
-          ...reconciliation.reconciliation.user,
-          email: reconciliation.reconciliation.user.email
-            ? decrypt(reconciliation.reconciliation.user.email)
-            : null,
-          phone: reconciliation.reconciliation.user.phone
-            ? decrypt(reconciliation.reconciliation.user.phone)
-            : null,
-        };
-        decryptedReconciliations = {
-          ...reconciliation,
-          user,
-        };
-      }
 
-      if (reconciliation.reconciliation.reconciliator) {
-        const reconciliator = {
-          ...reconciliation.reconciliation.reconciliator,
-          email: reconciliation.reconciliation.reconciliator.email
-            ? decrypt(reconciliation.reconciliation.reconciliator.email)
-            : null,
-          phone: reconciliation.reconciliation.reconciliator.phone
-            ? decrypt(reconciliation.reconciliation.reconciliator.phone)
-            : null,
-        };
-        decryptedReconciliations = {
-          ...reconciliation,
-          reconciliator,
-        };
-      }
-
-      return OK(
-        res,
-        {
-          reconciliation: decryptedReconciliations,
-          receiptSettings: reconciliation.receiptSettings,
-        },
-        "Reconciliation retrieved successfully"
-      );
+      return OK(res, reconciliation, "Reconciliation retrieved successfully");
     } catch (error) {
       return ERROR(res, false, error);
     }
