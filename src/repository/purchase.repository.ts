@@ -3,7 +3,14 @@ import {
   GetPurchaseFilterInterface,
   UpdatePurchaseInterface,
 } from "@/interfaces/purchase";
-import { Purchase, PurchaseType, Seller, User } from "@prisma/client";
+import {
+  BusinessSeller,
+  PrivateSeller,
+  Purchase,
+  PurchaseType,
+  Seller,
+  User,
+} from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class PurchaseRepository extends BaseRepository {
@@ -31,15 +38,38 @@ class PurchaseRepository extends BaseRepository {
 
   async getPurchase(
     id: string,
-    options?: { include: { user?: boolean; seller?: boolean } }
+    options?: {
+      include: {
+        user?: boolean;
+        seller?: {
+          privateSeller?: boolean;
+          businessSeller?: boolean;
+          baseSeller?: boolean;
+        };
+      };
+    }
   ): Promise<
-    (Purchase & { user?: User | null; seller?: Seller | null }) | null
+    | (Purchase & {
+        user?: User | null;
+        seller?:
+          | (Seller & {
+              privateSeller?: PrivateSeller;
+              businessSeller?: BusinessSeller;
+            })
+          | null;
+      })
+    | null
   > {
     return this.db.purchase.findUnique({
       where: { id },
       include: {
         user: options?.include?.user || false,
-        seller: options?.include?.seller || false,
+        seller: options?.include?.seller?.baseSeller || {
+          include: {
+            privateSeller: options?.include?.seller?.privateSeller || false,
+            businessSeller: options?.include?.seller?.businessSeller || false,
+          },
+        },
       },
     });
   }

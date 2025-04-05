@@ -115,7 +115,9 @@ class PurchaseService {
 
           const purchasedItem = await purchaseRepo.getPurchase(purchase.id, {
             include: {
-              seller: true,
+              seller: {
+                baseSeller: true,
+              },
             },
           });
 
@@ -260,7 +262,9 @@ class PurchaseService {
 
         const purchasedItem = await purchaseRepo.getPurchase(purchase.id, {
           include: {
-            seller: true,
+            seller: {
+              baseSeller: true,
+            },
           },
         });
 

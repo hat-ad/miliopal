@@ -97,7 +97,13 @@ class TodoListService {
       const purchase = await this.repositoryFactory
         .getPurchaseRepository()
         .getPurchase(meta.purchaseId, {
-          include: { user: true, seller: true },
+          include: {
+            user: true,
+            seller: {
+              privateSeller: true,
+              businessSeller: true,
+            },
+          },
         });
 
       if (!purchase) {
@@ -109,7 +115,6 @@ class TodoListService {
           ? {
               ...purchase.user,
               email: purchase.user.email ? decrypt(purchase.user.email) : null,
-
               phone: purchase.user.phone ? decrypt(purchase.user.phone) : null,
             }
           : null,
