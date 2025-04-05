@@ -65,8 +65,6 @@ export default class PurchaseController {
         paymentMethod,
         bankAccountNumber,
         status,
-        orderNo,
-        name,
         sortBy,
         sortOrder,
         page,
@@ -74,8 +72,18 @@ export default class PurchaseController {
         from,
         to,
         sellerType,
+        search,
       } = req.query;
+      let { orderNo, name } = req.query;
       const organizationId = req.payload?.organizationId;
+
+      const orderRegex = /^(ORD-\d+|CD-\d+|\d+)$/;
+
+      if (search && orderRegex.test(search as string)) {
+        orderNo = search;
+      } else if (search) {
+        name = search;
+      }
 
       const filters = {
         organizationId: organizationId as string,

@@ -119,7 +119,11 @@ class PurchaseService {
             },
           });
 
-          if (purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER) {
+          if (
+            purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER
+
+            // && purchasedItem?.seller?.type === SellerType.PRIVATE
+          ) {
             await todoListRepo.registerEvent(
               TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
               { organizationId: data.organizationId, purchaseId: purchase.id }
