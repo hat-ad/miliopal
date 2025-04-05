@@ -30,8 +30,8 @@ export default class AuthController {
 
       if (!user) return ERROR(res, false, "User not found");
 
-      if (user.isArchived || !user.isActive) {
-        return ERROR(res, false, "Your account is marked as inActive!");
+      if (user.isArchived) {
+        return ERROR(res, false, "Your account is marked as in active!");
       }
 
       const token = generateToken(user?.id.toString());
