@@ -49,7 +49,7 @@ class PickupDeliveryService {
             products
           );
 
-        todoListRepo.registerEvent(TodoListEvent.ORDER_PICKUP_INITIATED, {
+        await todoListRepo.registerEvent(TodoListEvent.ORDER_PICKUP_INITIATED, {
           organizationId: pickUpDelivery.organizationId,
           pickUpOrderId: pickUpDelivery.id,
         });
