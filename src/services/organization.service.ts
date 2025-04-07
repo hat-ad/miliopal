@@ -132,7 +132,7 @@ class OrganizationService {
         );
 
         const cashHistory = await cashHistoryRepo.createCashHistory(data);
-        todoListRepo.registerEvent(
+        await todoListRepo.registerEvent(
           TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD,
           { organizationId: data.organizationId }
         );
