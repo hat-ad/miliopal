@@ -1,4 +1,5 @@
 import {
+  OrderStatus,
   TodoListEvent,
   TodoListSettings,
   TodoListStatus,
@@ -368,6 +369,7 @@ class TodoListRepository extends BaseRepository {
       },
       data: {
         transactionDate: paymentDate,
+        status: OrderStatus.PAID,
       },
     });
   }

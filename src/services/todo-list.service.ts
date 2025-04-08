@@ -1,3 +1,4 @@
+import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
 import { decrypt } from "@/utils/AES";
 import {
@@ -259,13 +260,17 @@ class TodoListService {
     event: TodoListEvent,
     payload: { paymentDate?: string; purchaseId?: string }
   ) {
-    return await this.repositoryFactory
-      .getTodoListRepository()
-      .completeEvent(event, {
-        todoListId,
-        paymentDate: payload.paymentDate,
-        purchaseId: payload.purchaseId,
-      });
+    return PrismaService.getInstance().$transaction(async (tx) => {
+      const factory = new RepositoryFactory(tx);
+      const todoListRepo = factory
+        .getTodoListRepository()
+        .completeEvent(event, {
+          todoListId,
+          paymentDate: payload.paymentDate,
+          purchaseId: payload.purchaseId,
+        });
+      return todoListRepo;
+    });
   }
 
   async getTodoListSettings(organizationId: string) {
