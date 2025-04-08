@@ -151,6 +151,7 @@ export default class SellerController {
         id: sellerInvite.id,
         email,
         inviteExpiry,
+        sellerType,
       };
 
       const inviteCode = `${stringToHex(JSON.stringify(inviteData))}`;
