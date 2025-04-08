@@ -97,7 +97,7 @@ enum SellerType {
 
 model Seller {
   id                         String                       @id @default(uuid())
-  email                      String                       @unique
+  email                      String
   type                       SellerType
   phone                      String?
   address                    String?

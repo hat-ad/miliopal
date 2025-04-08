@@ -42,8 +42,13 @@ class SellerService {
     return this.repositoryFactory.getSellerRepository().getSeller(id);
   }
 
-  async getSellerByEmail(email: string): Promise<Seller | null> {
-    return this.repositoryFactory.getSellerRepository().getSellerByEmail(email);
+  async getSellerByEmailAndOrganizationId(
+    email: string,
+    organizationId: string
+  ): Promise<Seller | null> {
+    return this.repositoryFactory
+      .getSellerRepository()
+      .getSellerByEmailAndOrganizationId(email, organizationId);
   }
 
   async getSellersList(

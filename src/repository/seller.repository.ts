@@ -73,9 +73,12 @@ class SellerRepository extends BaseRepository {
     });
   }
 
-  async getSellerByEmail(email: string): Promise<Seller | null> {
-    return this.db.seller.findUnique({
-      where: { email },
+  async getSellerByEmailAndOrganizationId(
+    email: string,
+    organizationId: string
+  ): Promise<Seller | null> {
+    return this.db.seller.findFirst({
+      where: { email, organizationId },
     });
   }
 
@@ -196,6 +199,8 @@ class SellerRepository extends BaseRepository {
     }
 
     const updateData: any = {
+      // bankAccountNumber: data.bankAccountNumber,
+      email: data.email,
       phone: data.phone,
       address: data.address,
       postalCode: data.postalCode,
@@ -203,6 +208,10 @@ class SellerRepository extends BaseRepository {
       isDeleted: data.isDeleted,
       isArchived: data.isArchived,
     };
+    console.log(
+      "🚀 ~ SellerRepository ~ updateSeller ~ updateData: any.data.bankAccountNumber:",
+      data.bankAccountNumber
+    );
 
     if (existingSeller.type === "BUSINESS" && existingSeller.businessSeller) {
       updateData.businessSeller = {

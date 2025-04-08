@@ -23,12 +23,16 @@ export default class SellerController {
       const { email, phone } = req.body;
       const organizationId = req.payload?.organizationId;
 
+      if (!organizationId) {
+        return ERROR(res, false, "Organization does not exist.");
+      }
+
       const encryptedEmail = encrypt(email);
       const encryptedPhone = phone ? encrypt(phone) : null;
 
       let seller = await this.serviceFactory
         .getSellerService()
-        .getSellerByEmail(encryptedEmail);
+        .getSellerByEmailAndOrganizationId(encryptedEmail, organizationId);
       if (seller) return ERROR(res, false, "Seller already exist");
 
       seller = await this.serviceFactory.getSellerService().createSeller({
@@ -81,7 +85,7 @@ export default class SellerController {
 
       let seller = await this.serviceFactory
         .getSellerService()
-        .getSellerByEmail(encryptedEmail);
+        .getSellerByEmailAndOrganizationId(encryptedEmail, organizationId);
       if (seller) return ERROR(res, false, "Seller already exist");
 
       seller = await this.serviceFactory.getSellerService().createSeller({
@@ -126,7 +130,7 @@ export default class SellerController {
       if (email) {
         const existingSeller = await this.serviceFactory
           .getSellerService()
-          .getSellerByEmail(email);
+          .getSellerByEmailAndOrganizationId(email, organizationId);
         if (existingSeller) {
           return ERROR(res, false, "Seller already exists.");
         }
