@@ -146,22 +146,28 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
 
   // Seller and Buyer info
   doc.fontSize(10).font("Helvetica-Bold").text("Selger:", 50, 150);
-  doc
-    .font("Helvetica")
-    .text(
-      `${sellerInfo?.companyName}\n${seller.address}\n${seller.city}\n${seller.phone}`,
-      50,
-      165
-    );
+  const sellerDetails = [
+    sellerInfo?.companyName,
+    seller.address,
+    seller?.city,
+    seller?.phone,
+  ].filter(Boolean);
+
+  if (sellerDetails.length) {
+    doc.font("Helvetica").text(sellerDetails.join("\n"), 50, 165);
+  }
 
   doc.fontSize(10).font("Helvetica-Bold").text("Kjøper:", 300, 150);
-  doc
-    .font("Helvetica")
-    .text(
-      `${organization.companyName}\n${organization.address}\n${organization.organizationNumber}\n${organization.postalCode} ${organization.city}`,
-      300,
-      165
-    );
+  const organizationDetails = [
+    organization?.companyName,
+    organization?.address,
+    organization?.organizationNumber,
+    `${organization?.postalCode || ""} ${organization?.city || ""}`.trim(),
+  ].filter(Boolean);
+
+  if (organizationDetails.length) {
+    doc.font("Helvetica").text(organizationDetails.join("\n"), 300, 165);
+  }
 
   // Table Header
   doc.moveDown(2);
