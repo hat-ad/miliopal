@@ -275,7 +275,7 @@ model TodoList {
   organizationId String
   meta           Json
   event          TodoListEvent
-  priority       Int
+  priority       Int            @default(0)
   status         TodoListStatus @default(PENDING)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
