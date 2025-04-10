@@ -123,7 +123,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   const sellerInfo = seller.businessSeller;
 
   // Header Section
-  doc.fontSize(20).font("Helvetica-Bold").text("Order Confirmation", 50, 50);
+  doc.fontSize(20).font("Helvetica-Bold").text("Ordrebekreftelse", 50, 50);
   if (logo) {
     doc.image(logo, 500, 55, { height: 50, width: 50, fit: [50, 50] });
   }
@@ -133,19 +133,19 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   //   .text("Miljøpall", 450, 50, { align: "right" });
 
   // Order details
-  doc.fontSize(10).font("Helvetica-Bold").text("Order No:", 50, 90);
+  doc.fontSize(10).font("Helvetica-Bold").text("Ordrenr:", 50, 90);
   doc.font("Helvetica").text(orderNo, 120, 90);
 
-  doc.fontSize(10).font("Helvetica-Bold").text("Date:", 50, 105);
+  doc.fontSize(10).font("Helvetica-Bold").text("Dato:", 50, 105);
   doc
     .font("Helvetica")
     .text(new Date(createdAt).toLocaleDateString(), 120, 105);
 
-  doc.fontSize(10).font("Helvetica-Bold").text("Buyer:", 50, 120);
+  doc.fontSize(10).font("Helvetica-Bold").text("Kjøper:", 50, 120);
   doc.font("Helvetica").text(user?.name || "", 120, 120);
 
   // Seller and Buyer info
-  doc.fontSize(10).font("Helvetica-Bold").text("Seller:", 50, 150);
+  doc.fontSize(10).font("Helvetica-Bold").text("Selger:", 50, 150);
   doc
     .font("Helvetica")
     .text(
@@ -154,17 +154,21 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
       165
     );
 
-  doc.fontSize(10).font("Helvetica-Bold").text("Buyer:", 300, 150);
+  doc.fontSize(10).font("Helvetica-Bold").text("Kjøper:", 300, 150);
   doc
     .font("Helvetica")
-    .text(`${user.name}\n${user.email}\n${user.phone}`, 300, 165);
+    .text(
+      `${organization.companyName}\n${organization.address}\n${organization.organizationNumber}\n${organization.postalCode} ${organization.city}`,
+      300,
+      165
+    );
 
   // Table Header
   doc.moveDown(2);
   doc.fontSize(10).font("Helvetica-Bold");
-  doc.text("Product", 50, 250);
-  doc.text("Units", 300, 250);
-  doc.text("Price", 400, 250);
+  doc.text("Produkt", 50, 250);
+  doc.text("Antall", 300, 250);
+  doc.text("Pris", 400, 250);
   doc.moveTo(50, 265).lineTo(550, 265).stroke();
 
   // Table Data
@@ -196,7 +200,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     .lineTo(550, y + 15)
     .stroke();
 
-  doc.fontSize(8).text("All prices are exclusive of VAT.", 50, y + 40);
+  doc.fontSize(8).text("Alle priser er eksklusive mva.", 50, y + 40);
 
   y += 50;
   // Footer

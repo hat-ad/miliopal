@@ -3,7 +3,13 @@ import {
   GetPickupDeliveryFilterInterface,
 } from "@/interfaces/pickup-delivery";
 
-import { PickUpDelivery, Seller, User } from "@prisma/client";
+import {
+  BusinessSeller,
+  PickUpDelivery,
+  PrivateSeller,
+  Seller,
+  User,
+} from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class PickupDeliveryRepository extends BaseRepository {
@@ -17,11 +23,25 @@ class PickupDeliveryRepository extends BaseRepository {
 
   async getPickupDelivery(
     id: string,
-    options?: { include: { user?: boolean; seller?: boolean } }
+    options?: {
+      include: {
+        user?: boolean;
+        seller?: {
+          baseSeller?: boolean;
+          privateSeller?: boolean;
+          businessSeller?: boolean;
+        };
+      };
+    }
   ): Promise<
     | (PickUpDelivery & {
         user?: User | null;
-        seller?: Seller | null;
+        seller?:
+          | (Seller & {
+              privateSeller?: PrivateSeller;
+              businessSeller?: BusinessSeller;
+            })
+          | null;
       })
     | null
   > {
@@ -29,7 +49,12 @@ class PickupDeliveryRepository extends BaseRepository {
       where: { id },
       include: {
         user: options?.include?.user || false,
-        seller: options?.include?.seller || false,
+        seller: options?.include?.seller?.baseSeller || {
+          include: {
+            privateSeller: options?.include?.seller?.privateSeller || false,
+            businessSeller: options?.include?.seller?.businessSeller || false,
+          },
+        },
       },
     });
   }

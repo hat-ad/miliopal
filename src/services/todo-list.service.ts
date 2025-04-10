@@ -21,7 +21,12 @@ class TodoListService {
       const pickupOrder = await this.repositoryFactory
         .getPickUpDeliveryRepository()
         .getPickupDelivery(meta.pickUpOrderId, {
-          include: { user: true, seller: true },
+          include: {
+            user: true,
+            seller: {
+              businessSeller: true,
+            },
+          },
         });
 
       if (!pickupOrder) {
