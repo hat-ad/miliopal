@@ -125,7 +125,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   // Header Section
   doc.fontSize(20).font("Helvetica-Bold").text("Ordrebekreftelse", 50, 50);
   if (logo) {
-    doc.image(logo, 500, 55, { height: 90, width: 90, fit: [90, 90] });
+    doc.image(logo, 500, 55, { height: 90, width: 90, fit: [50, 50] });
   }
   // doc
   //   .fontSize(16)
