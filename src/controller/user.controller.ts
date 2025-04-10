@@ -46,6 +46,7 @@ export default class UserController {
         password,
         phone: encryptedPhone,
         name,
+        isActive: true,
       });
 
       const responseUser = {
@@ -73,14 +74,19 @@ export default class UserController {
       let user = await this.serviceFactory
         .getUserService()
         .getUserByEmail(encryptedEmail);
-      if (user) return ERROR(res, false, "User already exist");
+      if (user && user.isActive) return ERROR(res, false, "User already exist");
 
-      user = await this.serviceFactory.getUserService().createUser({
-        ...req.body,
-        email: encryptedEmail,
-        name,
-        organizationId,
-      });
+      const isUserPresent = Boolean(user);
+
+      if (!isUserPresent) {
+        user = await this.serviceFactory.getUserService().inviteUser({
+          ...req.body,
+          email: encryptedEmail,
+          name,
+          organizationId,
+          isActive: false,
+        });
+      }
 
       if (!user) return ERROR(res, false, "user not created");
       const organization = await this.serviceFactory

@@ -13,6 +13,7 @@ export interface CreateUserInternalInterface {
   phone?: string;
   organizationId: string;
   name?: string;
+  isActive: boolean;
 }
 
 export interface UserUpdateData {

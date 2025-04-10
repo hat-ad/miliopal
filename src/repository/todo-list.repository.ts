@@ -108,6 +108,7 @@ class TodoListRepository extends BaseRepository {
           lte: to,
         },
       },
+      orderBy: { priority: "asc" },
     });
   }
 
@@ -190,6 +191,7 @@ class TodoListRepository extends BaseRepository {
       data: {
         organizationId,
         event: TodoListEvent.COMPANY_CASH_BALANCE_BELOW_THRESHOLD,
+        priority: 1,
         meta: await this.getCompanyCashBalanceBelowThresholdMeta(
           organizationId,
           thresholdBalance
@@ -273,6 +275,7 @@ class TodoListRepository extends BaseRepository {
   ) {
     await this.db.todoList.create({
       data: {
+        priority: 2,
         organizationId,
         event: TodoListEvent.INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD,
         meta: await this.getIndividualCashBalanceBelowThresholdMeta(
@@ -349,6 +352,7 @@ class TodoListRepository extends BaseRepository {
   ) {
     await this.db.todoList.create({
       data: {
+        priority: 4,
         organizationId,
         event: TodoListEvent.ORDER_PICKUP_INITIATED,
         meta: await this.getOrderPickupMeta(pickUpOrderId),
@@ -381,6 +385,7 @@ class TodoListRepository extends BaseRepository {
     try {
       await this.db.todoList.create({
         data: {
+          priority: 0,
           organizationId,
           event: TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER,
           meta: await this.getPurchaseWithBankTransferEventMeta(purchaseId),
@@ -418,6 +423,7 @@ class TodoListRepository extends BaseRepository {
   ) {
     return await this.db.todoList.create({
       data: {
+        priority: 3,
         organizationId,
         event: TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,
         meta: await this.getPrivateSellerMeta(

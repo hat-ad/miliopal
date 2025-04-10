@@ -17,7 +17,7 @@ class UserService {
   constructor(factory?: RepositoryFactory) {
     this.repositoryFactory = factory ?? new RepositoryFactory();
   }
-  async createUser(data: CreateUserInterface): Promise<User> {
+  async inviteUser(data: CreateUserInterface): Promise<User> {
     return this.repositoryFactory.getUserRepository().createUser(data);
   }
   async createUserInternal(
@@ -44,6 +44,7 @@ class UserService {
           password: data.password,
           phone: data.phone,
           name: data.name,
+          isActive: data.isActive,
         });
         await factory.getTodoListRepository().createTodoListSettings(newOrg.id);
 
