@@ -143,6 +143,14 @@ class TodoListRepository extends BaseRepository {
     });
   }
 
+  async deleteTodoList(todoListId: string) {
+    return await this.db.todoListSettings.delete({
+      where: {
+        id: todoListId,
+      },
+    });
+  }
+
   async listTodoListSettingsWithPrivateSellerSettingsEnabled() {
     return await this.db.todoListSettings.findMany({
       where: {

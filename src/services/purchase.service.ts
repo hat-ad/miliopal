@@ -202,6 +202,7 @@ class PurchaseService {
         const userRepo = factory.getUserRepository();
         const privateSellerPurchaseStatsRepo =
           factory.getPrivateSellerPurchaseStatsRepository();
+        const todoListRepo = factory.getTodoListRepository();
 
         const purchase = await purchaseRepo.getPurchase(purchaseId);
         if (!purchase) return null;
@@ -285,6 +286,19 @@ class PurchaseService {
             purchasedItem.sellerId,
             { totalSales: newTotalAmount, totalQuantity: newTotalQuantity }
           );
+        }
+
+        const todoLists = await todoListRepo.listTodoLists(
+          purchase.organizationId,
+          undefined,
+          TodoListEvent.PURCHASE_INITIATED_WITH_BANK_TRANSFER
+        );
+
+        for (const todo of todoLists) {
+          const meta = todo.meta as Record<string, string>;
+          if (meta?.purchaseId === purchase.id) {
+            await todoListRepo.deleteTodoList(todo.id);
+          }
         }
 
         return newPurchase;
