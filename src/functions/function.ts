@@ -134,7 +134,8 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
         fs.mkdirSync(imageFolderPath, { recursive: true });
       }
       fs.writeFileSync(`${imageFolderPath}/debug-logo.png`, logoBuffer);
-      doc.image(`${imageFolderPath}/debug-logo.png`, 450, 55, {
+      const image = fs.readFileSync(`${imageFolderPath}/debug-logo.png`);
+      doc.image(image, 450, 55, {
         height: 90,
         width: 90,
         fit: [90, 90],
