@@ -129,8 +129,16 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     try {
       const base64Data = logo.split(",")[1]; // remove the metadata
       const logoBuffer = Buffer.from(base64Data, "base64");
-      fs.writeFileSync("debug-logo.png", logoBuffer);
-      doc.image(logoBuffer, 450, 55, { height: 90, width: 90, fit: [90, 90] });
+      const imageFolderPath = "./pdf/image";
+      if (!fs.existsSync(imageFolderPath)) {
+        fs.mkdirSync(imageFolderPath, { recursive: true });
+      }
+      fs.writeFileSync(`${imageFolderPath}/debug-logo.png`, logoBuffer);
+      doc.image(`${imageFolderPath}/debug-logo.png`, 450, 55, {
+        height: 90,
+        width: 90,
+        fit: [90, 90],
+      });
     } catch (error) {
       console.error("🛑 Failed to embed base64 logo image:", getError(error));
     }
