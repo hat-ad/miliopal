@@ -1,4 +1,5 @@
 import { IPurchase } from "@/types/purchase";
+import { getError } from "@/utils/common";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
@@ -124,8 +125,14 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
 
   // Header Section
   doc.fontSize(20).font("Helvetica-Bold").text("Ordrebekreftelse", 50, 50);
-  if (logo) {
-    doc.image(logo, 450, 55, { height: 90, width: 90, fit: [90, 90] });
+  if (logo && logo.startsWith("data:image/png;base64,")) {
+    try {
+      const base64Data = logo.replace(/^data:image\/png;base64,/, "");
+      const logoBuffer = Buffer.from(base64Data, "base64");
+      doc.image(logoBuffer, 450, 55, { height: 90, width: 90, fit: [90, 90] });
+    } catch (error) {
+      console.error("🛑 Failed to embed base64 logo image:", getError(error));
+    }
   }
   // doc
   //   .fontSize(16)
