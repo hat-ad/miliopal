@@ -42,6 +42,20 @@ class PriceCategoryRepository extends BaseRepository {
 
     return priceCategories;
   }
+  async getPriceCategory(
+    category: string,
+    organizationId: string
+  ): Promise<PriceCategory[]> {
+    return this.db.priceCategory.findMany({
+      where: {
+        name: {
+          equals: category,
+          mode: "insensitive",
+        },
+        organizationId,
+      },
+    });
+  }
 }
 
 export default PriceCategoryRepository;

@@ -63,6 +63,15 @@ class PriceCategoryService {
       .getPriceCategoryRepository()
       .getPriceCategoryList(filters);
   }
+
+  async getPriceCategory(
+    category: string,
+    organizationId: string
+  ): Promise<PriceCategory[]> {
+    return this.repositoryFactory
+      .getPriceCategoryRepository()
+      .getPriceCategory(category, organizationId);
+  }
 }
 
 export default PriceCategoryService;

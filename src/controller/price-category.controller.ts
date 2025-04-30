@@ -32,6 +32,25 @@ export default class PriceCategoryController {
         return ERROR(res, false, "Invalid or empty 'names' array");
       }
 
+      // Check for any existing category names
+      for (const name of names) {
+        const existing = await this.serviceFactory
+          .getPriceCategoryService()
+          .getPriceCategory(name, organizationId);
+        if (existing.length > 0) {
+          return ERROR(
+            res,
+            false,
+            `Price category '${name}' already exists for this organization.`
+          );
+        }
+      }
+
+      names.map((name: string) => ({
+        name,
+        organizationId,
+      }));
+
       const priceCategories = names.map((name: string) => ({
         name,
         organizationId,
