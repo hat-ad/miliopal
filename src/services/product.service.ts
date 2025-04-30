@@ -5,7 +5,7 @@ import {
   GetProductsFilterInterface,
   UpdateProductInterface,
 } from "@/interfaces/product";
-import { Product, ProductPrice } from "@prisma/client";
+import { Product } from "@prisma/client";
 
 class ProductService {
   private repositoryFactory: RepositoryFactory;
@@ -28,11 +28,16 @@ class ProductService {
           organizationId: data.organizationId,
         });
 
+        const priceCategoryMap = data.prices.reduce((acc, category) => {
+          acc[category.priceCategoryId] = category.price;
+          return acc;
+        }, {} as Record<string, number>);
+
         const productPricesToCreate = priceCategories.map((category) => ({
           organizationId: data.organizationId,
           productId: product.id,
           priceCategoryId: category.id,
-          price: 0,
+          price: priceCategoryMap[category.id] || 0,
         }));
 
         await productPriceRepo.bulkCreateProductPrice(productPricesToCreate);

@@ -3,6 +3,10 @@ export interface CreateProductInterface {
   organizationId: string;
   isDeleted?: boolean;
   isArchived?: boolean;
+  prices: {
+    priceCategoryId: string;
+    price: number;
+  }[];
 }
 
 export interface UpdateProductInterface {
