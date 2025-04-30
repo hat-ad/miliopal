@@ -31,6 +31,7 @@ class PurchaseRepository extends BaseRepository {
         notes: data.notes ?? null,
         transactionDate: data.transactionDate ?? null,
         purchaseType: data.purchaseType ?? PurchaseType.PURCHASE,
+        priceCategoryId: data.priceCategoryId,
       },
     });
 

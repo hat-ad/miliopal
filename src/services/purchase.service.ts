@@ -104,6 +104,8 @@ class PurchaseService {
           const productsData = data.products.map((product) => ({
             ...product,
             purchaseId: purchase.id,
+            price: data.price,
+            categoryPrice: data.categoryPrice,
           }));
 
           await productPurchasedRepo.bulkInsertProductsPurchased(productsData);
@@ -233,6 +235,7 @@ class PurchaseService {
           totalAmount: -purchase.totalAmount,
           notes: creditNotes,
           comment: purchase.comment,
+          priceCategoryId: purchase.priceCategoryId,
         });
 
         await purchaseRepo.updatePurchase(purchase.id, {
