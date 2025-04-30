@@ -3,7 +3,9 @@ import AuthRepository from "@/repository/auth.repository";
 import CashHistoryRepository from "@/repository/cash-history.repository";
 import OrganizationRepository from "@/repository/organization.repository";
 import PickupDeliveryRepository from "@/repository/pickup-delivery.repository";
+import PriceCategoryRepository from "@/repository/price-category.repository";
 import PrivateSellerPurchaseStatsRepository from "@/repository/private-seller-purchase-stats.repository";
+import ProductPriceRepository from "@/repository/product-price.repository";
 import ProductRepository from "@/repository/product.repository";
 import ProductsPickupRepository from "@/repository/products-pickup-delivery.repository";
 import ProductsPurchasedRepository from "@/repository/products-purchased.repository";
@@ -81,5 +83,12 @@ export class RepositoryFactory {
 
   getPrivateSellerPurchaseStatsRepository(): PrivateSellerPurchaseStatsRepository {
     return new PrivateSellerPurchaseStatsRepository(this.db);
+  }
+  getPriceCategoryRepository(): PriceCategoryRepository {
+    return new PriceCategoryRepository(this.db);
+  }
+
+  getProductPriceRepository(): ProductPriceRepository {
+    return new ProductPriceRepository(this.db);
   }
 }

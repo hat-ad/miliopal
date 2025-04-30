@@ -1,6 +1,7 @@
 import AuthService from "@/services/auth.service";
 import OrganizationService from "@/services/organization.service";
 import PickupDeliveryService from "@/services/pickup-delivery.service";
+import PriceCategoryService from "@/services/price-category.service";
 import PrivateSellerPurchaseStatsService from "@/services/private-seller-purchase-stats.service";
 import ProductService from "@/services/product.service";
 import PurchaseService from "@/services/purchase.service";
@@ -58,6 +59,10 @@ export class ServiceFactory {
   }
   getPrivateSellerPurchaseStatsService(): PrivateSellerPurchaseStatsService {
     return new PrivateSellerPurchaseStatsService();
+  }
+
+  getPriceCategoryService(): PriceCategoryService {
+    return new PriceCategoryService();
   }
 }
 

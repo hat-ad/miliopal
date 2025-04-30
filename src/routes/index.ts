@@ -10,6 +10,7 @@ import reconciliationApi from "@/routes/api/reconciliation.api";
 import sellerApi from "@/routes/api/seller.api";
 import todoListApi from "@/routes/api/todo-list.api";
 import userApi from "@/routes/api/user.api";
+import priceCategoryApi from "@/routes/api/price-category.api";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use("/organization", organizationApi);
 router.use("/receipt", receiptApi);
 router.use("/reconciliation", reconciliationApi);
 router.use("/todo-list", todoListApi);
+router.use("/price-category", priceCategoryApi);
 
 export default router;

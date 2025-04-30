@@ -1,6 +1,5 @@
 export interface CreateProductInterface {
   name: string;
-  price: number;
   organizationId: string;
   isDeleted?: boolean;
   isArchived?: boolean;

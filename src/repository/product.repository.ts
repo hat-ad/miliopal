@@ -11,7 +11,6 @@ class ProductRepository extends BaseRepository {
     return this.db.product.create({
       data: {
         name: data.name,
-        price: data.price,
         organizationId: data.organizationId,
         isDeleted: data.isDeleted,
         isArchived: data.isArchived,
@@ -31,8 +30,6 @@ class ProductRepository extends BaseRepository {
         name: filters.name
           ? { contains: filters.name, mode: "insensitive" }
           : undefined,
-        price:
-          filters.price !== undefined ? { equals: filters.price } : undefined,
 
         isArchived:
           filters.isArchived !== undefined
@@ -53,8 +50,6 @@ class ProductRepository extends BaseRepository {
         name: filters.name
           ? { contains: filters.name, mode: "insensitive" }
           : undefined,
-        price:
-          filters.price !== undefined ? { equals: filters.price } : undefined,
 
         isArchived:
           filters.isArchived !== undefined ? filters.isArchived : undefined,
