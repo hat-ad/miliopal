@@ -12,4 +12,10 @@ router.post(
   PriceCategoryController.getInstance().createBulkPriceCategory
 );
 
+router.get(
+  "/get-price-category-lists",
+  isAuthenticated,
+  PriceCategoryController.getInstance().getPriceCategoryList
+);
+
 export default router;

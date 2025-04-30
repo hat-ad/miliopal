@@ -1,19 +1,11 @@
 import PrismaService from "@/db/prisma-service";
 import { RepositoryFactory } from "@/factory/repository.factory";
-import { CreatePriceCategoryInterface } from "@/interfaces/price-category";
-import { CreateProductPriceInterface } from "@/interfaces/product-price";
 import {
-  OrderStatus,
-  PaymentMethod,
-  PriceCategory,
-  ProductPrice,
-  Purchase,
-  PurchaseType,
-  Seller,
-  SellerType,
-  TodoListEvent,
-  User,
-} from "@prisma/client";
+  CreatePriceCategoryInterface,
+  GetPriceCategoryFilterInterface,
+} from "@/interfaces/price-category";
+import { CreateProductPriceInterface } from "@/interfaces/product-price";
+import { PriceCategory, ProductPrice } from "@prisma/client";
 
 class PriceCategoryService {
   private repositoryFactory: RepositoryFactory;
@@ -62,6 +54,14 @@ class PriceCategoryService {
       },
       { maxWait: 30000, timeout: 30000 }
     );
+  }
+
+  async getPriceCategoryList(
+    filters: GetPriceCategoryFilterInterface
+  ): Promise<PriceCategory[]> {
+    return this.repositoryFactory
+      .getPriceCategoryRepository()
+      .getPriceCategoryList(filters);
   }
 }
 

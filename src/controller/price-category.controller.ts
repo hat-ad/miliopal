@@ -46,4 +46,25 @@ export default class PriceCategoryController {
       return ERROR(res, false, error);
     }
   }
+
+  async getPriceCategoryList(req: Request, res: Response): Promise<void> {
+    try {
+      const { name } = req.query;
+
+      const organizationId = req.payload?.organizationId;
+
+      const filters = {
+        name: name ? String(name) : undefined,
+        organizationId: organizationId as string,
+      };
+
+      const priceCategories = await this.serviceFactory
+        .getPriceCategoryService()
+        .getPriceCategoryList(filters);
+
+      return OK(res, priceCategories, "Categories retrieved successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }
