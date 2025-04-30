@@ -3,7 +3,7 @@ import {
   GetProductsFilterInterface,
   UpdateProductInterface,
 } from "@/interfaces/product";
-import { Product } from "@prisma/client";
+import { Prisma, Product } from "@prisma/client";
 import BaseRepository from "./base.repository";
 
 class ProductRepository extends BaseRepository {
@@ -24,43 +24,30 @@ class ProductRepository extends BaseRepository {
     limit: number = 10
   ): Promise<{ products: Product[]; total: number; totalPages: number }> {
     const offset = (page - 1) * limit;
+    const whereClause = {
+      name: filters.name
+        ? { contains: filters.name, mode: Prisma.QueryMode.insensitive }
+        : undefined,
 
-    const total = await this.db.product.count({
-      where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
+      isArchived:
+        filters.isArchived !== undefined ? filters.isArchived : undefined,
 
-        isArchived:
-          filters.isArchived !== undefined
-            ? { equals: filters.isArchived }
-            : undefined,
-        organizationId: filters.organizationId
-          ? {
-              contains: filters.organizationId,
-              mode: "insensitive",
-            }
-          : undefined,
-        isDeleted: false,
-      },
-    });
+      organizationId: filters.organizationId
+        ? {
+            contains: filters.organizationId,
+            mode: Prisma.QueryMode.insensitive,
+          }
+        : undefined,
+
+      isDeleted: false,
+    };
+
+    const total = await this.db.product.count({ where: whereClause });
 
     const products = await this.db.product.findMany({
-      where: {
-        name: filters.name
-          ? { contains: filters.name, mode: "insensitive" }
-          : undefined,
-
-        isArchived:
-          filters.isArchived !== undefined ? filters.isArchived : undefined,
-
-        organizationId: filters.organizationId
-          ? {
-              contains: filters.organizationId,
-              mode: "insensitive",
-            }
-          : undefined,
-        isDeleted: false,
+      where: whereClause,
+      include: {
+        ProductPrice: true,
       },
       take: limit,
       skip: offset,
