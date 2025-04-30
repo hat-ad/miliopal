@@ -10,6 +10,7 @@ import { getError } from "@/utils/common";
 import {
   OrderStatus,
   PaymentMethod,
+  ProductsPurchased,
   Purchase,
   PurchaseType,
   Seller,
@@ -27,7 +28,11 @@ class PurchaseService {
 
   async createPurchase(data: CreatePurchaseInterface): Promise<{
     purchase:
-      | (Purchase & { user?: User | null; seller?: Seller | null })
+      | (Purchase & {
+          user?: User | null;
+          seller?: Seller | null;
+          productsPurchased?: ProductsPurchased[] | null;
+        })
       | null;
   } | null> {
     try {
@@ -104,8 +109,6 @@ class PurchaseService {
           const productsData = data.products.map((product) => ({
             ...product,
             purchaseId: purchase.id,
-            price: data.price,
-            categoryPrice: data.categoryPrice,
           }));
 
           await productPurchasedRepo.bulkInsertProductsPurchased(productsData);

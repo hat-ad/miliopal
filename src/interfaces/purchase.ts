@@ -19,11 +19,10 @@ export interface CreatePurchaseInterface {
   products: {
     productId: string;
     price: number;
+    categoryPrice: number;
     quantity: number;
   }[];
   priceCategoryId: string;
-  price: number;
-  categoryPrice: number;
 }
 
 export interface CreatePurchaseRepositoryInterface {

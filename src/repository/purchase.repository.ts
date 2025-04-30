@@ -65,6 +65,7 @@ class PurchaseRepository extends BaseRepository {
     return this.db.purchase.findUnique({
       where: { id },
       include: {
+        productsPurchased: true,
         user: options?.include?.user || false,
         seller: options?.include?.seller?.baseSeller || {
           include: {
