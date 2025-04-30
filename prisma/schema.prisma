@@ -79,7 +79,7 @@ model Purchase {
   notes             String?
   sellerId          String
   userId            String
-  priceCategoryId   String
+  priceCategoryId   String?
 
   status         OrderStatus
   isArchived     Boolean       @default(false)
@@ -91,7 +91,7 @@ model Purchase {
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   seller         Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  priceCategory  PriceCategory @relation(fields: [priceCategoryId], references: [id], onDelete: Cascade)
+  priceCategory  PriceCategory? @relation(fields: [priceCategoryId], references: [id], onDelete: Cascade)
 
   productsPurchased ProductsPurchased[]
 }

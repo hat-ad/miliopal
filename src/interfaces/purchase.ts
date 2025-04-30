@@ -22,7 +22,7 @@ export interface CreatePurchaseInterface {
     categoryPrice: number;
     quantity: number;
   }[];
-  priceCategoryId: string;
+  priceCategoryId?: string;
 }
 
 export interface CreatePurchaseRepositoryInterface {
@@ -38,7 +38,7 @@ export interface CreatePurchaseRepositoryInterface {
   notes?: string | null;
   transactionDate?: Date | null;
   purchaseType?: PurchaseType;
-  priceCategoryId: string;
+  priceCategoryId?: string;
 }
 
 export interface UpdatePurchaseInterface {

@@ -238,7 +238,7 @@ class PurchaseService {
           totalAmount: -purchase.totalAmount,
           notes: creditNotes,
           comment: purchase.comment,
-          priceCategoryId: purchase.priceCategoryId,
+          priceCategoryId: purchase.priceCategoryId ?? undefined,
         });
 
         await purchaseRepo.updatePurchase(purchase.id, {
