@@ -8,6 +8,7 @@ export interface CreatePickupDelivery {
     productId: string;
     quantity: number;
   }[];
+  priceCategoryId: string;
 }
 
 export interface GetPickupDeliveryFilterInterface {
