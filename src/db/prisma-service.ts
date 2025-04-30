@@ -10,6 +10,10 @@ class PrismaService {
       PrismaService.instance = new PrismaClient({
         log: ["info", "warn", "error"],
       });
+      PrismaService.instance
+        .$connect()
+        .then(() => console.log("Connected to DB"))
+        .catch(console.error);
     }
     return PrismaService.instance;
   }

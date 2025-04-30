@@ -257,6 +257,7 @@ class PurchaseService {
         const products = productsPurchased.map((item) => ({
           productId: item.productId,
           price: item.price,
+          categoryPrice: item.categoryPrice,
           quantity: item.quantity,
           purchaseId: newPurchase.id,
         }));

@@ -6,6 +6,7 @@ class ProductsPurchasedRepository extends BaseRepository {
     products: {
       productId: string;
       price: number;
+      categoryPrice: number;
       quantity: number;
       purchaseId: string;
     }[]
