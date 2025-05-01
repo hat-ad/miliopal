@@ -36,16 +36,16 @@ export default class ProductController {
 
   async getProductsList(req: Request, res: Response): Promise<void> {
     try {
-      const { name, price, isArchived, page, limit } = req.query;
+      const { name, isArchived, priceCategoryId, page, limit } = req.query;
 
       const organizationId = req.payload?.organizationId;
       const pageSize = limit ? parseInt(limit as string, 10) : 10;
 
       const filters = {
         name: name ? String(name) : undefined,
-        price: price ? parseFloat(price as string) : undefined,
         isArchived: isArchived ? isArchived === "true" : undefined,
         organizationId: organizationId as string,
+        priceCategoryId: priceCategoryId && (priceCategoryId as string),
       };
 
       const pageNumber = page ? parseInt(page as string, 10) : 1;

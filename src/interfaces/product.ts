@@ -19,4 +19,5 @@ export interface GetProductsFilterInterface {
   name?: string;
   isArchived?: boolean;
   organizationId?: string;
+  priceCategoryId?: string;
 }

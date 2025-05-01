@@ -47,7 +47,11 @@ class ProductRepository extends BaseRepository {
     const products = await this.db.product.findMany({
       where: whereClause,
       include: {
-        ProductPrice: true,
+        ProductPrice: filters.priceCategoryId
+          ? {
+              where: { priceCategoryId: filters.priceCategoryId },
+            }
+          : true,
       },
       take: limit,
       skip: offset,
