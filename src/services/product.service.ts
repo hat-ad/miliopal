@@ -68,13 +68,13 @@ class ProductService {
         const productRepo = factory.getProductRepository();
         const productPriceRepo = factory.getProductPriceRepository();
 
-        const { productPrices, ...productData } = data;
+        const { ProductPrices, ...productData } = data;
 
         const updatedProduct = await productRepo.updateProduct(id, productData);
         if (!updatedProduct) return null;
 
-        if (Array.isArray(productPrices)) {
-          for (const item of productPrices) {
+        if (Array.isArray(ProductPrices)) {
+          for (const item of ProductPrices) {
             await productPriceRepo.updateProductPriceById(item.id, {
               price: item.price,
             });
