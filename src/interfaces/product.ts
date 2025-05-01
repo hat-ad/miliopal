@@ -13,7 +13,7 @@ export interface UpdateProductInterface {
   name?: string;
   isDeleted?: boolean;
   isArchived?: boolean;
-  ProductPrices?: {
+  ProductPrice?: {
     id: string;
     price: number;
   }[];
