@@ -57,9 +57,28 @@ class ProductService {
     id: string,
     data: UpdateProductInterface
   ): Promise<Product | null> {
-    return this.repositoryFactory
-      .getProductRepository()
-      .updateProduct(id, data);
+    return PrismaService.getInstance().$transaction(
+      async (tx) => {
+        const factory = new RepositoryFactory(tx);
+        const productRepo = factory.getProductRepository();
+        const productPriceRepo = factory.getProductPriceRepository();
+
+        const { productPrices, ...productData } = data;
+
+        const updatedProduct = await productRepo.updateProduct(id, productData);
+        if (!updatedProduct) return null;
+
+        if (Array.isArray(productPrices)) {
+          for (const item of productPrices) {
+            await productPriceRepo.updateProductPriceById(item.id, {
+              price: item.price,
+            });
+          }
+        }
+        return updatedProduct;
+      },
+      { maxWait: 30000, timeout: 30000 }
+    );
   }
 
   async deleteProduct(id: string): Promise<Product | null> {

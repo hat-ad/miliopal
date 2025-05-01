@@ -7,14 +7,16 @@ export interface CreateProductInterface {
 
 export interface UpdateProductInterface {
   name?: string;
-  price?: number;
   isDeleted?: boolean;
   isArchived?: boolean;
+  productPrices?: {
+    id: string;
+    price: number;
+  }[];
 }
 
 export interface GetProductsFilterInterface {
   name?: string;
-  price?: number;
   isArchived?: boolean;
   organizationId?: string;
 }

@@ -21,6 +21,16 @@ class ProductPriceRepository extends BaseRepository {
       },
     });
   }
+
+  async updateProductPriceById(
+    id: string,
+    data: { price: number }
+  ): Promise<void> {
+    await this.db.productPrice.update({
+      where: { id },
+      data,
+    });
+  }
 }
 
 export default ProductPriceRepository;
