@@ -60,7 +60,9 @@ class ProductService {
 
   async updateProduct(
     id: string,
-    data: UpdateProductInterface
+    data: UpdateProductInterface & {
+      ProductPrice: { id: string; price: number }[];
+    }
   ): Promise<Product | null> {
     return PrismaService.getInstance().$transaction(
       async (tx) => {
