@@ -127,15 +127,7 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   doc.fontSize(20).font("Helvetica-Bold").text("Ordrebekreftelse", 50, 50);
   if (logo && logo.startsWith("data:image/png;base64,")) {
     try {
-      const base64Data = logo.split(",")[1]; // remove the metadata
-      const logoBuffer = Buffer.from(base64Data, "base64");
-      const imageFolderPath = "./pdf/image";
-      if (!fs.existsSync(imageFolderPath)) {
-        fs.mkdirSync(imageFolderPath, { recursive: true });
-      }
-      fs.writeFileSync(`${imageFolderPath}/debug-logo.png`, logoBuffer);
-      const image = fs.readFileSync(`${imageFolderPath}/debug-logo.png`);
-      doc.image(image, 450, 55, {
+      doc.image(logo, 450, 55, {
         height: 90,
         width: 90,
         fit: [90, 90],
