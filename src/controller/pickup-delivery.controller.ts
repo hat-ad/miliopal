@@ -25,13 +25,7 @@ export default class PickupDeliveryController {
     try {
       const userId = req.payload?.id;
       const organizationId = req.payload?.organizationId;
-      const {
-        productsForDelivery,
-        sellerId,
-        PONumber,
-        comment,
-        priceCategoryId,
-      } = req.body;
+      const { productsForDelivery, sellerId, PONumber, comment } = req.body;
 
       if (!userId) return ERROR(res, null, "Unauthorized: No user ID in token");
 
@@ -43,7 +37,6 @@ export default class PickupDeliveryController {
         .createPickupDelivery({
           userId,
           organizationId,
-          priceCategoryId,
           sellerId,
           PONumber,
           comment,

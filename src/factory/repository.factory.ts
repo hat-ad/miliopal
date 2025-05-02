@@ -13,6 +13,7 @@ import PurchaseRepository from "@/repository/purchase.repository";
 import ReceiptRepository from "@/repository/receipt.repository";
 import ReconciliationHistoryRepository from "@/repository/reconciliation.repository";
 import SellerInviteRepository from "@/repository/seller-invite.repository";
+import SellerPurchaseStatsRepository from "@/repository/seller-stats.repository";
 import SellerRepository from "@/repository/seller.repository";
 import TodoListRepository from "@/repository/todo-list.repository";
 import UserRepository from "@/repository/user.repository";
@@ -90,5 +91,8 @@ export class RepositoryFactory {
 
   getProductPriceRepository(): ProductPriceRepository {
     return new ProductPriceRepository(this.db);
+  }
+  getSellerPurchaseStatsRepository(): SellerPurchaseStatsRepository {
+    return new SellerPurchaseStatsRepository(this.db);
   }
 }

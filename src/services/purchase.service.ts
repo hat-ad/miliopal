@@ -46,6 +46,8 @@ class PurchaseService {
           const userRepo = factory.getUserRepository();
           const privateSellerPurchaseStatsRepo =
             factory.getPrivateSellerPurchaseStatsRepository();
+          const sellerPurchaseStatsRepo =
+            factory.getSellerPurchaseStatsRepository();
 
           const receipt = await receiptRepo.getReceiptByOrganizationId(
             data.organizationId
@@ -156,6 +158,28 @@ class PurchaseService {
             );
           }
 
+          if (
+            purchasedItem?.paymentMethod === PaymentMethod.CASH &&
+            purchasedItem?.status === OrderStatus.PAID
+          ) {
+            const sellerPurchaseStats =
+              await sellerPurchaseStatsRepo.getSellerPurchaseStatsBySellerId(
+                purchasedItem.sellerId
+              );
+
+            if (!sellerPurchaseStats) {
+              throw new Error("No purchase stats found for seller");
+            }
+            const newTotalAmount = sellerPurchaseStats.totalSales + totalAmount;
+            const newTotalQuantity =
+              sellerPurchaseStats.totalQuantity + totalQuantity;
+
+            await sellerPurchaseStatsRepo.updateSellerPurchaseStats(
+              purchasedItem.sellerId,
+              { totalSales: newTotalAmount, totalQuantity: newTotalQuantity }
+            );
+          }
+
           return { purchase: purchasedItem };
         },
         { maxWait: 30000, timeout: 30000 }
@@ -207,6 +231,8 @@ class PurchaseService {
         const userRepo = factory.getUserRepository();
         const privateSellerPurchaseStatsRepo =
           factory.getPrivateSellerPurchaseStatsRepository();
+        const sellerPurchaseStatsRepo =
+          factory.getSellerPurchaseStatsRepository();
         const todoListRepo = factory.getTodoListRepository();
 
         const purchase = await purchaseRepo.getPurchase(purchaseId);
@@ -290,6 +316,25 @@ class PurchaseService {
             privateSellerPurchaseStats.totalQuantity - totalQuantity;
 
           await privateSellerPurchaseStatsRepo.updatePrivateSellerPurchaseStats(
+            purchasedItem.sellerId,
+            { totalSales: newTotalAmount, totalQuantity: newTotalQuantity }
+          );
+        }
+        if (purchasedItem?.paymentMethod === PaymentMethod.CASH) {
+          const sellerPurchaseStats =
+            await sellerPurchaseStatsRepo.getSellerPurchaseStatsBySellerId(
+              purchasedItem.sellerId
+            );
+
+          if (!sellerPurchaseStats) {
+            throw new Error("No purchase stats found for private seller");
+          }
+          const newTotalAmount =
+            sellerPurchaseStats.totalSales - purchase.totalAmount;
+          const newTotalQuantity =
+            sellerPurchaseStats.totalQuantity - totalQuantity;
+
+          await sellerPurchaseStatsRepo.updateSellerPurchaseStats(
             purchasedItem.sellerId,
             { totalSales: newTotalAmount, totalQuantity: newTotalQuantity }
           );

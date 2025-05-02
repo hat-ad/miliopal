@@ -82,15 +82,15 @@ model Purchase {
   priceCategoryId   String?
 
   status         OrderStatus
-  isArchived     Boolean       @default(false)
+  isArchived     Boolean        @default(false)
   organizationId String
   creditOrderId  String?
-  purchaseType   PurchaseType  @default(PURCHASE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  seller         Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  purchaseType   PurchaseType   @default(PURCHASE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller         Seller         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   priceCategory  PriceCategory? @relation(fields: [priceCategoryId], references: [id], onDelete: Cascade)
 
   productsPurchased ProductsPurchased[]
@@ -122,6 +122,7 @@ model Seller {
   purchases                  Purchase[]
   PickUpDelivery             PickUpDelivery[]
   PrivateSellerPurchaseStats PrivateSellerPurchaseStats[]
+  SellerPurchaseStats        SellerPurchaseStats?
 }
 
 enum Role {
@@ -206,21 +207,19 @@ model ProductForDelivery {
 }
 
 model PickUpDelivery {
-  id              String  @id @default(uuid())
-  PONumber        String?
-  comment         String?
-  sellerId        String
-  userId          String
-  priceCategoryId String
+  id       String  @id @default(uuid())
+  PONumber String?
+  comment  String?
+  sellerId String
+  userId   String
 
-  isArchived     Boolean       @default(false)
+  isArchived     Boolean      @default(false)
   organizationId String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  seller         Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  priceCategory  PriceCategory @relation(fields: [priceCategoryId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller         Seller       @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   productsForDelivery ProductForDelivery[]
 }
@@ -327,16 +326,28 @@ model PrivateSellerPurchaseStats {
   seller           Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 }
 
+model SellerPurchaseStats {
+  id               String   @id @default(uuid())
+  organizationId   String
+  sellerId         String   @unique
+  totalSales       Float    @default(0)
+  totalQuantity    Int      @default(0)
+  isNotified       Boolean  @default(false)
+  lastReconciledAt DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  seller           Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+}
+
 model PriceCategory {
-  id             String           @id @default(uuid())
+  id             String         @id @default(uuid())
   organizationId String
   name           String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   productPrices  ProductPrice[]
   Purchase       Purchase[]
-  PickUpDelivery PickUpDelivery[]
 }
 
 model ProductPrice {

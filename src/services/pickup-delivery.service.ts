@@ -37,7 +37,6 @@ class PickupDeliveryService {
           sellerId: data.sellerId,
           PONumber: data.PONumber,
           comment: data.comment,
-          priceCategoryId: data.priceCategoryId,
         });
 
         const products = data.productsForDelivery.map((product) => ({

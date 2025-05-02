@@ -6,7 +6,6 @@ const createPickupDeliverySchema = z.object({
   sellerId: z.string().min(1, "Seller id is required!"),
   PONumber: z.string().min(1, "PO number is not valid").optional(),
   comment: z.string().min(4, "Comment is invalid!").optional(),
-  priceCategoryId: z.string().min(1, "Price category id is required!"),
 });
 
 export type CreatePickupDeliveryInput = z.infer<
