@@ -8,6 +8,7 @@ import PurchaseService from "@/services/purchase.service";
 import ReceiptService from "@/services/receipt.service";
 import ReconciliationHistoryService from "@/services/reconciliation.service";
 import SellerInviteService from "@/services/seller-invite.service";
+import SellerPurchaseStatsService from "@/services/seller-purchase-stats.service";
 import SellerService from "@/services/seller.service";
 import TodoListService from "@/services/todo-list.service";
 import UserService from "@/services/user.service";
@@ -59,6 +60,9 @@ export class ServiceFactory {
   }
   getPrivateSellerPurchaseStatsService(): PrivateSellerPurchaseStatsService {
     return new PrivateSellerPurchaseStatsService();
+  }
+  getSellerPurchaseStatsService(): SellerPurchaseStatsService {
+    return new SellerPurchaseStatsService();
   }
 
   getPriceCategoryService(): PriceCategoryService {

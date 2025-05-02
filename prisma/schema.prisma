@@ -272,6 +272,7 @@ enum TodoListEvent {
   COMPANY_CASH_BALANCE_BELOW_THRESHOLD
   INDIVIDUAL_CASH_BALANCE_BELOW_THRESHOLD
   PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
+  SELLER_CASH_SALES_ABOVE_THRESHOLD
   PURCHASE_INITIATED_WITH_BANK_TRANSFER
   ORDER_PICKUP_INITIATED
 }
@@ -293,14 +294,16 @@ model TodoList {
 }
 
 model TodoListSettings {
-  id                                      String       @id @default(uuid())
-  organizationId                          String       @unique
+  id                                      String @id @default(uuid())
+  organizationId                          String @unique
   companyCashBalanceLowerThreshold        Float?
   individualCashBalanceLowerThreshold     Float?
   privateSellerSalesBalanceUpperThreshold Float?
-  createdAt                               DateTime     @default(now())
-  updatedAt                               DateTime     @updatedAt
-  organization                            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sellerSalesBalanceUpperThreshold        Float?
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model SellerInvite {

@@ -51,6 +51,13 @@ class TodoListRepository extends BaseRepository {
           payload?.totalSales || 0,
           payload?.totalQuantity || 0
         );
+      case TodoListEvent.SELLER_CASH_SALES_ABOVE_THRESHOLD:
+        await this.handleCreateSellerCashUpperThresholdEvent(
+          payload.organizationId,
+          payload?.sellerId || "",
+          payload?.totalSales || 0,
+          payload?.totalQuantity || 0
+        );
         break;
       default:
         break;
@@ -84,6 +91,9 @@ class TodoListRepository extends BaseRepository {
         await this.updatePaymentDate(payload.purchaseId, payload.paymentDate);
         break;
       case TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD:
+        await this.completeTodoListEvent(payload.todoListId);
+        break;
+      case TodoListEvent.SELLER_CASH_SALES_ABOVE_THRESHOLD:
         await this.completeTodoListEvent(payload.todoListId);
         break;
       default:
@@ -161,6 +171,20 @@ class TodoListRepository extends BaseRepository {
       select: {
         organizationId: true,
         privateSellerSalesBalanceUpperThreshold: true,
+      },
+    });
+  }
+
+  async listTodoListSettingsWithSellerSettingsEnabled() {
+    return await this.db.todoListSettings.findMany({
+      where: {
+        sellerSalesBalanceUpperThreshold: {
+          not: null,
+        },
+      },
+      select: {
+        organizationId: true,
+        sellerSalesBalanceUpperThreshold: true,
       },
     });
   }
@@ -411,7 +435,7 @@ class TodoListRepository extends BaseRepository {
     this.createPurchaseWithBankTransferEvent(organizationId, purchaseId);
   }
 
-  private async getPrivateSellerMeta(
+  private async getSellerMeta(
     sellerId: string,
     totalSales: number,
     totalQuantity: number
@@ -434,11 +458,23 @@ class TodoListRepository extends BaseRepository {
         priority: 3,
         organizationId,
         event: TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD,
-        meta: await this.getPrivateSellerMeta(
-          sellerId,
-          totalSales,
-          totalQuantity
-        ),
+        meta: await this.getSellerMeta(sellerId, totalSales, totalQuantity),
+      },
+    });
+  }
+
+  private async handleCreateSellerCashUpperThresholdEvent(
+    organizationId: string,
+    sellerId: string,
+    totalSales: number,
+    totalQuantity: number
+  ) {
+    return await this.db.todoList.create({
+      data: {
+        priority: 3,
+        organizationId,
+        event: TodoListEvent.SELLER_CASH_SALES_ABOVE_THRESHOLD,
+        meta: await this.getSellerMeta(sellerId, totalSales, totalQuantity),
       },
     });
   }

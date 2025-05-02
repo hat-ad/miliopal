@@ -86,7 +86,7 @@ class TodoListService {
     }
   }
 
-  private async getPrivateSellerMetaDetails(todoList: TodoList) {
+  private async getSellerMetaDetails(todoList: TodoList) {
     if (todoList.meta) {
       const meta = todoList.meta as Record<string, string>;
       const seller = await this.repositoryFactory
@@ -207,9 +207,11 @@ class TodoListService {
             listWithData.push({ ...todoList, details: { user: metaDetails } });
           }
         } else if (
-          todoList.event === TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD
+          todoList.event ===
+            TodoListEvent.PRIVATE_SELLER_SALES_ABOVE_THRESHOLD ||
+          todoList.event === TodoListEvent.SELLER_CASH_SALES_ABOVE_THRESHOLD
         ) {
-          const metaDetails = await this.getPrivateSellerMetaDetails(todoList);
+          const metaDetails = await this.getSellerMetaDetails(todoList);
 
           if (metaDetails) {
             listWithData.push({
