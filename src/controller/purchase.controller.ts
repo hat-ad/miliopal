@@ -35,12 +35,20 @@ export default class PurchaseController {
       if (!organizationId)
         return ERROR(res, null, "No Organization ID in token");
 
+      const products = req.body.products.filter(
+        (product: any) => product.quantity > 0
+      );
+
+      if (products.length === 0) {
+        return ERROR(res, null, "No products added to purchase");
+      }
       const purchase = await this.serviceFactory
         .getPurchaseService()
         .createPurchase({
           userId,
           organizationId,
           ...req.body,
+          products: products.filter((product: any) => product.quantity > 0),
         });
 
       if (!purchase) {

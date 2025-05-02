@@ -32,6 +32,14 @@ export default class PriceCategoryController {
         return ERROR(res, false, "Invalid or empty 'names' array");
       }
 
+      //check for unique names
+      const uniqueNames = new Set(
+        names.map((name: string) => name.toLowerCase())
+      );
+      if (uniqueNames.size !== names.length) {
+        return ERROR(res, false, "Names must be unique");
+      }
+
       // Check for any existing category names
       for (const name of names) {
         const existing = await this.serviceFactory
@@ -45,11 +53,6 @@ export default class PriceCategoryController {
           );
         }
       }
-
-      names.map((name: string) => ({
-        name,
-        organizationId,
-      }));
 
       const priceCategories = names.map((name: string) => ({
         name,
