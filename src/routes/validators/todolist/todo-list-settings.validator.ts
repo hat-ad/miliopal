@@ -6,6 +6,7 @@ const UpdateTodoListSettingsSchema = z.object({
   isCompanyCashBalanceLowerThresholdEnabled: z.boolean(),
   isIndividualCashBalanceLowerThresholdEnabled: z.boolean(),
   isPrivateSellerSalesBalanceUpperThresholdEnabled: z.boolean(),
+  isSellerSalesBalanceUpperThresholdEnabled: z.boolean(),
   companyCashBalanceLowerThreshold: z
     .number()
     .min(0, "company cash balance lower threshold is required!")
@@ -17,6 +18,10 @@ const UpdateTodoListSettingsSchema = z.object({
   privateSellerSalesBalanceUpperThreshold: z
     .number()
     .min(0, "private seller balance upper threshold is required!")
+    .optional(),
+  sellerSalesBalanceUpperThreshold: z
+    .number()
+    .min(0, "seller balance upper threshold is required!")
     .optional(),
 });
 
@@ -37,12 +42,16 @@ export const validateUpdateTodoListSettings = (
         req.body.individualCashBalanceLowerThreshold,
       privateSellerSalesBalanceUpperThreshold:
         req.body.privateSellerSalesBalanceUpperThreshold,
+      sellerSalesBalanceUpperThreshold:
+        req.body.sellerSalesBalanceUpperThreshold,
       isCompanyCashBalanceLowerThresholdEnabled:
         req.body.isCompanyCashBalanceLowerThresholdEnabled,
       isIndividualCashBalanceLowerThresholdEnabled:
         req.body.isIndividualCashBalanceLowerThresholdEnabled,
       isPrivateSellerSalesBalanceUpperThresholdEnabled:
         req.body.isPrivateSellerSalesBalanceUpperThresholdEnabled,
+      isSellerSalesBalanceUpperThresholdEnabled:
+        req.body.isSellerSalesBalanceUpperThresholdEnabled,
     };
     req.body = payload;
     UpdateTodoListSettingsSchema.parse(req.body);

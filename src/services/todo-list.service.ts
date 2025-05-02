@@ -237,6 +237,7 @@ class TodoListService {
       isCompanyCashBalanceLowerThresholdEnabled: boolean;
       isIndividualCashBalanceLowerThresholdEnabled: boolean;
       isPrivateSellerSalesBalanceUpperThresholdEnabled: boolean;
+      isSellerSalesBalanceUpperThresholdEnabled: boolean;
     }
   ) {
     const payload = {
@@ -245,6 +246,7 @@ class TodoListService {
         data.individualCashBalanceLowerThreshold,
       privateSellerSalesBalanceUpperThreshold:
         data.privateSellerSalesBalanceUpperThreshold,
+      sellerSalesBalanceUpperThreshold: data.sellerSalesBalanceUpperThreshold,
     };
 
     if (!data.isCompanyCashBalanceLowerThresholdEnabled) {
@@ -255,6 +257,9 @@ class TodoListService {
     }
     if (!data.isPrivateSellerSalesBalanceUpperThresholdEnabled) {
       payload.privateSellerSalesBalanceUpperThreshold = null;
+    }
+    if (!data.isSellerSalesBalanceUpperThresholdEnabled) {
+      payload.sellerSalesBalanceUpperThreshold = null;
     }
 
     return await this.repositoryFactory
