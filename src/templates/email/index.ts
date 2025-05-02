@@ -117,7 +117,7 @@ export const sendSellerInvitationMail = async (
 export const sendPurchaseMail = async (
   sellerEmail: string,
   organization: Organization,
-  orderConfirmationPdfPath: Buffer
+  orderConfirmationPdfBuffer: Buffer
 ) => {
   const templateBody = {
     companyName: organization.companyName,
@@ -140,7 +140,7 @@ export const sendPurchaseMail = async (
   const attachments = [
     {
       filename: "order_confirmation.pdf",
-      content: orderConfirmationPdfPath,
+      content: orderConfirmationPdfBuffer,
       contentType: "application/pdf",
     },
   ];

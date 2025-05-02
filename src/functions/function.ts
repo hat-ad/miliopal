@@ -1,5 +1,4 @@
 import { IPurchase } from "@/types/purchase";
-import fs from "fs";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
 import sendgridTransport from "nodemailer-sendgrid-transport";
@@ -215,5 +214,3 @@ export const generatePurchasePDFForB2B = async (
   doc.end();
   return pdfComplete;
 };
-
-export const removeFile = (path: string) => fs.unlinkSync(path);
