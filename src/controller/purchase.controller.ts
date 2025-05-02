@@ -1,9 +1,5 @@
 import { ServiceFactory } from "@/factory/service.factory";
-import {
-  bindMethods,
-  generatePurchasePDFForB2B,
-  removeFile,
-} from "@/functions/function";
+import { bindMethods, generatePurchasePDFForB2B } from "@/functions/function";
 import { GetMonthlyPurchaseFilterInterface } from "@/interfaces/purchase";
 import { sendPurchaseMail } from "@/templates/email";
 import { decrypt } from "@/utils/AES";
@@ -488,7 +484,7 @@ export default class PurchaseController {
         },
         pathStored
       );
-      removeFile(pathStored);
+      // removeFile(pathStored);
 
       return OK(res, true, "Receipt sent successfully");
     } catch (error) {

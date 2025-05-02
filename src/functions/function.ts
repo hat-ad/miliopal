@@ -1,5 +1,4 @@
 import { IPurchase } from "@/types/purchase";
-import { getError } from "@/utils/common";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
@@ -100,18 +99,19 @@ export function bindMethods(instance: any) {
   }
 }
 
-export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
-  const folderPath = "./pdf";
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-  }
-  const outputPath = `${folderPath}/${orderData.id}.pdf`;
+export const generatePurchasePDFForB2B = async (
+  orderData: IPurchase
+): Promise<Buffer> => {
   const doc = new PDFDocument({ size: "A4", margin: 50 });
-  const stream = fs.createWriteStream(outputPath);
-  doc.pipe(stream);
-  const logo = orderData?.receiptSettings?.logo || "";
 
-  // Extract necessary data
+  const buffers: Buffer[] = [];
+  doc.on("data", buffers.push.bind(buffers));
+  const pdfComplete = new Promise<Buffer>((resolve, reject) => {
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", reject);
+  });
+
+  const logo = orderData?.receiptSettings?.logo || "";
   const {
     orderNo,
     totalAmount,
@@ -121,9 +121,9 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     createdAt,
     organization,
   } = orderData;
+
   const sellerInfo = seller.businessSeller;
 
-  // Header Section
   doc.fontSize(20).font("Helvetica-Bold").text("Ordrebekreftelse", 50, 50);
   if (logo && logo.startsWith("data:image/png;base64,")) {
     try {
@@ -133,15 +133,10 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
         fit: [90, 90],
       });
     } catch (error) {
-      console.error("🛑 Failed to embed base64 logo image:", getError(error));
+      console.error("🛑 Failed to embed base64 logo image:", error);
     }
   }
-  // doc
-  //   .fontSize(16)
-  //   .font("Helvetica-Bold")
-  //   .text("Miljøpall", 450, 50, { align: "right" });
 
-  // Order details
   doc.fontSize(10).font("Helvetica-Bold").text("Ordrenr:", 50, 90);
   doc.font("Helvetica").text(orderNo, 120, 90);
 
@@ -153,7 +148,6 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   doc.fontSize(10).font("Helvetica-Bold").text("Kjøper:", 50, 120);
   doc.font("Helvetica").text(user?.name || "", 120, 120);
 
-  // Seller and Buyer info
   doc.fontSize(10).font("Helvetica-Bold").text("Selger:", 50, 150);
   const sellerDetails = [
     sellerInfo?.companyName,
@@ -161,7 +155,6 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     seller?.city,
     seller?.phone,
   ].filter(Boolean);
-
   if (sellerDetails.length) {
     doc.font("Helvetica").text(sellerDetails.join("\n"), 50, 165);
   }
@@ -173,12 +166,10 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
     organization?.organizationNumber,
     `${organization?.postalCode || ""} ${organization?.city || ""}`.trim(),
   ].filter(Boolean);
-
   if (organizationDetails.length) {
     doc.font("Helvetica").text(organizationDetails.join("\n"), 300, 165);
   }
 
-  // Table Header
   doc.moveDown(2);
   doc.fontSize(10).font("Helvetica-Bold");
   doc.text("Produkt", 50, 250);
@@ -186,7 +177,6 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   doc.text("Pris", 400, 250);
   doc.moveTo(50, 265).lineTo(550, 265).stroke();
 
-  // Table Data
   let y = 280;
   doc.font("Helvetica").fontSize(10);
   productsPurchased.forEach((item, index) => {
@@ -206,7 +196,6 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   doc.moveTo(50, y).lineTo(550, y).stroke("#000");
   y += 20;
 
-  // Total Price
   doc.font("Helvetica-Bold").text("Total", 300, y);
   doc.text(`${totalAmount} kr`, 400, y).font("Helvetica").fillColor("#818181");
   doc.fillColor("#000");
@@ -218,16 +207,13 @@ export const generatePurchasePDFForB2B = async (orderData: IPurchase) => {
   doc.fontSize(8).text("Alle priser er eksklusive mva.", 50, y + 40);
 
   y += 50;
-  // Footer
   doc.fontSize(10).text(organization?.companyName || "", 50, y + 70);
   doc.text(organization?.organizationNumber, 50, y + 85);
   doc.fillColor("blue").text(organization?.email || "", 50, y + 100);
   doc.fillColor("black").text(organization?.phone || "", 50, y + 115);
 
   doc.end();
-  console.log(`PDF saved to ${outputPath}`);
-
-  return outputPath;
+  return pdfComplete;
 };
 
 export const removeFile = (path: string) => fs.unlinkSync(path);
