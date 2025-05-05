@@ -139,7 +139,7 @@ class PurchaseRepository extends BaseRepository {
 
     const purchases = await this.db.purchase.findMany({
       where: whereCondition,
-      orderBy: { [sortBy]: sortOrder, isArchived: "asc" },
+      orderBy: { [sortBy]: sortOrder },
       take: limit,
       skip: offset,
       include: {
