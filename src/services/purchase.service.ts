@@ -59,14 +59,16 @@ class PurchaseService {
             );
           }
 
-          const totalAmount = data.products
+          const products = data.products.filter((product) => product.quantity);
+
+          const totalAmount = products
             .map(
               (product: { price: number; quantity: number }) =>
                 product.price * product.quantity
             )
             .reduce((sum: number, value: number) => sum + value, 0);
 
-          const totalQuantity = data.products
+          const totalQuantity = products
             .map(
               (product: { price: number; quantity: number }) => product.quantity
             )
@@ -108,7 +110,7 @@ class PurchaseService {
 
           const purchase = await purchaseRepo.createPurchase(payload);
 
-          const productsData = data.products.map((product) => ({
+          const productsData = products.map((product) => ({
             ...product,
             purchaseId: purchase.id,
           }));

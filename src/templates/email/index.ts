@@ -134,7 +134,7 @@ export const sendPurchaseMail = async (
   const response = {
     to: sellerEmail,
     body: data,
-    subject: `Order Confirmation!`,
+    subject: `Bestillingsbekreftelse fra ${organization?.companyName}`,
   };
 
   const attachments = [

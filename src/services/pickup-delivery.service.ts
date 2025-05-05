@@ -39,10 +39,12 @@ class PickupDeliveryService {
           comment: data.comment,
         });
 
-        const products = data.productsForDelivery.map((product) => ({
-          ...product,
-          pickUpDeliveryId: pickUpDelivery.id,
-        }));
+        const products = data.productsForDelivery
+          .filter((product) => product.quantity)
+          .map((product) => ({
+            ...product,
+            pickUpDeliveryId: pickUpDelivery.id,
+          }));
 
         const products_for_delivery =
           await productsPickupDeliveryRepo.bulkInsertProductsPurchased(
