@@ -42,10 +42,14 @@ class ProductRepository extends BaseRepository {
       isDeleted: false,
     };
 
-    const total = await this.db.product.count({ where: whereClause });
+    const total = await this.db.product.count({
+      where: whereClause,
+      orderBy: { isArchived: "asc" },
+    });
 
     const products = await this.db.product.findMany({
       where: whereClause,
+      orderBy: { isArchived: "asc" },
       include: {
         ProductPrice: filters.priceCategoryId
           ? {
