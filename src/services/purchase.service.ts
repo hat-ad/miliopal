@@ -129,7 +129,9 @@ class PurchaseService {
           });
 
           if (
-            purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER &&
+            (purchasedItem?.paymentMethod === PaymentMethod.BANK_TRANSFER ||
+              purchasedItem?.paymentMethod ===
+                PaymentMethod.BANK_TRANSFER_INTERNATIONAL) &&
             purchasedItem?.seller?.type === SellerType.PRIVATE
           ) {
             await todoListRepo.registerEvent(
