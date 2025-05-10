@@ -57,11 +57,17 @@ class PriceCategoryService {
   }
 
   async getPriceCategoryList(
-    filters: GetPriceCategoryFilterInterface
-  ): Promise<PriceCategory[]> {
+    filters: GetPriceCategoryFilterInterface,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    priceCategories: PriceCategory[];
+    total: number;
+    totalPages: number;
+  }> {
     return this.repositoryFactory
       .getPriceCategoryRepository()
-      .getPriceCategoryList(filters);
+      .getPriceCategoryList(filters, page, limit);
   }
 
   async getPriceCategory(

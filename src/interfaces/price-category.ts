@@ -6,4 +6,5 @@ export interface CreatePriceCategoryInterface {
 export interface GetPriceCategoryFilterInterface {
   organizationId: string;
   name?: string;
+  isArchived?: boolean;
 }
