@@ -24,7 +24,7 @@ class ProductService {
 
         const product = await productRepo.createProduct(data);
 
-        const priceCategories = await priceCategoryRepo.getPriceCategoryList({
+        const priceCategories = await priceCategoryRepo.getPriceCategories({
           organizationId: data.organizationId,
         });
 

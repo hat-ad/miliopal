@@ -1,10 +1,10 @@
-import { PriceCategory, Prisma } from "@prisma/client";
-import BaseRepository from "./base.repository";
 import {
   CreatePriceCategoryInterface,
   GetPriceCategoryFilterInterface,
   UpdatePriceCategoryInterface,
 } from "@/interfaces/price-category";
+import { PriceCategory, Prisma } from "@prisma/client";
+import BaseRepository from "./base.repository";
 
 class PriceCategoryRepository extends BaseRepository {
   async bulkInsertPriceCategory(
@@ -62,6 +62,31 @@ class PriceCategoryRepository extends BaseRepository {
     const totalPages = Math.ceil(total / limit);
 
     return { priceCategories, total, totalPages };
+  }
+
+  async getPriceCategories(
+    filters: GetPriceCategoryFilterInterface
+  ): Promise<PriceCategory[]> {
+    const whereClause = {
+      name: filters.name
+        ? { contains: filters.name, mode: Prisma.QueryMode.insensitive }
+        : undefined,
+      isArchived:
+        filters.isArchived !== undefined ? filters.isArchived : undefined,
+      organizationId: filters.organizationId
+        ? {
+            contains: filters.organizationId,
+            mode: Prisma.QueryMode.insensitive,
+          }
+        : undefined,
+    };
+
+    const priceCategories = await this.db.priceCategory.findMany({
+      where: whereClause,
+      orderBy: { isArchived: "asc" },
+    });
+
+    return priceCategories;
   }
 
   async getPriceCategory(
