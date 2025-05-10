@@ -18,4 +18,10 @@ router.get(
   PriceCategoryController.getInstance().getPriceCategoryList
 );
 
+router.put(
+  "/update-price-category/:id",
+  isAuthenticated,
+  PriceCategoryController.getInstance().updatePriceCategory
+);
+
 export default router;

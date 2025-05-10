@@ -8,3 +8,8 @@ export interface GetPriceCategoryFilterInterface {
   name?: string;
   isArchived?: boolean;
 }
+
+export interface UpdatePriceCategoryInterface {
+  name?: string;
+  isArchived?: boolean;
+}

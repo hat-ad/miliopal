@@ -3,6 +3,7 @@ import BaseRepository from "./base.repository";
 import {
   CreatePriceCategoryInterface,
   GetPriceCategoryFilterInterface,
+  UpdatePriceCategoryInterface,
 } from "@/interfaces/price-category";
 
 class PriceCategoryRepository extends BaseRepository {
@@ -74,6 +75,18 @@ class PriceCategoryRepository extends BaseRepository {
           mode: "insensitive",
         },
         organizationId,
+      },
+    });
+  }
+
+  async updatePriceCategory(
+    id: string,
+    data: UpdatePriceCategoryInterface
+  ): Promise<PriceCategory> {
+    return this.db.priceCategory.update({
+      where: { id },
+      data: {
+        ...data,
       },
     });
   }

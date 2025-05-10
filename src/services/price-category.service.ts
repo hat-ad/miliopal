@@ -3,6 +3,7 @@ import { RepositoryFactory } from "@/factory/repository.factory";
 import {
   CreatePriceCategoryInterface,
   GetPriceCategoryFilterInterface,
+  UpdatePriceCategoryInterface,
 } from "@/interfaces/price-category";
 import { CreateProductPriceInterface } from "@/interfaces/product-price";
 import { PriceCategory, ProductPrice } from "@prisma/client";
@@ -77,6 +78,15 @@ class PriceCategoryService {
     return this.repositoryFactory
       .getPriceCategoryRepository()
       .getPriceCategory(category, organizationId);
+  }
+
+  async updatePriceCategory(
+    id: string,
+    data: UpdatePriceCategoryInterface
+  ): Promise<PriceCategory | null> {
+    return this.repositoryFactory
+      .getPriceCategoryRepository()
+      .updatePriceCategory(id, data);
   }
 }
 

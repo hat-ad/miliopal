@@ -93,4 +93,18 @@ export default class PriceCategoryController {
       return ERROR(res, false, error);
     }
   }
+
+  async updatePriceCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const priceCategory = await this.serviceFactory
+        .getPriceCategoryService()
+        .updatePriceCategory(id, req.body);
+
+      return OK(res, priceCategory, "Category updated successfully");
+    } catch (error) {
+      return ERROR(res, false, error);
+    }
+  }
 }
