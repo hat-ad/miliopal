@@ -154,7 +154,7 @@ class TodoListRepository extends BaseRepository {
   }
 
   async deleteTodoList(todoListId: string) {
-    return await this.db.todoListSettings.delete({
+    return await this.db.todoList.delete({
       where: {
         id: todoListId,
       },
