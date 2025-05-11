@@ -22,11 +22,17 @@ class SellerService {
         const sellerRepository = factory.getSellerRepository();
         const privateSellerPurchaseStatsRepository =
           factory.getPrivateSellerPurchaseStatsRepository();
+        const sellerPurchaseStatsRepository =
+          factory.getSellerPurchaseStatsRepository();
 
         const seller = await sellerRepository.createSeller(data);
 
         if (data.type === SellerType.PRIVATE) {
           await privateSellerPurchaseStatsRepository.createPrivateSellerPurchaseStats(
+            seller.id,
+            seller.organizationId
+          );
+          await sellerPurchaseStatsRepository.createSellerPurchaseStats(
             seller.id,
             seller.organizationId
           );

@@ -6,7 +6,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
     sellerId: string,
     organizationId: string
   ): Promise<void> {
-    await this.db.privateSellerPurchaseStats.create({
+    await this.db.sellerPurchaseStats.create({
       data: {
         sellerId,
         organizationId,
@@ -21,7 +21,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
       "id" | "sellerId" | "createdAt" | "updatedAt"
     >
   ): Promise<PrivateSellerPurchaseStats> {
-    return this.db.privateSellerPurchaseStats.update({
+    return this.db.sellerPurchaseStats.update({
       where: {
         sellerId: sellerId,
       },
@@ -32,7 +32,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
   async getSellerPurchaseStatsBySellerId(
     sellerId: string
   ): Promise<PrivateSellerPurchaseStats | null> {
-    return this.db.privateSellerPurchaseStats.findUnique({
+    return this.db.sellerPurchaseStats.findUnique({
       where: {
         sellerId,
       },
@@ -42,7 +42,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
   async getSellerPurchaseStatsByOrganizationIdNonNotified(
     organizationId: string[]
   ): Promise<PrivateSellerPurchaseStats[]> {
-    return this.db.privateSellerPurchaseStats.findMany({
+    return this.db.sellerPurchaseStats.findMany({
       where: {
         organizationId: {
           in: organizationId,
@@ -53,7 +53,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
   }
 
   async markSellerStatsNotified(sellerId: string): Promise<void> {
-    await this.db.privateSellerPurchaseStats.update({
+    await this.db.sellerPurchaseStats.update({
       where: {
         sellerId,
       },
@@ -64,7 +64,7 @@ class SellerPurchaseStatsRepository extends BaseRepository {
   }
 
   async resetSellerStats(sellerId: string) {
-    await this.db.privateSellerPurchaseStats.update({
+    await this.db.sellerPurchaseStats.update({
       where: {
         sellerId,
       },
