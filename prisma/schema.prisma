@@ -190,6 +190,7 @@ model Receipt {
   currentOrderNumber  Int
   logo                String?
   receiptText         String?
+  bankReceiptText     String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
   organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

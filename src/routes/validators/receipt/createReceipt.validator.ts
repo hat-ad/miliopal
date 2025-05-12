@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 const CreateReceiptSchema = z.object({
   startingOrderNumber: z.number().min(1, "startingOrderNumber is required!"),
   receiptText: z.string().optional(),
+  bankReceiptText: z.string().optional(),
   logo: z.string().min(1, "logo is required!"),
 });
 
@@ -16,8 +17,9 @@ export const validateCreateReceipt = (
   next: NextFunction
 ) => {
   try {
-    const { startingOrderNumber, receiptText, logo } = req.body;
-    const payload = { startingOrderNumber, logo, receiptText };
+    const { startingOrderNumber, receiptText, logo, bankReceiptText } =
+      req.body;
+    const payload = { startingOrderNumber, logo, receiptText, bankReceiptText };
     req.body = payload;
 
     CreateReceiptSchema.parse(req.body);

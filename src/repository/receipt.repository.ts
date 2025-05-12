@@ -14,6 +14,7 @@ class ReceiptRepository extends BaseRepository {
         currentOrderNumber: data.currentOrderNumber,
         logo: data.logo,
         receiptText: data.receiptText,
+        bankReceiptText: data.bankReceiptText,
       },
     });
   }
