@@ -29,33 +29,36 @@ class PrivateSellerPurchaseStatsService {
 
         const sellersNeededToBeNotified = [];
         const sellersWhoseStatsNeedsResetAfter12Months = [];
+
         for (const settings of todoListSettings) {
-          const sellerStats = privateSellersStats.find(
+          const sellerStats = privateSellersStats.filter(
             (s) => s.organizationId === settings.organizationId
           );
-          if (!sellerStats) continue;
 
-          const sellerWithReconciliationPeriodUnder12Months =
-            sellerStats.lastReconciledAt.getTime() >=
-            new Date().getTime() - 12 * 30 * 24 * 60 * 60 * 1000;
+          if (!sellerStats.length) continue;
+          for (const seller of sellerStats) {
+            const sellerWithReconciliationPeriodUnder12Months =
+              seller.lastReconciledAt.getTime() >=
+              new Date().getTime() - 12 * 30 * 24 * 60 * 60 * 1000;
 
-          const sellerWithReconciliationPeriodEndedAfter12Months =
-            sellerStats.lastReconciledAt.getTime() <
-            new Date().getTime() - 12 * 30 * 24 * 60 * 60 * 1000;
+            const sellerWithReconciliationPeriodEndedAfter12Months =
+              seller.lastReconciledAt.getTime() <
+              new Date().getTime() - 12 * 30 * 24 * 60 * 60 * 1000;
 
-          const isThresholdCrossed =
-            sellerStats.totalSales >=
-            (settings.privateSellerSalesBalanceUpperThreshold as number);
+            const isThresholdCrossed =
+              seller.totalSales >=
+              (settings.privateSellerSalesBalanceUpperThreshold as number);
 
-          if (
-            sellerWithReconciliationPeriodUnder12Months &&
-            isThresholdCrossed
-          ) {
-            sellersNeededToBeNotified.push(sellerStats);
-          }
+            if (
+              sellerWithReconciliationPeriodUnder12Months &&
+              isThresholdCrossed
+            ) {
+              sellersNeededToBeNotified.push(seller);
+            }
 
-          if (sellerWithReconciliationPeriodEndedAfter12Months) {
-            sellersWhoseStatsNeedsResetAfter12Months.push(sellerStats);
+            if (sellerWithReconciliationPeriodEndedAfter12Months) {
+              sellersWhoseStatsNeedsResetAfter12Months.push(seller);
+            }
           }
         }
 
